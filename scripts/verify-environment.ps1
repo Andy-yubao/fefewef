@@ -71,11 +71,13 @@ try {
 
     $KFlowSkill = Join-Path $RepoRoot ".agents\skills\kflow\SKILL.md"
     $ModelingSkill = Join-Path $RepoRoot ".agents\skills\math-modeling-skill\SKILL.md"
+    $ReviewSkill = Join-Path $RepoRoot ".agents\skills\math-modeling-review\SKILL.md"
     Assert-SkillFrontmatter $KFlowSkill "kflow"
     if (-not (Test-Path -LiteralPath $ModelingSkill -PathType Leaf)) {
         throw "Math Modeling Skill is not provisioned. Run .\scripts\setup.ps1 first."
     }
     Assert-SkillFrontmatter $ModelingSkill "math-modeling-skill"
+    Assert-SkillFrontmatter $ReviewSkill "math-modeling-review"
 
     $ModelingSkillRoot = Split-Path -Parent $ModelingSkill
     $ModelingSkillMarker = Join-Path $ModelingSkillRoot ".cumcm-source-commit"
@@ -107,6 +109,58 @@ try {
     finally {
         Pop-Location
     }
+
+    $ReviewSkillRoot = Split-Path -Parent $ReviewSkill
+    foreach ($RequiredPath in @(
+        "agents\openai.yaml",
+        "knowledge\review-principles.md",
+        "knowledge\team-risk-profile.md",
+        "knowledge\visual-review-guide.md",
+        "references\reviewer-playbook.md",
+        "templates\review-output-template.md"
+    )) {
+        if (-not (Test-Path -LiteralPath (Join-Path $ReviewSkillRoot $RequiredPath) -PathType Leaf)) {
+            throw "Math Modeling Review Skill is missing required content: $RequiredPath"
+        }
+    }
+
+    $ReviewSkillText = Get-Content -Raw -LiteralPath $ReviewSkill
+    $ReviewTemplateText = Get-Content -Raw -LiteralPath (Join-Path $ReviewSkillRoot "templates\review-output-template.md")
+    $ReviewProfileText = Get-Content -Raw -LiteralPath (Join-Path $ReviewSkillRoot "knowledge\team-risk-profile.md")
+    $Reviewers = @(
+        "Judge / Triage",
+        "Requirement Coverage",
+        "Executive Summary",
+        "Model Logic",
+        "Model Cohesion & Integration",
+        "Robustness",
+        "Appropriate Explanation",
+        "Visual Communication"
+    )
+    foreach ($Reviewer in $Reviewers) {
+        if (-not $ReviewSkillText.Contains($Reviewer) -or -not $ReviewTemplateText.Contains($Reviewer)) {
+            throw "Math Modeling Review Skill omits reviewer contract: $Reviewer"
+        }
+    }
+    foreach ($CrossCheck in @("Problem → Model → Evidence → Conclusion", "Claim → Evidence")) {
+        if (-not $ReviewSkillText.Contains($CrossCheck)) {
+            throw "Math Modeling Review Skill omits cross-check contract: $CrossCheck"
+        }
+    }
+    foreach ($Heading in @("Overall Verdict", "Prioritized Findings", "Eight-Reviewer Summary", "Top 5 Fixes Before Submission")) {
+        if (-not $ReviewSkillText.Contains($Heading) -or -not $ReviewTemplateText.Contains($Heading)) {
+            throw "Math Modeling Review Skill omits output contract: $Heading"
+        }
+    }
+    foreach ($Risk in @("Executive Summary", "Model Cohesion & Integration", "Sensitivity Analysis", "Appropriate Explanations")) {
+        if (-not $ReviewProfileText.Contains($Risk)) {
+            throw "Math Modeling Review Skill omits elevated-attention area: $Risk"
+        }
+    }
+    if (-not $ReviewSkillText.Contains("Never exceed five") -or -not $ReviewTemplateText.Contains("Never add a sixth")) {
+        throw "Math Modeling Review Skill does not enforce the Top 5 hard cap."
+    }
+    Write-Host "Math Modeling Review Skill contract: OK"
 
     Write-Host "Environment verification passed"
 }

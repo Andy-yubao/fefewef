@@ -154,7 +154,8 @@ try {
 
     $RequiredSkills = @(
         (Join-Path $RepoRoot ".agents\skills\kflow\SKILL.md"),
-        (Join-Path $ModelingSkillRoot "SKILL.md")
+        (Join-Path $ModelingSkillRoot "SKILL.md"),
+        (Join-Path $RepoRoot ".agents\skills\math-modeling-review\SKILL.md")
     )
     foreach ($Skill in $RequiredSkills) {
         if (-not (Test-Path -LiteralPath $Skill -PathType Leaf)) {

@@ -10,7 +10,7 @@ cd CUMCM-2026
 codex
 ```
 
-Then run `/skills` in Codex and confirm that `kflow` and `math-modeling-skill` are available.
+Then run `/skills` in Codex and confirm that `kflow`, `math-modeling-skill`, and `math-modeling-review` are available.
 
 `setup.ps1` checks for Python 3.11 or newer, creates/reuses `.venv`, installs the bounded modeling dependencies and commit-pinned KFlow CLI, provisions the commit-pinned Math Modeling Skill locally, initializes KFlow only when necessary, and runs the environment verifier.
 
@@ -22,10 +22,25 @@ Run verification again at any time:
 
 ## Repository-local Skills
 
-- `.agents/skills/math-modeling-skill`: locally provisioned competition modeling workflow, case library, knowledge, templates, and code scaffolds.
-- `.agents/skills/kflow`: rules for reading and maintaining important project knowledge through KFlow.
+- `.agents/skills/math-modeling-skill`: locally provisioned support for problem interpretation, model selection, modeling workflow, experiments, algorithms, and general competition problem solving.
+- `.agents/skills/math-modeling-review`: repository-tracked near-final paper reviewer for requirement coverage, summary quality, model logic and integration, robustness, explanation, rendered-PDF communication, and prioritized submission checks. It is not a modeling solver or automatic paper editor.
+- `.agents/skills/kflow`: rules for maintaining durable project knowledge, derivations, impact relationships, review order, and confirmation state through KFlow.
 
 Start Codex from the repository root so it can discover `.agents/skills/`. The Math Modeling Skill is proprietary and is deliberately absent from this public repository's Git history. `setup.ps1` obtains the fixed upstream commit for authorized users, preserves its license/notice, removes nested Git metadata, and keeps the local copy ignored. Setup does not grant authorization or store credentials.
+
+These three skills are optional and must never be invoked automatically. Before using any one of them, Codex must explain why it may help and ask the user for permission; explicit agreement is required for the current task. Do not load all three mechanically.
+
+Minimal review request after agreeing to use the review skill:
+
+```text
+Use $math-modeling-review.
+
+Problem statement: problem/...
+Final paper PDF: paper/...
+Optional team feedback: ...
+```
+
+The review output contains `Overall Verdict`, `Prioritized Findings`, `Eight-Reviewer Summary`, and `Top 5 Fixes Before Submission`.
 
 ## KFlow
 

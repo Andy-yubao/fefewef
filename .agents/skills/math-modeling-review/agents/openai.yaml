@@ -1,0 +1,4 @@
+interface:
+  display_name: "Math Modeling Paper Review"
+  short_description: "Find evidence-backed submission risks in competition papers"
+  default_prompt: "Use $math-modeling-review to review my problem statement and final paper before submission."

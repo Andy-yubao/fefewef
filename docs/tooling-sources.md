@@ -19,3 +19,12 @@ Last updated: 2026-09-09
 - CLI installation: `requirements-tools.txt`
 - Skill path: `.agents/skills/kflow`
 - Selection basis: a committed `main` HEAD matching the existing `origin/main` ref. No uncommitted KFlow working-tree content was used.
+
+## MathModelingReview
+
+- Upstream: https://github.com/Andy-yubao/MathModelingReview
+- Pinned deployment source: `0e3828d88395f6eabf3842b284ce5f494c23880d`
+- Runtime path: `.agents/skills/math-modeling-review`
+- Git tracked: **YES**
+- Purpose: near-final mathematical-modeling competition paper self-review.
+- Deployment: copied from the fixed reviewed commit and available without dynamic upstream access during the competition.

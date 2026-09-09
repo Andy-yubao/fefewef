@@ -6,9 +6,11 @@ This is a shared repository for the CUMCM mathematical-modeling competition. Wor
 
 ## Skills
 
-- For substantive mathematical-modeling work, consider `$math-modeling-skill` first.
-- When `.kflow/project.json` exists and a task involves managed knowledge, derivations, impact, review order, or confirmation state, follow `$kflow`.
-- Do not invoke both mechanically. Load only the skill that materially helps the task.
+- `$math-modeling-skill` supports problem interpretation, model selection, modeling workflow, experiments, algorithms, and general competition problem solving.
+- `$math-modeling-review` reviews a near-final paper for requirement coverage, summary quality, model logic and integration, robustness, explanation, rendered-PDF communication, and prioritized pre-submission fixes. It is a reviewer, not a modeling solver or automatic paper editor.
+- `$kflow` maintains durable project knowledge, derivations, impact relationships, review order, and confirmation state when `.kflow/project.json` exists.
+- None of these three skills is mandatory or automatic. Before invoking any one of them, explain why it may help and ask the user for permission. Invoke it only after the user explicitly agrees for the current task; task fit, repository state, or earlier permission is not sufficient authorization.
+- After permission is granted, load only the skill that materially helps the task; never load all three mechanically.
 - Repository-local skills live under `.agents/skills/`; do not depend on or modify user-level Codex skills.
 - `math-modeling-skill` is provisioned locally by `scripts/setup.ps1` and must remain ignored; never add its proprietary contents to Git.
 
