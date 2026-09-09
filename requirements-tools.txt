@@ -1,0 +1,2 @@
+# KFlow is installed from an immutable commit, never a floating branch.
+kflow @ git+https://github.com/Andy-yubao/KFlow.git@2de99bb0b7caf864de3e837153893e4bb48d3c96

@@ -1,0 +1,29 @@
+# Repository-local environments and Python caches
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# Local environment files and credentials
+.env
+.env.*
+!.env.example
+
+# Operating-system files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# KFlow keeps project facts tracked; only runtime state is disposable.
+.kflow/runtime/
+
+# The proprietary Math Modeling Skill is provisioned locally by setup.ps1.
+.agents/skills/math-modeling-skill/
+.agents/skills/.math-modeling-skill-install-*/
+.agents/skills/.math-modeling-skill-backup-*/
+
+# User-provided prompts are temporary inputs and must never be tracked.
+prompt/
