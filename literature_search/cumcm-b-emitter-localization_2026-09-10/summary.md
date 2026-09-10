@@ -13,6 +13,13 @@ Date: 2026-09-10 (corrected same day)
 > The invalid conclusion has been **removed from the body of this report**, not
 > patched at the end. Supplementary provenance is in
 > `raw/round1_correction_A.json`; the Round 1 raw files are preserved unchanged.
+>
+> **Second correction (final pass, no new searches).** The first correction pass
+> *also* judged the 2017 paper A1 to be a **conflation** of the 2014 and 2016 papers.
+> **That judgement was wrong and is now retracted.** A1 exists: it is a
+> Chinese-language journal article that neither OpenAlex nor Crossref returned. This
+> is the same false-negative pattern as above, in its worst form — absence from two
+> indexes was read as absence of the paper. See §2.1 and correction-table row 9.
 
 ### Corrections applied in this revision
 
@@ -26,9 +33,12 @@ Date: 2026-09-10 (corrected same day)
 | 6 | ACC 2012 与 Int. J. Control 2013 并列为两个独立 ANCHOR | **已去重** | 同一研究工作的会议版 / 期刊扩展版，占**一个**槽位 |
 | 7 | "CRLB = FIM⁻¹，所以最大化 FIM 与最小化 CRLB 是同一件事" | **已严格化** | `C_CRLB = J⁻¹` 仅在正则条件满足且 FIM 非奇异时成立；矩阵本身不存在"最大化"，必须指定标量最优性准则（A-/D-/E-optimality） |
 | 8 | Dehghan 2014 "measurement model 与 B题几乎一一对应" | **已降级表述** | 其 measurement model 是 DRSSI/RSSI，与 B题的 bearing/AOA 不同；可迁移的是**决策框架**，不是测量公式 |
+| 9 | 上一轮 correction 判定 2017 A1 "不对应任何已索引记录，疑似 conflation" | **错误，已撤回** | A1 真实存在：Liu, Zhao & Wu 2017, *Journal of Beijing Univ. of Aeronautics and Astronautics* 43(3): 497–505, `10.13700/j.bh.1001-5965.2016.0196`。2014 / 2016 / 2017 是**三个不同工作**。**数据库未召回 ≠ 论文不存在** |
 
-Queries issued this revision: 10 (4 metadata verification + 6 supplemental search).
-Zero-return: 1 (Semantic Scholar). Failed: 0.
+Queries issued in the A-cluster supplement: 10 (4 metadata verification + 6 supplemental
+search) — 6 fully effective, 3 partially effective, 1 ineffective (1 zero-return).
+Failed: 0. **The final correction pass issued no queries at all**; it is fact-checking
+and documentation consistency only.
 Not done: PDFs, full text, Crawl4AI, citation snowball, Asta, clusters D/E/F, L2+.
 
 ---
@@ -54,6 +64,10 @@ sensing / set-membership localization* 上。这个方向不仅有文献，而�
   *bounded bearing-only measurements* 下的 set-membership 滤波。
 - **Liu & Zhao 2014**（PLANS）在 bearing-only 下用椭球的 **generalization radius**
   作为最优性准则。
+- **Liu, Zhao & Wu 2017**（《北京航空航天大学学报》，中文）把 bearing-only +
+  unknown-but-bounded + set-membership + 椭球外包围做成了完整工作。**该文本轮未被
+  OpenAlex 与 Crossref 召回**，经期刊官方来源确认存在——它是本簇"这条研究线真实
+  存在"最直接的证据，也说明中文源是当前的覆盖盲区（见 §7 gap 7）。
 
 **问题 2**（第二观测点选择）依然是最成熟的一条。Zhao–Chen–Lee 用 frame theory
 给出最优布站的**充要条件与构造算法**；Yang 等 2013 给出**任意高斯先验**下最大化
@@ -68,8 +82,12 @@ Ibenthal 2020 CDC、Ibenthal 2023 T-RO）在**有界误差**框架下做多目�
 维护"已定位目标的状态集"与"**尚未发现目标的状态集**"，并用这两者选择下一步控制量
 以最小化下一步的估计不确定性。这正面回答了 Round 1 声称"不存在"的那一类方案。
 
-**最关键的方法论缺口（修正后）**：所有 FIM/CRLB 路径规划与布站文献以**高斯噪声方差**
-为前提，而题目给的是**硬上下界 ±1°**。把硬界映射成方差是一个必须自行论证的建模决策。
+**最关键的方法论缺口（修正后）**：本轮检索到并纳入核心候选的 **FIM/CRLB-based
+placement / planning work 主要采用概率噪声模型，并通常需要给定测量方差**，其中多篇
+采用 Gaussian assumption；而题目给的是**硬上下界 ±1°**。需要说明的是，
+Fisher information / CRLB **本身并不只适用于 Gaussian model**——但在上述这批
+**具体工作**里，噪声假设与题目的纯硬界并不直接等价，把硬界映射成方差仍是一个
+必须自行论证的建模决策。
 而正因为可行集可以**精确**算出（角扇区 = 半平面约束求交 = 凸多边形），我们可以绕开
 这个不匹配：直接以集合尺度（直径 / 面积）作为分布无关的准则——**这件事在
 bounded-error 文献里有成熟先例**（Isler & Bajcsy 的面积、CLOSURE 的最小外接球半径、
@@ -96,6 +114,11 @@ Liu & Zhao 的 generalization radius），只是**没有人在 B题这一具体�
   这类**不含 bearing 的策略性措辞**后，命中了一整条此前完全遗漏的研究线。
 - 由此确立本轮最重要的检索教训：**用词的选择比数据源的覆盖更决定召回**。
   同一批数据库，换一组术语就多出十余篇直接相关论文。
+- **A1（2017）的核查本身经历了一次假阴性。** 用标题原文检索 OpenAlex 与 Crossref
+  都没有解析出该文，第一轮 correction 据此判定它是两篇论文的 conflation——**该判定
+  错误，已撤回**。论文真实存在，发表在中文期刊《北京航空航天大学学报》上，两个数据库
+  都不索引它。**"数据库未召回"再次被误当成"论文不存在"**，而且这次发生在中文文献上，
+  正是最容易发生这种错误的地方。详见 §2.1。
 
 ### 候选论文
 
@@ -112,6 +135,7 @@ Noise model 区分 Gaussian / unknown-but-bounded (UBB) / interval / set-members
 | Localization of Partially Hidden Moving Targets Using a Fleet of UAVs via Bounded-Error Estimation | 2023 | 可见性 | **bounded** | 分布式集员估计集 | 分布式集员估计 + MPC 降低估计不确定性；逐点 detectability set | 问题 3 的高水平实现参考 | MPC + 集合目标；detectability set（与"信号有效覆盖"同构） | 可见性测量；多机；三维 | USEFUL (high) | 10.1109/tro.2023.3303693 |
 | Target search and tracking using a fleet of UAVs in presence of decoys and obstacles | 2020 | 探测 | **bounded** | 有界集 | 不可区分目标 + 诱饵；两个集合驱动分布式控制 | 问题 4 的诱饵/误判类比 | 干扰与真实目标不可区分时的处理 | 同上一行 | USEFUL | 10.1109/cdc42340.2020.9303943 |
 | Ellipsoidal set filter combined set-membership and statistics uncertainties for bearing-only maneuvering target tracking | 2014 | **bearing-only** | **UBB + 统计混合** | 椭球 | 以椭球 **generalization radius** 为最优性准则求紧外包围椭球 | bearing-only 下"以集合尺度为准则"的直接先例 | 集合尺度（radius）作最优性准则；两类不确定性并存的处理 | 机动目标动态跟踪；两个固定平台 | USEFUL (high) | 10.1109/plans.2014.6851441 |
+| Bearing-only target tracking based on ellipsoidal outer-bounding set-membership estimation | 2017 | **bearing-only** | **UBB** | 椭球（外包围） | 椭球外包围集员估计；机动目标下的递推跟踪 | bearing-only + UBB + set-membership 的**直接且完整**工作；本簇"研究线真实存在"的证据 | bearing-only 下的 UBB 处理；outer-bounding 思想 | 动态机动目标跟踪；椭球表示；**不是**本题的静态角扇区精确多边形求交；中文期刊，无数据库 ID | USEFUL (high) | `10.13700/j.bh.1001-5965.2016.0196`（中文期刊；OpenAlex/Crossref 未索引） |
 | Extended Ellipsoidal Outer-Bounding Set-Membership Estimation for Nonlinear Discrete-Time Systems with UBB Disturbances | 2016 | generic | **UBB** | 椭球 | 一阶线性化 + 区间分析界定线性化误差椭球；可行集含更多真值 | 一般性 UBB 外包围方法 | 区间分析界定线性化误差 | **非 bearing-only**，是通用非线性系统 | BACKGROUND | 10.1155/2016/3918797 |
 | CLOSURE: Fast Quantification of Pose Uncertainty Sets | 2024 | 关键点/位姿（SE(3)） | **UBB** | 位姿不确定集 + 最小外接测地球 | 证明不确定集 = 多个测地球的交；边界采样 + miniball 求最小外接球（= **最小 worst-case 误差界**），并给出与外包近似的紧度证明 | **直接反驳"diameter 不存在"**：worst-case error 界是既有指标 | 最小外接球 ≈ 可行集直径；内/外近似紧度证书 | SE(3) 位姿、关键点测量，非 2D 测向 | USEFUL (high) | 10.1109/rss.2024.xx.072 / arXiv:2403.09990 |
 | Beyond Bounded Noise: Stochastic Set-Membership Estimation for Nonlinear Systems | 2026 | generic | **次高斯（无界支撑，样本协方差有界）** | 有限样本不确定集 | 用样本协方差界构造以高概率包含真值的集合 | 硬界 ↔ 概率假设之间的"中间道路" | 把无界噪声纳入集员框架的严格做法 | 非线性系统参数估计 | BACKGROUND | arXiv:2604.00561 |
@@ -129,6 +153,37 @@ Noise model 区分 Gaussian / unknown-but-bounded (UBB) / interval / set-members
 | Set-membership estimation for linear time-varying descriptor systems | 2020 | generic | UBB | 可行集 | 描述子系统集员估计 | 几何不可迁移 | — | 描述子系统 | DROP | 10.1016/j.automatica.2020.108867 |
 | H∞-optimal Interval Observer Synthesis via Mixed-Monotone Decompositions | 2022 | generic | **interval** | 区间（盒子） | 区间观测器，构造即保证包含 | 区间/盒子表示概念 | 区间表示 | LMI/SDP 机制 | BACKGROUND | arXiv:2203.07430 |
 | Distributed Resilient Interval Observer Synthesis | 2024 | generic | **interval** | 区间 | 分布式区间观测器，ℓ1 误差界最小化 | "最小化误差界" | 误差界最小化 | 同上 | BACKGROUND | arXiv:2401.15511 |
+
+### 关于 2017 A1 论文（前期误判的更正，对应更正表 #9）
+
+第一轮 correction 曾判定 brief 给出的 A1 标题"不对应任何已索引记录"，并进一步推断
+它是两篇论文的 **conflation**。**该推断是错的，现撤回。**
+
+三个工作彼此不同，只是同一课题组的相邻研究：
+
+| 年 | 论文 | 测量 | 作者 | 性质 |
+|---|---|---|---|---|
+| 2014 | *Ellipsoidal set filter combined set-membership and statistics uncertainties for bearing-only maneuvering target tracking*（PLANS 2014，`10.1109/plans.2014.6851441`） | bearing-only | Liu & Zhao | 真实的 bearing-only 工作，两类不确定性并存 |
+| 2016 | *Extended Ellipsoidal Outer-Bounding Set-Membership Estimation for Nonlinear Discrete-Time Systems with Unknown-but-Bounded Disturbances*（IJDSN 2016，`10.1155/2016/3918797`） | **非 bearing-only** | Liu, Zhao & Wu | 通用非线性系统的 UBB 外包围 |
+| 2017 | *Bearing-only target tracking based on ellipsoidal outer-bounding set-membership estimation*（**《北京航空航天大学学报》** 43(3): 497–505，`10.13700/j.bh.1001-5965.2016.0196`） | bearing-only | Liu, Zhao & Wu | **本轮被误判为不存在的那一篇**；经期刊官方来源确认存在 |
+
+**可迁移**：bearing-only、unknown-but-bounded noise、set-membership、椭球外包围、
+集合尺度 / 外包围（outer-bounding）思想。
+
+**不可直接迁移**：动态机动目标跟踪；椭球外包围；**不是**本题的静态角扇区精确求交。
+
+> 它的价值是证明 **bearing-only + unknown-but-bounded + set-membership 是真实存在的
+> 直接研究线**，**不是**证明 B题问题 1 必须用椭球。
+
+**为什么它不进 ANCHOR、也不进 Tier 1 / Tier 2**：判据是"是否直接改变我们对 B题模型、
+算法、目标函数或关键证明的设计"。该文解决的是动态机动目标的递推滤波，而问题 1 是静态
+几何求交，因此它提供的是**存在性证据**，不是可直接搬运的设计。这不是遗漏，是判据的
+结果；若后续确实需要"以椭球而非多边形做外包围"的对照方案，再补读不迟。
+
+**Provenance**：本轮**没有**为它伪造任何 OpenAlex ID、Crossref ID 或 DOI 之外的东西。
+它以 `verified_external_record` 形式记录在 `raw/round1_correction_A.json`，
+`verification_source = official journal page`；需要说明的是，**该核实发生在本次检索
+运行之外**（由用户提供的 correction brief 转述），而本次运行的数据库查询**没能**召回它。
 
 ### 关于 zonotope 的更正（对应更正表 #3）
 
@@ -152,7 +207,8 @@ bounded-set representation / set-membership estimation / outer approximation 的
 ### 本节结论（修正后）
 
 - **有界误差 × 方向定位不是两个互不相交的社区。** 该交集有多篇直接论文
-  （Isler & Bajcsy 2006；Calafiore 2026；Li et al. 2025；Liu & Zhao 2014）。
+  （Isler & Bajcsy 2006；Calafiore 2026；Li et al. 2025；Liu & Zhao 2014；
+  Liu, Zhao & Wu 2017）。
 - **本轮仍未找到与 B题完全同构的论文**：即
   "±1° 有界角度误差 → 多个角扇区精确求交 → 凸多边形 → 计算欧氏直径"。
   最接近的是 Isler & Bajcsy 2006（凸多边形求交 + 面积，但测量模型是通用多边形）
@@ -237,6 +293,13 @@ C_{CRLB} = J^{-1}
 
 三者**不等价**，会给出不同的最优布站。本报告此后所有"最大化 FIM / 最小化 CRLB"
 的措辞都替换为带准则名的表述。
+
+另外必须明确一点，以免把上面这套工具误用成"题目可以当高斯用"的许可：
+**Fisher information / CRLB 本身并不要求 Gaussian 噪声**（在正则条件下对一般参数化
+分布族成立）。真正受限的是**本轮纳入核心候选的这批** bearing-only 布站 / 轨迹规划工作：
+它们**主要采用概率噪声模型，并通常需要给定测量方差**，其中多篇明确采用 Gaussian
+assumption。因此它们不能直接替代题目给出的 **±1° hard bound model**；
+"FIM 在数学上不限于高斯"与"本题的硬界可以直接当方差用"是两件事。
 
 关于 **GDOP**：GDOP 是 CRLB 的归一化标量形式，其数值依赖测量精度是否已归一、
 以及参考哪一类误差分量。本报告不使用未定义归一化条件的 GDOP 数值；
@@ -354,7 +417,7 @@ polygon diameter / area / 其他集合尺度
 
 | 环节 | 文献支持 | 具体来源 |
 |---|---|---|
-| unknown-but-bounded / set-membership philosophy | ✅ 成熟 | Bertsekas 1971、Belfonte 1991、Liu et al. 2016、Li et al. 2025 |
+| unknown-but-bounded / set-membership philosophy | ✅ 成熟 | Bertsekas 1971、Belfonte 1991、Liu et al. 2016、Li et al. 2025、**Liu, Zhao & Wu 2017（中文期刊）** |
 | **有界不确定性 → 凸多边形测量子集 → 求交合并 → 集合尺度** | ✅ **成熟（本轮新确认）** | **Isler & Bajcsy 2006** |
 | UBB → 相容集 → 多面体 → 保证集值估计 | ✅ 有直接论文 | Calafiore 2026 |
 | **集合尺度（worst-case 误差界 / 最小外接球）作精度指标** | ✅ **有先例** | CLOSURE 2024、Liu & Zhao 2014、InZSMF 2025 |
@@ -378,7 +441,8 @@ polygon diameter / area / 其他集合尺度
    *（Reynaud 2018 / Reboul 2019 的最小化集合不确定性准则形式相同，但测量模型
    与几何不同。）*
 4. **搜索、频道检测、定位和清除的联合时间优化**：离散频道（任意两频道切换恒 1 s）、
-   固定 5 s 检测、20 m 内 3 s 光学、2 s 清除、5 m 内直接清除、5 m/s 移动、
+   固定 5 s 检测、20 m 内 3 s 光学、2 s 清除、**≤5 m 且位于有效覆盖角内时可跳过
+   示向度检测、直接 3 s 光学定位 + 2 s 清除**、5 m/s 移动、
    程序运行 20 分钟上限（且受 25 分钟测试窗口约束，以较早到达者为准）、
    目标数未知 10–16。*检索到的规划工作都没有这个代价模型。*
 
@@ -457,33 +521,45 @@ ANCHOR 必须满足：**直接改变我们对 B题模型、算法、目标函数
 2. **"直径"作为具体算法未检索到**，但**作为概念有大量先例**（面积、最小外接球
    半径、generalization radius、体积、F-radius、区间面积）。问题 1 要求直径，
    需要我们给出凸多边形的直径算法与覆盖判定。参见更正表 #2。
-3. **硬界 → 方差的映射无文献背书。** FIM/CRLB 布站与规划文献均假设高斯噪声
-   （方差给定），题目给的是 ±1° 硬上下界。补检发现
+3. **硬界 → 方差的映射无文献背书。** 本轮检索到并纳入核心候选的 FIM/CRLB-based
+   placement / planning work **主要采用概率噪声模型，并通常需要给定测量方差**，
+   其中多篇采用 Gaussian assumption；题目给的是 ±1° 硬上下界。需注意
+   Fisher information 本身并不只适用于 Gaussian model，受限的是**这批具体工作**的
+   噪声假设。因此它们不能直接替代题目的 ±1° hard bound model——
+   "±1° 硬界"与"Gaussian variance"之间没有无需额外建模假设的等价关系。补检发现
    Brändle et al. 2026（arXiv:2604.00561）为"无界噪声下的集员估计"给出了严格处理，
    可作为方法论中转，但仍不直接回答"如何把 ±1° 硬界变成方差"。
 4. **B题的代价结构无文献建模。** 离散频道（任意两频道切换恒 **1 s**）、固定 5 s
-   检测、20 m 内 3 s 光学、2 s 清除、5 m 内直接清除、5 m/s 移动、
+   检测、20 m 内 3 s 光学、2 s 清除、**≤5 m 且位于有效覆盖角内时跳过示向度检测、
+   直接 3 s 光学定位 + 2 s 清除**、5 m/s 移动、
    程序运行 20 分钟上限（受 25 分钟测试窗口约束）、目标数未知 10–16。
    最接近的是 POMDP 多模态传感（Choudhury 2020），代价模型不同。
 5. **Semantic Scholar 补检返回空。** 查询
    `bearing-only target tracking ellipsoidal outer-bounding set-membership estimation`
    返回空数组（非报错）。**可能是速率限制伪影，不作为该文献不存在的证据。**
-   本任务的 A1 核查因此只依赖 OpenAlex 与 Crossref。
+   本任务的 A1 核查因此只依赖 OpenAlex 与 Crossref——**而这两个数据库最终也没能
+   召回 A1；A1 的存在是靠期刊官方来源确认的（见 §2.1）。这是"零返回 ≠ 不存在"
+   在本轮最有力的一次实证，而且它推翻的是我们自己的一个正面断言，不是一条缺失记录。**
 6. **GDOP 术语仍未命中 B 簇论文。** 可能是 OpenAlex 对缩写术语的检索弱点，
    不代表文献不存在。
-7. **中文文献仍未检索。** B 题是中文学科竞赛题，"交会定位""示向度""测向"
-   等术语可能存在中文文献（CNKI/万方），arXiv 与 OpenAlex 均不索引。补检中
-   命中的 CCC 2024 群目标 bearing-only 论文（`10.23919/ccc63176.2024.10661907`）
-   是弱信号。本轮未检索中文源。
+7. **中文文献仍未检索——而且已被证明是真实缺口。** B 题是中文学科竞赛题，
+   "交会定位""示向度""测向"等术语的文献主要在 CNKI/万方，arXiv 与 OpenAlex 均不索引。
+   现在有了直接证据而不只是推测：**2017 A1 就是一篇中文期刊论文**，主题与 B题高度相关
+   （bearing-only + UBB + set-membership），而 OpenAlex 与 Crossref **都召回不到它**
+   （见 §2.1）。此外补检命中的 CCC 2024 群目标 bearing-only 论文
+   （`10.23919/ccc63176.2024.10661907`）也是同一方向的弱信号。
+   **本轮未检索中文源**——这是本轮最大的覆盖缺口。
 8. **D/E/F 簇未系统检索。** D 簇（多目标搜索+定位+路径）本轮通过 A 簇补检
    间接收获 4 篇（Reynaud/Reboul/Ibenthal），但仍不完整；E 簇（定向干扰源 /
    有限视场）与 F 簇（negative information）按指示未系统检索。意外命中：
    Chen et al. 2026（arXiv:2607.12515）关于"横向运动是可观测性必要条件"的分析，
    与问题 4 的定向源排查可能相关。
-9. **本轮 10 次查询中 1 次零返回（Semantic Scholar），2 次仅部分有效**
-   （查询 1/3 未能解析出 brief 中 A1 的标题原文；查询 9 被 cs.DS 的
-   worst-case-analysis 文献淹没）。这些失败已逐条记录在
-   `raw/round1_correction_A.json`。
+9. **本轮 10 次查询中 1 次零返回（Semantic Scholar），3 次仅部分有效**
+   （查询 1 与查询 3 未能解析出 A1 的标题原文——**原因现已查明：该文是中文期刊论文，
+   OpenAlex 与 Crossref 都不索引它**，而不是标题有问题、更不是论文不存在；
+   查询 9 被 cs.DS 的 worst-case-analysis 文献淹没）。这些失败已逐条记录在
+   `raw/round1_correction_A.json`，其 `query_totals` 与本表的统计口径严格一致
+   （fully 6 / partial 3 / ineffective 1）。
 
 ---
 
@@ -509,4 +585,9 @@ worst-case / minimax feasibility`，以及几何描述词
 **仍不建议 citation snowball。** 本轮 corpus 的强项集中在少数课题组
 （Zhao 组、Kieffer 组、Liu/Zhao 组），snowball 会放大既有偏差。
 
-**本轮修正完成。不进入下一轮，不自动下载 PDF。**
+**中文源（CNKI / 万方）的优先级应当上调。** 2017 A1 是中文期刊论文，两个国际索引
+都不召回它；B题本身是中文命题，"示向度""测向""交会定位"这类术语的中文文献很可能是
+下一个盲区（见 §7 gap 7）。这是本轮唯一一个**已由具体论文证实**的覆盖缺口。
+
+**本轮修正完成，Round 1 文献检索正式冻结。** 不再继续补搜索；下一阶段是
+Tier 1 六篇论文的全文获取与深读。本任务不自动下载 PDF，不进入全文深读。

@@ -16,10 +16,12 @@
     "metadata_verification_queries": 4,
     "supplemental_search_queries": 6,
     "total": 10,
+    "fully_effective": 6,
+    "partially_effective": 3,
+    "ineffective": 1,
     "zero_return": 1,
     "failed": 0,
-    "effective": 8,
-    "partially_effective": 2
+    "consistency": "Strictly matches the per-query `effective` labels: fully = q2, q4, q5, q6, q7, q10; partial = q1, q3, q9; ineffective = q8. `zero_return` and `ineffective` are the same single query (q8), counted under two names. The final correction pass added no query and relabelled none: this block was only made to agree with the labels below, which are unchanged."
   },
 
   "queries": [
@@ -61,7 +63,7 @@
       "q": "ellipsoidal outer-bounding set-membership bearing-only target tracking Liu Zhao",
       "returned": 8, "effective": true,
       "ids": ["W2352577916", "W2900395560", "W4406991453", "W4402353999", "W2969557597", "W4392929933", "W7148198403", "W7143441264"],
-      "note": "Pinned the A1 conflation: W2352577916 has author list 'Liu; Zhao; Wu' and the exact title phrase 'Ellipsoidal Outer-Bounding Set-Membership Estimation' but is a GENERIC nonlinear system, not bearing-only. See finding F1."
+      "note": "Surfaced W2352577916: author list 'Liu; Zhao; Wu' and the exact title phrase 'Ellipsoidal Outer-Bounding Set-Membership Estimation', but a GENERIC nonlinear system, not bearing-only. See finding F1. [Amended in the final correction pass: an earlier version of this note read 'Pinned the A1 conflation', which drew a conclusion that was WRONG and is now retracted — A1 is a separate 2017 Chinese-language journal article. The `q`, `returned` and `ids` fields of this record are unchanged.]"
     },
     {
       "n": 6, "phase": "supplemental_search", "source": "arXiv",
@@ -110,13 +112,16 @@
 
   "findings": {
     "F1": {
-      "issue": "The correction brief's Paper A1 title does not resolve to any indexed record.",
-      "resolution": "The brief's A1 appears to be a CONFLATION of two distinct papers by the same group (Yushuang Liu / Yan Zhao / Falin Wu):",
-      "components": [
-        {"role": "the actual bearing-only work", "id": "W2047144475", "doi": "10.1109/plans.2014.6851441", "title": "Ellipsoidal set filter combined set-membership and statistics uncertainties for bearing-only maneuvering target tracking", "authors": "Yushuang Liu; Yan Zhao", "year": 2014, "venue": "2014 IEEE/ION Position, Location and Navigation Symposium (PLANS 2014), pp. 753-759", "publisher": "IEEE"},
-        {"role": "the source of the title phrase and the 'Liu, Zhao, Wu' author list", "id": "W2352577916", "doi": "10.1155/2016/3918797", "title": "Extended Ellipsoidal Outer-Bounding Set-Membership Estimation for Nonlinear Discrete-Time Systems with Unknown-but-Bounded Disturbances", "authors": "Yushuang Liu; Yan Zhao; Falin Wu", "year": 2016, "venue": "International Journal of Distributed Sensor Networks (Hindawi)", "note": "NOT bearing-only. Generic nonlinear discrete-time system."}
+      "issue": "The correction brief's Paper A1 (Liu, Zhao, Wu, 2017) was not returned by any query in this run.",
+      "initial_misjudgement": "The first correction pass concluded from this non-recall that A1 was a CONFLATION of two other papers by the same group. THAT CONCLUSION WAS WRONG AND IS RETRACTED in the final correction pass.",
+      "resolution": "A1 EXISTS. It is a Chinese-language journal article that neither OpenAlex nor Crossref indexes, which is why this run's queries could not resolve it. The brief's title, author list and year are correct as given.",
+      "epistemic_lesson": "Database non-recall was once again read as non-existence — the exact error mode this whole correction pass exists to eliminate, and here in its worst form: it produced a positive false claim ('this paper is a conflation') rather than merely a missing record. Non-recall of a Chinese-language record by two anglophone-centric indexes is an expected coverage gap, not evidence.",
+      "three_distinct_works": [
+        {"year": 2014, "id": "W2047144475", "doi": "10.1109/plans.2014.6851441", "title": "Ellipsoidal set filter combined set-membership and statistics uncertainties for bearing-only maneuvering target tracking", "authors": "Yushuang Liu; Yan Zhao", "venue": "2014 IEEE/ION Position, Location and Navigation Symposium (PLANS 2014), pp. 753-759", "role": "bearing-only + set-membership + statistics; two static platforms"},
+        {"year": 2016, "id": "W2352577916", "doi": "10.1155/2016/3918797", "title": "Extended Ellipsoidal Outer-Bounding Set-Membership Estimation for Nonlinear Discrete-Time Systems with Unknown-but-Bounded Disturbances", "authors": "Yushuang Liu; Yan Zhao; Falin Wu", "venue": "International Journal of Distributed Sensor Networks (Hindawi)", "role": "NOT bearing-only; generic nonlinear discrete-time system"},
+        {"year": 2017, "id": null, "doi": "10.13700/j.bh.1001-5965.2016.0196", "title": "Bearing-only target tracking based on ellipsoidal outer-bounding set-membership estimation", "authors": "Yushuang Liu; Yan Zhao; Falin Wu", "venue": "Journal of Beijing University of Aeronautics and Astronautics (北京航空航天大学学报), 43(3): 497-505", "role": "THE A1 PAPER. Verified via the official journal page, outside this run's database queries. Indexed by neither OpenAlex nor Crossref. No database ID exists in this run and NONE WAS FABRICATED; see `verified_external_records`."}
       ],
-      "conclusion": "The substantive claim in the brief is nevertheless CORRECT and is now supported by a properly identified record: bounded bearing-only + set-membership + ellipsoidal outer-bounding IS an existing line of work (W2047144475, 2014), and Paper A2 is confirmed verbatim. No fabricated citation was invented to satisfy the brief; the brief's title was corrected instead."
+      "conclusion": "bounded bearing-only + set-membership + ellipsoidal outer-bounding is an existing research line represented by three related but DISTINCT works (2014 PLANS, 2016 generic UBB, 2017 bearing-only journal). The brief's substantive claim was correct as written. Paper A2 is also confirmed verbatim in two independent databases."
     },
     "F2": {
       "issue": "Round 1 claimed feasible-region diameter does not exist as a localization accuracy metric.",
@@ -145,11 +150,46 @@
     }
   },
 
+  "verified_external_records": {
+    "liu-zhao-wu-2017": {
+      "title": "Bearing-only target tracking based on ellipsoidal outer-bounding set-membership estimation",
+      "authors": ["Yushuang Liu", "Yan Zhao", "Falin Wu"],
+      "year": 2017,
+      "venue": "Journal of Beijing University of Aeronautics and Astronautics (北京航空航天大学学报)",
+      "volume": 43, "issue": 3, "pages": "497-505",
+      "doi": "10.13700/j.bh.1001-5965.2016.0196",
+      "language": "zh",
+      "verified_in_this_run": false,
+      "verification_source": "official journal page",
+      "verification_channel": "Confirmed via the official journal source, as reported in the user-supplied final correction brief. NOT confirmed by any query in this run: queries n=1 (OpenAlex) and n=3 (Crossref) both used this exact title and both failed to resolve it. No OpenAlex ID, Crossref ID or DOI was invented to fill the gap; this block exists precisely so the record is carried without a fabricated identifier.",
+      "index_coverage": "Not returned by OpenAlex or by Crossref in this run. Chinese-language journal, outside both indexes' coverage of this subject.",
+      "topic": ["bearing-only target tracking", "unknown-but-bounded noise", "ellipsoidal outer-bounding", "set-membership estimation"],
+      "transferable_to_B": ["bearing-only", "unknown-but-bounded noise", "set-membership", "ellipsoidal outer-bounding", "set-size / outer-bounding idea"],
+      "not_transferable_to_B": ["dynamic maneuvering-target tracking", "ellipsoid outer-bounding", "is NOT B problem 1's static exact angular-sector polygon intersection"],
+      "value": "Existence proof that bearing-only + unknown-but-bounded + set-membership is a real and direct research line. NOT an argument that B problem 1 must be modelled with ellipsoids."
+    }
+  },
+
+  "revisions": [
+    {
+      "date": "2026-09-10",
+      "pass": "final wrap-up correction — DOCUMENTATION ONLY, no new literature search of any kind",
+      "no_new_queries": true,
+      "changes": [
+        "`query_totals` corrected to be strictly consistent with the per-query `effective` labels (was effective=8 / partially_effective=2, which contradicted the labels; now fully_effective=6 / partially_effective=3 / ineffective=1). The per-query records themselves are untouched.",
+        "Finding F1 rewritten: the 'A1 is a conflation' judgement was WRONG and is retracted. The brief's 2017 A1 exists as a Chinese-language journal article that neither OpenAlex nor Crossref indexes.",
+        "Added `verified_external_records` for the 2017 paper, with `verification_source = official journal page` and an explicit note that the verification happened outside this run. No identifier was fabricated.",
+        "Record W2352577916's note updated: it is part of the Liu/Zhao/Wu line but is NOT the A1 paper."
+      ],
+      "not_done": ["no query added, removed, re-run or relabelled", "no PDF downloaded", "no citation snowball", "no change to raw/arxiv.json or raw/openalex.json"]
+    }
+  ],
+
   "records": {
     "W2021455238": {"title": "The Sensor Selection Problem for Bounded Uncertainty Sensing Models", "authors": ["Volkan Isler", "Ruzena Bajcsy"], "year": 2006, "venue": "IEEE Transactions on Automation Science and Engineering", "doi": "10.1109/tase.2006.876615", "citations": 56, "pdf_url": "https://escholarship.org/content/qt7714j8bx/qt7714j8bx.pdf", "relevance": "very high", "note": "Bounded-uncertainty sensor model as convex polygonal subsets of the plane; measurements merged by INTERSECTION; measurement uncertainty = AREA of the intersection; 2-approximation sensor-selection algorithm; second part relaxes to a SET of possible target locations. Structurally the closest indexed work to B problem 1 and 2."},
     "W7125817620": {"title": "A Set-Membership Filter for Group Target Tracking Using Bounded Bearing-Only Measurements", "authors": ["Jingling Li", "Xianbin Gao", "Ping Wei", "Huaguo Zhang", "Lin Gao"], "year": 2025, "venue": "2025 17th International Conference on Signal Processing Systems (ICSPS), pp. 155-159", "doi": "10.1109/icsps66615.2025.11347948", "citations": 0, "relevance": "high", "note": "CONFIRMED in OpenAlex AND Crossref. Initial state, process noise and measurement noise all modelled as compact bounded sets; tracking by propagating sets containing the target state. The verbatim bounded bearing-only set-membership paper."},
     "W2047144475": {"title": "Ellipsoidal set filter combined set-membership and statistics uncertainties for bearing-only maneuvering target tracking", "authors": ["Yushuang Liu", "Yan Zhao"], "year": 2014, "venue": "2014 IEEE/ION Position, Location and Navigation Symposium (PLANS), pp. 753-759", "doi": "10.1109/plans.2014.6851441", "citations": 5, "relevance": "high", "note": "Bearing-only + set-membership + statistics, both modelled as ellipsoids of means; uses the ellipsoid GENERALIZATION RADIUS as the optimality criterion to obtain tightly outer-bounding ellipsoids. Two static platforms."},
-    "W2352577916": {"title": "Extended Ellipsoidal Outer-Bounding Set-Membership Estimation for Nonlinear Discrete-Time Systems with Unknown-but-Bounded Disturbances", "authors": ["Yushuang Liu", "Yan Zhao", "Falin Wu"], "year": 2016, "venue": "International Journal of Distributed Sensor Networks", "doi": "10.1155/2016/3918797", "citations": 5, "pdf_url": "http://downloads.hindawi.com/journals/ddns/2016/3918797.pdf", "relevance": "medium", "note": "Generic nonlinear system, NOT bearing-only. Feasible sets guaranteed to contain more true states. Included because it is half of the brief's conflated A1 (see F1)."},
+    "W2352577916": {"title": "Extended Ellipsoidal Outer-Bounding Set-Membership Estimation for Nonlinear Discrete-Time Systems with Unknown-but-Bounded Disturbances", "authors": ["Yushuang Liu", "Yan Zhao", "Falin Wu"], "year": 2016, "venue": "International Journal of Distributed Sensor Networks", "doi": "10.1155/2016/3918797", "citations": 5, "pdf_url": "http://downloads.hindawi.com/journals/ddns/2016/3918797.pdf", "relevance": "medium", "note": "Generic nonlinear system, NOT bearing-only. Feasible sets guaranteed to contain more true states. Part of the Liu / Zhao / Wu line (see F1), but it is NOT the brief's A1 paper: A1 is a separate 2017 Chinese-language journal article that this run's OpenAlex and Crossref queries did not return."},
     "W2914891741": {"title": "A set-membership approach to find and track multiple targets using a fleet of UAVs", "authors": ["Sebastien Reynaud", "Michel Kieffer", "Helene Piet-Lahanier", "Leon Reboul"], "year": 2018, "venue": "2018 IEEE Conference on Decision and Control (CDC)", "doi": "10.1109/cdc.2018.8619672", "citations": 8, "pdf_url": "https://hal.science/hal-01994781", "relevance": "very high", "note": "Perturbations and measurement uncertainties described via BOUNDED SETS. Maintains sets guaranteed to contain the state of already-located targets, PLUS a set containing the states of targets still to be discovered. Control inputs chosen to minimise next-step estimation uncertainty."},
     "W2990696718": {"title": "Cooperative guidance of a fleet of UAVs for multi-target discovery and tracking in presence of obstacles using a set membership approach", "authors": ["Leon Reboul", "Michel Kieffer", "Helene Piet-Lahanier", "Sebastien Reynaud"], "year": 2019, "venue": "IFAC-PapersOnLine", "doi": "10.1016/j.ifacol.2019.11.266", "citations": 8, "relevance": "very high", "note": "Defines a specific criterion over the uncertainty of detected AND still-to-be-detected targets; criterion drives trajectory selection. Occlusion-aware."},
     "W4386766665": {"title": "Localization of Partially Hidden Moving Targets Using a Fleet of UAVs via Bounded-Error Estimation", "authors": ["Julius Ibenthal", "Luc Meyer", "Helene Piet-Lahanier", "Michel Kieffer"], "year": 2023, "venue": "IEEE Transactions on Robotics", "doi": "10.1109/tro.2023.3303693", "citations": 7, "relevance": "high", "note": "Distributed set-membership estimator under bounded state perturbation and measurement noise; MPC over trajectories to reduce estimation uncertainty. Top-venue. Introduces a detectability set per point of the region of interest."},
