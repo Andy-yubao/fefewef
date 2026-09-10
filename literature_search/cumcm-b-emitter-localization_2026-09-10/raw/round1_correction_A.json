@@ -1,0 +1,166 @@
+{
+  "run": "cumcm-b-emitter-localization_2026-09-10",
+  "level": "L1 correction pass (targeted A-cluster supplement)",
+  "purpose": "Verify the two contradicting papers named in the correction brief; repair the A-cluster false-negative caused by Round 1 query dialect; re-check the 'diameter does not exist' claim. B/C clusters were NOT re-searched.",
+  "date": "2026-09-10",
+  "tools": [
+    "mcp__paper-search-mcp__search_openalex",
+    "mcp__paper-search-mcp__search_crossref",
+    "mcp__paper-search-mcp__search_arxiv",
+    "mcp__paper-search-mcp__search_semantic"
+  ],
+  "not_used": ["Asta", "Crawl4AI", "citation snowball", "PDF download", "clusters D/E/F", "scholar-megasearch fan-out"],
+  "raw_round1_preserved": ["raw/arxiv.json", "raw/openalex.json"],
+
+  "query_totals": {
+    "metadata_verification_queries": 4,
+    "supplemental_search_queries": 6,
+    "total": 10,
+    "zero_return": 1,
+    "failed": 0,
+    "effective": 8,
+    "partially_effective": 2
+  },
+
+  "queries": [
+    {
+      "n": 1, "phase": "metadata_verification", "source": "OpenAlex",
+      "tool": "mcp__paper-search-mcp__search_openalex",
+      "q": "Bearing-only target tracking based on ellipsoidal outer-bounding set-membership estimation",
+      "returned": 5, "effective": "partial",
+      "ids": ["W2047144475", "W2352577916", "W2900395560", "W2181904343", "W2118968215"],
+      "note": "FAILED to resolve the brief's Paper A1 title verbatim. Surfaced W2047144475, the genuine bearing-only member of the Liu/Zhao line. See finding F1."
+    },
+    {
+      "n": 2, "phase": "metadata_verification", "source": "OpenAlex",
+      "tool": "mcp__paper-search-mcp__search_openalex",
+      "q": "Set-Membership Filter for Group Target Tracking Using Bounded Bearing-Only Measurements",
+      "returned": 5, "effective": true,
+      "ids": ["W7125817620"],
+      "note": "EXACT MATCH, hit #1. Paper A2 confirmed."
+    },
+    {
+      "n": 3, "phase": "metadata_verification", "source": "Crossref",
+      "tool": "mcp__paper-search-mcp__search_crossref",
+      "q": "Bearing-only target tracking based on ellipsoidal outer-bounding set-membership estimation",
+      "returned": 5, "effective": "partial",
+      "ids": ["10.1109/plans.2014.6851441", "10.70675/cf006598z7a31z4a1fz9f01z6f9228447ff9", "10.1109/icsps66615.2025.11347948"],
+      "note": "A1 title again unresolved; independently confirmed the 2014 PLANS record's DOI, venue, pages, publisher."
+    },
+    {
+      "n": 4, "phase": "metadata_verification", "source": "Crossref",
+      "tool": "mcp__paper-search-mcp__search_crossref",
+      "q": "set-membership filter group target tracking bounded bearing-only measurements",
+      "returned": 5, "effective": true,
+      "ids": ["10.1109/icsps66615.2025.11347948", "10.1109/plans.2014.6851441", "10.23919/ccc63176.2024.10661907"],
+      "note": "A2 confirmed in a SECOND independent database. Also surfaced CCC 2024 group-target bearing-only paper."
+    },
+    {
+      "n": 5, "phase": "supplemental_search", "source": "OpenAlex",
+      "tool": "mcp__paper-search-mcp__search_openalex",
+      "q": "ellipsoidal outer-bounding set-membership bearing-only target tracking Liu Zhao",
+      "returned": 8, "effective": true,
+      "ids": ["W2352577916", "W2900395560", "W4406991453", "W4402353999", "W2969557597", "W4392929933", "W7148198403", "W7143441264"],
+      "note": "Pinned the A1 conflation: W2352577916 has author list 'Liu; Zhao; Wu' and the exact title phrase 'Ellipsoidal Outer-Bounding Set-Membership Estimation' but is a GENERIC nonlinear system, not bearing-only. See finding F1."
+    },
+    {
+      "n": 6, "phase": "supplemental_search", "source": "arXiv",
+      "tool": "mcp__paper-search-mcp__search_arxiv",
+      "q": "bearing-only set-membership estimation bounded measurements",
+      "returned": 8, "effective": true,
+      "on_topic": ["2603.04867", "2604.00561", "2506.08530"],
+      "cross_cluster": ["2410.18669", "2310.15846"],
+      "off_topic": ["1504.02035", "1612.09388", "1402.3584"],
+      "note": "'set membership' also resolves to the cs.DS bit-probe problem (Garg & Radhakrishnan). Filtered. Note the previous Round 1 phrase-pair query for this same concept returned 0."
+    },
+    {
+      "n": 7, "phase": "supplemental_search", "source": "OpenAlex",
+      "tool": "mcp__paper-search-mcp__search_openalex",
+      "q": "set-membership guaranteed sets target search tracking UAV unknown number of targets",
+      "returned": 8, "effective": true,
+      "ids": ["W2582222835", "W4285105424", "W2914891741", "W4312631595", "W2990696718", "W4386766665", "W3120646156", "W4393164638"],
+      "note": "STRONGEST cluster of the supplement. Four on-target works from the Kieffer/Piet-Lahanier group on set-membership multi-target search with an a priori unknown target count. See finding F3."
+    },
+    {
+      "n": 8, "phase": "supplemental_search", "source": "Semantic Scholar",
+      "tool": "mcp__paper-search-mcp__search_semantic",
+      "q": "bearing-only target tracking ellipsoidal outer-bounding set-membership estimation",
+      "returned": 0, "effective": false,
+      "ids": [],
+      "note": "ZERO RETURN — empty array, not an error. Possibly a Semantic Scholar rate-limit artifact rather than genuine absence; recorded as a gap, not as evidence."
+    },
+    {
+      "n": 9, "phase": "supplemental_search", "source": "arXiv",
+      "tool": "mcp__paper-search-mcp__search_arxiv",
+      "q": "localization feasible set worst-case error bound diameter uncertainty set",
+      "returned": 8, "effective": "partial",
+      "on_topic": ["2603.04867", "1612.04918"],
+      "off_topic": ["2002.11171", "1209.1718", "2007.13241", "2511.22244", "2106.15792", "1505.00187"],
+      "note": "'worst-case' + 'bound' is swamped by cs.DS worst-case-analysis literature. Re-surfaced Calafiore 2026; newly surfaced exact recursive uncertainty-set updating (1612.04918)."
+    },
+    {
+      "n": 10, "phase": "supplemental_search", "source": "OpenAlex",
+      "tool": "mcp__paper-search-mcp__search_openalex",
+      "q": "minimum enclosing ball worst-case error bound uncertainty set localization",
+      "returned": 6, "effective": true,
+      "ids": ["W2021455238", "W2788251668", "W2794503138", "W4402353999", "W2893333163", "W4213414266"],
+      "note": "DECISIVE. Hit #1 is Isler & Bajcsy 2006 — polygonal convex measurement subsets, intersection-merge, set-size metric, sensor selection. Re-surfaced CLOSURE (RSS 2024). See findings F2 and F4."
+    }
+  ],
+
+  "findings": {
+    "F1": {
+      "issue": "The correction brief's Paper A1 title does not resolve to any indexed record.",
+      "resolution": "The brief's A1 appears to be a CONFLATION of two distinct papers by the same group (Yushuang Liu / Yan Zhao / Falin Wu):",
+      "components": [
+        {"role": "the actual bearing-only work", "id": "W2047144475", "doi": "10.1109/plans.2014.6851441", "title": "Ellipsoidal set filter combined set-membership and statistics uncertainties for bearing-only maneuvering target tracking", "authors": "Yushuang Liu; Yan Zhao", "year": 2014, "venue": "2014 IEEE/ION Position, Location and Navigation Symposium (PLANS 2014), pp. 753-759", "publisher": "IEEE"},
+        {"role": "the source of the title phrase and the 'Liu, Zhao, Wu' author list", "id": "W2352577916", "doi": "10.1155/2016/3918797", "title": "Extended Ellipsoidal Outer-Bounding Set-Membership Estimation for Nonlinear Discrete-Time Systems with Unknown-but-Bounded Disturbances", "authors": "Yushuang Liu; Yan Zhao; Falin Wu", "year": 2016, "venue": "International Journal of Distributed Sensor Networks (Hindawi)", "note": "NOT bearing-only. Generic nonlinear discrete-time system."}
+      ],
+      "conclusion": "The substantive claim in the brief is nevertheless CORRECT and is now supported by a properly identified record: bounded bearing-only + set-membership + ellipsoidal outer-bounding IS an existing line of work (W2047144475, 2014), and Paper A2 is confirmed verbatim. No fabricated citation was invented to satisfy the brief; the brief's title was corrected instead."
+    },
+    "F2": {
+      "issue": "Round 1 claimed feasible-region diameter does not exist as a localization accuracy metric.",
+      "resolution": "OVERTURNED. Set-size scalars in a worst-case / bounded-error sense are an established metric family.",
+      "evidence": [
+        {"id": "W2021455238", "note": "Isler & Bajcsy 2006: measurement uncertainty IS the area of the intersection of polygonal convex measurement subsets."},
+        {"id": "W4402353999", "note": "CLOSURE (RSS 2024): explicitly computes the minimum enclosing geodesic ball, defined as the point estimate with minimum WORST-CASE ERROR BOUND, over a bounded-noise feasible set."},
+        {"id": "W2047144475", "note": "Liu & Zhao 2014: uses the ellipsoid's generalization radius as the optimality criterion."},
+        {"id": "2506.08530", "note": "InZSMF 2025: reports average interval area of the zonotopic estimate as a performance metric."},
+        {"id": "W2352577916", "note": "Liu/Zhao/Wu 2016: minimises feasible-set size under UBB disturbances."}
+      ]
+    },
+    "F3": {
+      "issue": "Round 1 claimed no planning work handles an unknown target count under bounded error.",
+      "resolution": "OVERTURNED. A coherent line exists, from the Kieffer / Piet-Lahanier group.",
+      "evidence": [
+        {"id": "W2914891741", "doi": "10.1109/cdc.2018.8619672", "note": "CDC 2018. Set-membership search+track of an a priori UNKNOWN number of targets; maintains a set containing the states of targets still to be discovered; control input chosen to minimise estimation uncertainty at the next time step. Open-access HAL copy."},
+        {"id": "W2990696718", "doi": "10.1016/j.ifacol.2019.11.266", "note": "IFAC 2019. Defines an explicit criterion over detected AND still-to-be-detected targets, used to drive trajectories."},
+        {"id": "W4386766665", "doi": "10.1109/tro.2023.3303693", "note": "IEEE T-RO 2023. Bounded-error distributed set-membership estimator + MPC to reduce estimation uncertainty."},
+        {"id": "W3120646156", "doi": "10.1109/cdc42340.2020.9303943", "note": "CDC 2020. Same architecture with decoys and obstacles."}
+      ]
+    },
+    "F4": {
+      "issue": "Round 1 represented problem 1 as a set-membership problem needing ellipsoid/zonotope machinery, and called the polygon-intersection route 'novel'.",
+      "resolution": "The polygon-intersection route is NOT novel as a framework — it is the standard bounded-uncertainty sensing model. Isler & Bajcsy 2006 formalise exactly this: convex polygonal measurement subsets merged by intersection, with a selection algorithm and a 2-approximation guarantee. Our contribution is therefore the APPLICATION (bearing sectors from 示向度 with a hard ±1 deg bound, and the specific question 1 and 2 asked), not the framework."
+    }
+  },
+
+  "records": {
+    "W2021455238": {"title": "The Sensor Selection Problem for Bounded Uncertainty Sensing Models", "authors": ["Volkan Isler", "Ruzena Bajcsy"], "year": 2006, "venue": "IEEE Transactions on Automation Science and Engineering", "doi": "10.1109/tase.2006.876615", "citations": 56, "pdf_url": "https://escholarship.org/content/qt7714j8bx/qt7714j8bx.pdf", "relevance": "very high", "note": "Bounded-uncertainty sensor model as convex polygonal subsets of the plane; measurements merged by INTERSECTION; measurement uncertainty = AREA of the intersection; 2-approximation sensor-selection algorithm; second part relaxes to a SET of possible target locations. Structurally the closest indexed work to B problem 1 and 2."},
+    "W7125817620": {"title": "A Set-Membership Filter for Group Target Tracking Using Bounded Bearing-Only Measurements", "authors": ["Jingling Li", "Xianbin Gao", "Ping Wei", "Huaguo Zhang", "Lin Gao"], "year": 2025, "venue": "2025 17th International Conference on Signal Processing Systems (ICSPS), pp. 155-159", "doi": "10.1109/icsps66615.2025.11347948", "citations": 0, "relevance": "high", "note": "CONFIRMED in OpenAlex AND Crossref. Initial state, process noise and measurement noise all modelled as compact bounded sets; tracking by propagating sets containing the target state. The verbatim bounded bearing-only set-membership paper."},
+    "W2047144475": {"title": "Ellipsoidal set filter combined set-membership and statistics uncertainties for bearing-only maneuvering target tracking", "authors": ["Yushuang Liu", "Yan Zhao"], "year": 2014, "venue": "2014 IEEE/ION Position, Location and Navigation Symposium (PLANS), pp. 753-759", "doi": "10.1109/plans.2014.6851441", "citations": 5, "relevance": "high", "note": "Bearing-only + set-membership + statistics, both modelled as ellipsoids of means; uses the ellipsoid GENERALIZATION RADIUS as the optimality criterion to obtain tightly outer-bounding ellipsoids. Two static platforms."},
+    "W2352577916": {"title": "Extended Ellipsoidal Outer-Bounding Set-Membership Estimation for Nonlinear Discrete-Time Systems with Unknown-but-Bounded Disturbances", "authors": ["Yushuang Liu", "Yan Zhao", "Falin Wu"], "year": 2016, "venue": "International Journal of Distributed Sensor Networks", "doi": "10.1155/2016/3918797", "citations": 5, "pdf_url": "http://downloads.hindawi.com/journals/ddns/2016/3918797.pdf", "relevance": "medium", "note": "Generic nonlinear system, NOT bearing-only. Feasible sets guaranteed to contain more true states. Included because it is half of the brief's conflated A1 (see F1)."},
+    "W2914891741": {"title": "A set-membership approach to find and track multiple targets using a fleet of UAVs", "authors": ["Sebastien Reynaud", "Michel Kieffer", "Helene Piet-Lahanier", "Leon Reboul"], "year": 2018, "venue": "2018 IEEE Conference on Decision and Control (CDC)", "doi": "10.1109/cdc.2018.8619672", "citations": 8, "pdf_url": "https://hal.science/hal-01994781", "relevance": "very high", "note": "Perturbations and measurement uncertainties described via BOUNDED SETS. Maintains sets guaranteed to contain the state of already-located targets, PLUS a set containing the states of targets still to be discovered. Control inputs chosen to minimise next-step estimation uncertainty."},
+    "W2990696718": {"title": "Cooperative guidance of a fleet of UAVs for multi-target discovery and tracking in presence of obstacles using a set membership approach", "authors": ["Leon Reboul", "Michel Kieffer", "Helene Piet-Lahanier", "Sebastien Reynaud"], "year": 2019, "venue": "IFAC-PapersOnLine", "doi": "10.1016/j.ifacol.2019.11.266", "citations": 8, "relevance": "very high", "note": "Defines a specific criterion over the uncertainty of detected AND still-to-be-detected targets; criterion drives trajectory selection. Occlusion-aware."},
+    "W4386766665": {"title": "Localization of Partially Hidden Moving Targets Using a Fleet of UAVs via Bounded-Error Estimation", "authors": ["Julius Ibenthal", "Luc Meyer", "Helene Piet-Lahanier", "Michel Kieffer"], "year": 2023, "venue": "IEEE Transactions on Robotics", "doi": "10.1109/tro.2023.3303693", "citations": 7, "relevance": "high", "note": "Distributed set-membership estimator under bounded state perturbation and measurement noise; MPC over trajectories to reduce estimation uncertainty. Top-venue. Introduces a detectability set per point of the region of interest."},
+    "W3120646156": {"title": "Target search and tracking using a fleet of UAVs in presence of decoys and obstacles", "authors": ["Julius Ibenthal", "Luc Meyer", "Helene Piet-Lahanier", "Michel Kieffer"], "year": 2020, "venue": "2020 IEEE Conference on Decision and Control (CDC)", "doi": "10.1109/cdc42340.2020.9303943", "citations": 3, "pdf_url": "https://hal.science/hal-03206548", "relevance": "high", "note": "A priori unknown number of INDISTINGUISHABLE targets plus decoys; bounded sets; two maintained sets (localized true targets / still to be discovered) drive distributed control. Decoy handling is structurally relevant to B problem 4."},
+    "2603.04867": {"title": "Set-Membership Localization via Range Measurements", "authors": ["Giuseppe C. Calafiore"], "year": 2026, "venue": "arXiv preprint", "arxiv_id": "2603.04867", "url": "https://arxiv.org/abs/2603.04867", "cat": ["cs.CE", "cs.IT", "math.OC"], "relevance": "very high", "note": "Distance measurements with UNKNOWN-BUT-BOUNDED errors; characterizes the set of ALL points consistent with the measurements and their error model; shows it is contained in the intersection of closed balls AND A POLYTOPE, called the localization set; then computes a tight OUTER-BOUNDING set (box or ellipsoid) as a guaranteed set-valued estimate. Also poses inner approximation. Range-only, not bearing-only — but the closest indexed structural analogue of B problem 1's task."},
+    "W4402353999": {"title": "CLOSURE: Fast Quantification of Pose Uncertainty Sets", "authors": ["Yihuai Gao", "Yukai Tang", "Qi Han", "Heng Yang"], "year": 2024, "venue": "Robotics: Science and Systems (RSS) 2024", "doi": "10.15607/rss.2024.xx.072", "arxiv_id": "2403.09990", "url": "https://arxiv.org/abs/2403.09990", "relevance": "high", "note": "Assumes unknown-but-bounded measurement noise; a pose uncertainty set (PURSE) contains all poses compatible with the measurements; the simplification is the minimum enclosing geodesic ball, i.e. a point estimate with MINIMUM WORST-CASE ERROR BOUND. Computes it by boundary sampling + miniball, with a certified tightness ratio against an outer approximation. SE(3) pose from keypoints, not 2D bearing."},
+    "2506.08530": {"title": "The Invariant Zonotopic Set-Membership Filter for State Estimation on Groups", "authors": ["Tao Li", "Yi Li", "Lulin Zhang", "Jiuxiang Dong"], "year": 2025, "venue": "arXiv preprint", "arxiv_id": "2506.08530", "url": "https://arxiv.org/abs/2506.08530", "cat": ["eess.SY"], "relevance": "medium", "note": "Unknown-but-bounded noise on Lie groups; F-radius optimisation for the observer gain; reports average interval area of the zonotopic estimate as a metric. Evidence that set-size scalars (F-radius, interval area) are standard set-membership performance measures."},
+    "2604.00561": {"title": "Beyond Bounded Noise: Stochastic Set-Membership Estimation for Nonlinear Systems", "authors": ["Felix Brandle", "Nicolas Chatzikiriakos", "Andrea Iannelli", "Frank Allgower"], "year": 2026, "venue": "arXiv preprint", "arxiv_id": "2604.00561", "url": "https://arxiv.org/abs/2604.00561", "cat": ["eess.SY"], "relevance": "medium", "note": "Set-membership estimation when noise has UNBOUNDED support but the sample covariance is bounded; gives a finite-sample uncertainty set containing the truth with high probability. Directly relevant as a principled middle road between B problem's hard +/-1 deg bound and the purely stochastic assumption."},
+    "1612.04918": {"title": "Exact recursive updating of uncertainty sets", "authors": ["Robin Hill", "Yousong Luo", "Uwe Schwerdtfeger"], "year": 2016, "venue": "arXiv preprint", "arxiv_id": "1612.04918", "url": "https://arxiv.org/abs/1612.04918", "cat": ["math.OC"], "relevance": "medium", "note": "Set of possible states of a linear discrete-time system under bounded disturbances and bounded measurement noise, updated EXACTLY and recursively, with two theorems describing the evolution. Directly relevant to incrementally updating the feasible polygon as detection points accumulate."},
+    "2410.18669": {"title": "Trajectory Optimization for Unknown Maneuvering Target Tracking with Bearing-only Measurements", "authors": ["Yingbo Fu", "Ziwen Yang", "Liang Xu", "Yi Guo", "Shanying Zhu", "Xinnping Guan"], "year": 2024, "venue": "Ocean Engineering (2025)", "arxiv_id": "2410.18669", "url": "https://arxiv.org/abs/2410.18669", "cat": ["eess.SY"], "relevance": "high", "note": "Surfaced by query 6 but belongs to cluster C. AUV limited to BEARING measurements; a probabilistic bearing-data-dependent bound on tracking error is rigorously established, then the OPTIMAL DESIRED BEARINGS that reduce tracking uncertainty are obtained ANALYTICALLY before trajectory optimisation. That is precisely B problem 2's question (which bearing next), solved in closed form."},
+    "2310.15846": {"title": "Optimal Spatial-Temporal Triangulation for Bearing-Only Cooperative Motion Estimation", "authors": ["Canlun Zheng", "Yize Mi", "Hanqing Guo", "Huaben Chen", "Zhiyun Lin", "Shiyu Zhao"], "year": 2023, "venue": "arXiv preprint", "arxiv_id": "2310.15846", "url": "https://arxiv.org/abs/2310.15846", "cat": ["cs.RO"], "relevance": "high", "note": "Surfaced by query 6 but belongs to cluster B. Same senior author as Round 1's top anchor (Shiyu Zhao). Distributed recursive least squares that fully incorporates the TRIANGULATION GEOMETRIC CONSTRAINT; exponential convergence proved. Complements B-cluster geometry results with a constructive estimator."},
+    "10.23919/ccc63176.2024.10661907": {"title": "The Algorithm of Group Target Tracking Based on Bearing-only Measurements", "authors": ["Xiuling Zhang", "Shengfu Chen", "Guoqing Qi", "Yinya Li", "Andong Sheng"], "year": 2024, "venue": "2024 43rd Chinese Control Conference (CCC), pp. 4121-4128", "doi": "10.23919/ccc63176.2024.10661907", "relevance": "medium", "note": "Chinese control community, bearing-only group tracking. Weak signal that a Chinese-language adjacent literature may exist beyond arXiv/OpenAlex coverage (still unsearched, see gaps)."}
+  }
+}

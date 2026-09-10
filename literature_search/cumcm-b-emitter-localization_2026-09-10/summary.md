@@ -1,97 +1,167 @@
-# CUMCM B题 Literature Search — Round 1
+# CUMCM B题 Literature Search — Round 1 (corrected)
 
 Run: `literature_search/cumcm-b-emitter-localization_2026-09-10/`
-Level: **L1, further constrained** (3 facets A/B/C, 2 buckets — A arXiv + C OpenAlex, wave 1 only)
-Date: 2026-09-10
-Queries issued: 14 (arXiv 9, OpenAlex 5). Zero-return queries: 2. Failed queries: 2.
-Not done: PDFs, full text, Crawl4AI, citation snowball, Asta, clusters D/E/F.
+Level: **L1, further constrained** (3 clusters A/B/C, 2 buckets — A arXiv + C OpenAlex, wave 1 only)
+Date: 2026-09-10 (corrected same day)
 
-Execution note: the fan-out was run inline rather than via per-bucket subagents. The brief's
-budget (≤3 queries per cluster, ≤8 hits per query) is far below this skill's L1 default
-(3 facets × 4 buckets × 15 hits), so spawning searchers would have added cost without adding
-coverage. All queries, including the failures, are recorded in `raw/arxiv.json` and
-`raw/openalex.json`.
+> **Round 1 correction.**
+> An initial interpretation that bounded-error set-membership estimation and
+> bearing-only localization were disjoint literature communities was **invalidated by
+> targeted follow-up retrieval**. The intersection is well populated: bounded
+> bearing-only set-membership is an existing research line, and bounded-uncertainty
+> sensing over convex polygonal measurement subsets has been formalised since 2006.
+> The invalid conclusion has been **removed from the body of this report**, not
+> patched at the end. Supplementary provenance is in
+> `raw/round1_correction_A.json`; the Round 1 raw files are preserved unchanged.
+
+### Corrections applied in this revision
+
+| # | Round 1 claim | Status | Corrected statement |
+|---|---|---|---|
+| 1 | "有界误差 × 方向定位 是两个互不相交的文献社区" | **撤回** | 检索假阴性。该交集存在且有多篇直接论文（见 §2） |
+| 2 | "diameter 在文献中不存在，需自行设计" | **缩小断言** | 集合尺度（set diameter / worst-case error / area / radius）是既有指标族；**与本题同构的"角扇区精确求交→多边形→欧氏直径"直接论文未检索到**，这才是缺口所在 |
+| 3 | "zonotope 对 Minkowski 和与求交封闭" | **错误，已改** | 普通 zonotope 对 affine/linear 变换与 Minkowski 和封闭，**一般不对交集封闭**；精确求交需 constrained zonotope / zonotope bundle / 外近似 |
+| 4 | 问题 1 表述为需要椭球/zonotope 集员机制 | **修正** | 问题 1 的天然几何是 **角扇区 → 半平面约束 → 凸多边形求交 → 直径**；集员文献只提供 bounded-uncertainty / guaranteed feasible set 的理论背景 |
+| 5 | "频道切换（1 s × 频道距离）" | **错误，已改** | 题目原文：任意两个频道之间的切换时间为 1 秒。`i ≠ j` 时恒为 1 s |
+| 6 | ACC 2012 与 Int. J. Control 2013 并列为两个独立 ANCHOR | **已去重** | 同一研究工作的会议版 / 期刊扩展版，占**一个**槽位 |
+| 7 | "CRLB = FIM⁻¹，所以最大化 FIM 与最小化 CRLB 是同一件事" | **已严格化** | `C_CRLB = J⁻¹` 仅在正则条件满足且 FIM 非奇异时成立；矩阵本身不存在"最大化"，必须指定标量最优性准则（A-/D-/E-optimality） |
+| 8 | Dehghan 2014 "measurement model 与 B题几乎一一对应" | **已降级表述** | 其 measurement model 是 DRSSI/RSSI，与 B题的 bearing/AOA 不同；可迁移的是**决策框架**，不是测量公式 |
+
+Queries issued this revision: 10 (4 metadata verification + 6 supplemental search).
+Zero-return: 1 (Semantic Scholar). Failed: 0.
+Not done: PDFs, full text, Crawl4AI, citation snowball, Asta, clusters D/E/F, L2+.
 
 ---
 
 ## 1. Executive Summary
 
-B 题的数学内核，文献里对应三条**彼此独立**的研究线，而本轮最重要的发现是：这
-三条线在索引文献中**没有接上**。
+B 题的数学内核在文献中对应三条研究线：**A 有界误差下的方向定位**、**B 最优观测几何**、
+**C 主动感知 / 路径规划**。Round 1 曾判断 A 线与 B/C 在索引文献中"没有接上"——
+**该判断是检索假阴性，已撤回**。定向补检在 A 线上找到了一批直接论文，其中一篇
+（Isler & Bajcsy 2006）几乎就是问题 1 与问题 2 的通用框架。
 
-**问题 1**（方向观测 + ±1° 硬误差 → 定位区域 → 直径）落在 *set-membership /
-bounded-error estimation* 与 *bearings-only localization* 的交集上。这个交集在
-arXiv 上按精确短语检索返回 **0 条**（两种拼写各测一次），OpenAlex 上两个术语
-返回的结果集分属完全不重叠的两个社区（控制理论 vs 信号处理）。set-membership
-一侧成熟工具是椭球与 zonotope 的**包含性保证**（Bertsekas 1971；Ge 2017；
-Ben Chabane 2014）；bearings-only 一侧成熟工具是 ML/TLS 点估计与 CRLB
-（Doğançay 2005；Kaplan 2001）。**没有任何一篇把"有界角度误差"直接表示成可行
-多边形并求交。**
+**问题 1**（方向观测 + ±1° 硬误差 → 定位区域 → 直径）落在 *bounded-uncertainty
+sensing / set-membership localization* 上。这个方向不仅有文献，而且有**比 Round 1
+描述得更直接的文献**：
 
-**问题 2**（第二观测点选择）是三条线中最成熟的一条。Zhao–Chen–Lee 用 frame
-theory 给出了 2D/3D 最优布站的**充要条件与显式构造算法**；Yang 等 2013 给出了
-在**任意高斯先验**下最大化更新后 FIM 的放置准则——这正是"已测一次，下一步放哪
-里"的正确形式；Tang 等 2025 用 A-optimality（min trace CRB）给出了含 AOA 的
-最优几何约束与最优夹角。这三篇可以支撑问题 2 的建模与验证。
+- **Isler & Bajcsy 2006** 给出了一个通用的"有界不确定性传感模型"——测量被表示为
+  平面上的**凸多边形子集**，测量之间**通过求交合并**，而**测量不确定性就是交集
+  的面积**，并给出传感器选择算法与 2-近似保证。这正是问题 1/2 的结构。
+- **Calafiore 2026** 在 UBB 距离测量下刻画"与测量及其误差模型相容的全部点"构成的
+  集合，证明它含于若干闭球与**一个多面体**的交，并计算紧的外包围集（盒/椭球）作为
+  **保证集值定位估计**。
+- **Li et al. 2025**（ICSPS，OpenAlex + Crossref 双库确认）明确处理
+  *bounded bearing-only measurements* 下的 set-membership 滤波。
+- **Liu & Zhao 2014**（PLANS）在 bearing-only 下用椭球的 **generalization radius**
+  作为最优性准则。
 
-**问题 3**（搜索 + 定位 + 清除）对应 *active sensing / informative path
-planning*。成熟的是**目标函数**：det(FIM)（Oshman 1999；Xiao 2026）、CRLB
-（Dehghan 2014）、posterior entropy（Habibi 2026）。Dehghan 等 2014 在 RF +
-UAV 域内做的"在候选航点中选下一个使 det(FIM) 最大者"，与 B 题的决策环结构
-几乎一一对应。
+**问题 2**（第二观测点选择）依然是最成熟的一条。Zhao–Chen–Lee 用 frame theory
+给出最优布站的**充要条件与构造算法**；Yang 等 2013 给出**任意高斯先验**下最大化
+更新后 FIM 的放置准则——这正是"已测一次，下一步放哪里"的正确形式；Tang 等 2025
+用 A-optimality（min trace CRB）给出含 AOA 的最优几何约束。此外补检新发现
+**Fu et al. 2026**（近海 AUV，bearing-only）**解析地求出"最优的下一批观测方位"**，
+以及 **Zheng et al. 2023**（Shiyu Zhao 组）把三角几何约束直接并入估计器并证明指数收敛。
 
-**最关键的方法论缺口**：所有路径规划与布站文献都以**高斯噪声方差**为前提，
-而题目给的是**硬上下界 ±1°**。把硬界映射成方差是一个必须自行论证的建模决策，
-现有文献没有回答。而正因为我们的可行集可以**精确**算出（角扇区求交 = 凸多边形
-半平面求交），我们可以绕开这个不匹配：直接用"下一次观测使可行多边形**直径**最小"
-作为分布无关的准则。这条路线比文献里的椭球/zonotope 近似**更精确也更简单**，
-但**直径作为精度指标在文献中不存在**，需要自行设计。
+**问题 3**（搜索 + 定位 + 清除，目标数未知）本轮有**最重要的新发现**：
+Kieffer / Piet-Lahanier 一系的工作（Reynaud 2018 CDC、Reboul 2019 IFAC、
+Ibenthal 2020 CDC、Ibenthal 2023 T-RO）在**有界误差**框架下做多目标搜索与跟踪，
+维护"已定位目标的状态集"与"**尚未发现目标的状态集**"，并用这两者选择下一步控制量
+以最小化下一步的估计不确定性。这正面回答了 Round 1 声称"不存在"的那一类方案。
 
-**下一轮最该深读**：Zhao–Chen–Lee（最优几何的闭式结果）、Yang 2013（带先验的
-放置）、Tang 2025（AOA 的 A-optimality 显式约束）、Dehghan 2014（RF+UAV 的单步
-信息决策），以及 Oshman 1999（轨迹级 det(FIM) 的经典框架）。
+**最关键的方法论缺口（修正后）**：所有 FIM/CRLB 路径规划与布站文献以**高斯噪声方差**
+为前提，而题目给的是**硬上下界 ±1°**。把硬界映射成方差是一个必须自行论证的建模决策。
+而正因为可行集可以**精确**算出（角扇区 = 半平面约束求交 = 凸多边形），我们可以绕开
+这个不匹配：直接以集合尺度（直径 / 面积）作为分布无关的准则——**这件事在
+bounded-error 文献里有成熟先例**（Isler & Bajcsy 的面积、CLOSURE 的最小外接球半径、
+Liu & Zhao 的 generalization radius），只是**没有人在 B题这一具体几何下做过**。
+
+**下一轮最该深读**：Isler & Bajcsy 2006（问题 1/2 的框架）、Calafiore 2026
+（精确可行集与外包围）、Reynaud 2018（问题 3 的集员决策环）、Zhao–Chen–Lee 2013
+（最优几何闭式结果）、Yang 2013（带先验的放置）、Dehghan 2014（RF+UAV 单步信息决策）。
 
 ---
 
-## 2. Problem A — Bounded-error localization
+## 2. Problem A — Bounded-error / Set-based Bearing Localization
+
+> 本节在 Round 1 基础上**重做候选表**。分级标准见 §6。
 
 ### 检索观察
 
-- arXiv 精确短语 `"bearing-only" AND "set-membership"` → **0 条**；复数拼写
-  `"bearings-only" AND "set-membership"` → **0 条**。
-- 去掉引号改为裸词后 arXiv 返回正常（`bearings-only localization` → 6 条，
-  `bounded error bearing localization feasible region interval` → 6 条，但后者被
-  math.OC 的 "feasibility problem" 文献淹没）。
-- OpenAlex 上 `bearing-only localization set-membership` **失败**：`bearing`
-  被解析为机械轴承，返回轴承故障诊断论文。改用 `set-membership estimation`
-  后命中该领域的完整经典谱系。
-- 结论：**这是两条互不相交的文献社区**，不是检索失误。
+- Round 1 的 arXiv 精确短语 `"bearing-only" AND "set-membership"` 返回 **0 条**，
+  当时被解读为"交集为空"。补检表明这是**查询方言假阴性**：改用
+  `bearing-only set-membership estimation bounded measurements` 后，同一概念返回 8 条，
+  其中 3 条直接相关（`2603.04867`、`2604.00561`、`2506.08530`）。
+- OpenAlex 的 `bearing` 机械轴承歧义仍然存在（Round 1 已记录），但换成
+  `set-membership guaranteed sets target search tracking UAV unknown number of targets`
+  这类**不含 bearing 的策略性措辞**后，命中了一整条此前完全遗漏的研究线。
+- 由此确立本轮最重要的检索教训：**用词的选择比数据源的覆盖更决定召回**。
+  同一批数据库，换一组术语就多出十余篇直接相关论文。
 
 ### 候选论文
 
-| Title | Year | Core method | Uncertainty representation | Direct relevance to B | Grade | DOI/arXiv |
-|---|---|---|---|---|---|---|
-| Recursive state estimation for a set-membership description of uncertainty | 1971 | 递归集员滤波；能量约束→椭球，瞬时约束→包围椭球 | 椭球（有界集） | 提供了"测量+有界误差→相容状态集"的奠基形式；问题 1 是其静态几何特例，但动态递推机制不需要 | BACKGROUND | 10.1109/TAC.1971.1099674 |
-| Optimal estimation theory for dynamic systems with set membership uncertainty | 1991 | 集员估计的最优性理论（插值、有界噪声） | 可行集 | 确立"最小化可行集大小"为规范最优性准则，支撑我们的指标选择 | BACKGROUND | 10.1016/0005-1098(91)90134-N |
-| A Dynamic Event-Triggered Transmission Scheme for Distributed Set-Membership Estimation | 2017 | 分布式集员估计，UBB 噪声，包围椭球上的递归凸优化 | **保证包含真值的包围椭球** | "保证包含"性质正是问题 1 对定位区域的要求 | USEFUL | 10.1109/TCYB.2017.2769722 |
-| Improved set-membership estimation approach based on zonotopes and ellipsoids | 2014 | zonotope→椭球混合集员估计，P-radius 切换准则 | **zonotope**（Minkowski 和下的多面体） | zonotope 对 Minkowski 和与求交封闭——累积角扇区求交的天然代数；仅切换准则与动态系统绑定 | **ANCHOR** | 10.1109/ECC.2014.6862412 |
-| Ellipsoidal state-bounding-based set-membership estimation with UBB disturbances | 2016 | 预测-校正集员递推；**最小化可行椭球集体积** | 椭球，体积作指标 | 提供"收缩可行集体积"这一目标——正是问题 1"区域直径/面积作精度"的类比物 | USEFUL | 10.1049/iet-cta.2015.0654 |
-| Set-membership estimation for linear time-varying descriptor systems | 2020 | 描述子系统的集员估计 | 可行集 | 几何不可迁移 | DROP | 10.1016/j.automatica.2020.108867 |
-| H∞-optimal Interval Observer Synthesis via Mixed-Monotone Decompositions | 2022 | 区间观测器，构造即保证包含 | 区间（盒子） | 区间/盒子表示概念可迁移；LMI/SDP 机制不可 | BACKGROUND | arXiv:2203.07430 |
-| Distributed Resilient Interval Observer Synthesis | 2024 | 分布式区间观测器，ℓ1 误差界最小化 | 区间 | 同上，另加"最小化误差界" | BACKGROUND | arXiv:2401.15511 |
-| Distributed Bearing-based Formation Control and Network Localization with Exogenous Disturbances | 2020 | 鲁棒稳定性；**方向测量定位误差的显式上界集** | 定位误差的界集 | 极少数把*方向测量*与*显式有界误差集*耦合的工作；但框架是编队控制而非交会定位 | USEFUL | arXiv:2007.07458 |
-| Target localization from bearings-only observations | 1997 | 不预设误差为随机或系统的估计方法；可观测性分析 | 非概率误差描述 | 罕见的非贝叶斯 bearings-only 估计；与有界误差思路相邻，但无集合表示 | BACKGROUND | 10.1109/7.570703 |
-| Networked pointing system: bearing-only target localization and pointing control | 2025 | 方向估计 + 指向控制；可定位性条件 | — | 给出最小可定位条件（两智能体与目标不共线），可作问题 2 候选区域的合法性下界 | USEFUL | arXiv:2506.18460 |
+字段说明：Measurement type 区分 bearing-only / range-only / RSS / generic；
+Noise model 区分 Gaussian / unknown-but-bounded (UBB) / interval / set-membership。
 
-### Best anchor papers
+| Title | Year | Measurement | Noise model | Set representation | Core method | Direct relevance to B | Transferable | Non-transferable | Grade | DOI / arXiv |
+|---|---|---|---|---|---|---|---|---|---|---|
+| The Sensor Selection Problem for Bounded Uncertainty Sensing Models | 2006 | **generic bounded-uncertainty**（含相机） | bounded（测量即凸多边形） | **凸多边形子集** | 测量求交合并；不确定性 = 交集**面积**；传感器选择 2-近似算法 | 问题 1 + 问题 2 的通用框架：求交 + 集合尺度 + 选传感器 | 求交合并语义；集合尺度作目标；"给定可能位置集合而非单点估计"的松弛形式 | 传感器模型是通用多边形，未给角度扇区；无移动/代价模型 | **ANCHOR** | 10.1109/tase.2006.876615 |
+| Set-Membership Localization via Range Measurements | 2026 | range-only | **UBB** | 球交 + **多面体**的交，外包围为盒/椭球 | 刻画全部相容点集；凸规划求紧外包围；另给球/椭球内近似 | 问题 1 的最近同构：UBB → 可行集 → 保证集值估计 | 相容集刻画；多面体包含结构；内外近似的凸规划形式 | 测距而非测向；静态锚点；无"选下一个观测点" | **ANCHOR** | arXiv:2603.04867 |
+| A Set-Membership Filter for Group Target Tracking Using Bounded Bearing-Only Measurements | 2025 | **bearing-only** | **bounded**（初值/过程/测量噪声均为紧集） | 紧集，逐时刻传播 | 集员滤波；以包含目标状态的集合传播实现跟踪 | 直接的 bounded bearing-only 集员论文；群目标场景 | "把初值、过程噪声、测量噪声统一建模为紧集"的表述 | 动态滤波而非静态几何求交；群目标形状演化不在 B题内 | **ANCHOR** | 10.1109/icsps66615.2025.11347948 |
+| A set-membership approach to find and track multiple targets using a fleet of UAVs | 2018 | 探测（集合语义） | **bounded** | 有界集 | 维护"已定位目标状态集" + "**尚未发现目标状态集**"；控制量最小化下一步估计不确定性 | 问题 3 的决策架构：目标数未知 + 搜索 + 定位 | 决策环；未发现目标集的构造与使用；下一步不确定性最小化 | 传感器为探测/可见性模型而非 bearing；UAV 队而非单机器狗；无频道/光学/清除代价 | **ANCHOR** | 10.1109/cdc.2018.8619672 |
+| Cooperative guidance of a fleet of UAVs for multi-target discovery and tracking ... set membership approach | 2019 | 探测 | **bounded** | 有界集 | 定义覆盖"已发现 + 尚未发现"目标的统一不确定性准则，驱动轨迹选择 | 问题 3：单一标量准则同时权衡搜索与跟踪 | 统一准则的设计思路；遮挡感知 | 同上一行 | USEFUL (high) | 10.1016/j.ifacol.2019.11.266 |
+| Localization of Partially Hidden Moving Targets Using a Fleet of UAVs via Bounded-Error Estimation | 2023 | 可见性 | **bounded** | 分布式集员估计集 | 分布式集员估计 + MPC 降低估计不确定性；逐点 detectability set | 问题 3 的高水平实现参考 | MPC + 集合目标；detectability set（与"信号有效覆盖"同构） | 可见性测量；多机；三维 | USEFUL (high) | 10.1109/tro.2023.3303693 |
+| Target search and tracking using a fleet of UAVs in presence of decoys and obstacles | 2020 | 探测 | **bounded** | 有界集 | 不可区分目标 + 诱饵；两个集合驱动分布式控制 | 问题 4 的诱饵/误判类比 | 干扰与真实目标不可区分时的处理 | 同上一行 | USEFUL | 10.1109/cdc42340.2020.9303943 |
+| Ellipsoidal set filter combined set-membership and statistics uncertainties for bearing-only maneuvering target tracking | 2014 | **bearing-only** | **UBB + 统计混合** | 椭球 | 以椭球 **generalization radius** 为最优性准则求紧外包围椭球 | bearing-only 下"以集合尺度为准则"的直接先例 | 集合尺度（radius）作最优性准则；两类不确定性并存的处理 | 机动目标动态跟踪；两个固定平台 | USEFUL (high) | 10.1109/plans.2014.6851441 |
+| Extended Ellipsoidal Outer-Bounding Set-Membership Estimation for Nonlinear Discrete-Time Systems with UBB Disturbances | 2016 | generic | **UBB** | 椭球 | 一阶线性化 + 区间分析界定线性化误差椭球；可行集含更多真值 | 一般性 UBB 外包围方法 | 区间分析界定线性化误差 | **非 bearing-only**，是通用非线性系统 | BACKGROUND | 10.1155/2016/3918797 |
+| CLOSURE: Fast Quantification of Pose Uncertainty Sets | 2024 | 关键点/位姿（SE(3)） | **UBB** | 位姿不确定集 + 最小外接测地球 | 证明不确定集 = 多个测地球的交；边界采样 + miniball 求最小外接球（= **最小 worst-case 误差界**），并给出与外包近似的紧度证明 | **直接反驳"diameter 不存在"**：worst-case error 界是既有指标 | 最小外接球 ≈ 可行集直径；内/外近似紧度证书 | SE(3) 位姿、关键点测量，非 2D 测向 | USEFUL (high) | 10.1109/rss.2024.xx.072 / arXiv:2403.09990 |
+| Beyond Bounded Noise: Stochastic Set-Membership Estimation for Nonlinear Systems | 2026 | generic | **次高斯（无界支撑，样本协方差有界）** | 有限样本不确定集 | 用样本协方差界构造以高概率包含真值的集合 | 硬界 ↔ 概率假设之间的"中间道路" | 把无界噪声纳入集员框架的严格做法 | 非线性系统参数估计 | BACKGROUND | arXiv:2604.00561 |
+| Exact recursive updating of uncertainty sets | 2016 | generic linear | **bounded** | 不确定集（精确，非近似） | 两个定理完整刻画不确定集的演化；精确递推算法 | 增量更新可行集的精确方法（问题 1/2/3 的在线更新） | 精确（而非椭球近似）递推更新 | 线性系统；无几何语义 | USEFUL | arXiv:1612.04918 |
+| The Invariant Zonotopic Set-Membership Filter for State Estimation on Groups | 2025 | generic | **UBB** | **zonotope（李群上）** | 不变滤波 + zonotope；F-radius 优化增益；以**平均区间面积**为指标 | zonotope 用于 UBB 现代实例；集合面积作为报告指标 | F-radius / 区间面积作为集合尺度指标 | 李群状态空间；动态滤波 | BACKGROUND | arXiv:2506.08530 |
+| Recursive state estimation for a set-membership description of uncertainty | 1971 | generic | **UBB** | 椭球 | 递归集员滤波；能量约束→椭球，瞬时约束→包围椭球 | 集员估计的奠基形式 | "测量 + 有界误差 → 相容状态集" | 动态递推机制 B题不需要 | BACKGROUND | 10.1109/TAC.1971.1099674 |
+| Optimal estimation theory for dynamic systems with set membership uncertainty | 1991 | generic | **UBB** | 可行集 | 集员估计的最优性理论 | "最小化可行集大小"作为规范最优性准则 | 指标选择的理论背书 | 动态系统 | BACKGROUND | 10.1016/0005-1098(91)90134-N |
+| A Dynamic Event-Triggered Transmission Scheme for Distributed Set-Membership Estimation | 2017 | generic | **UBB** | 包围椭球 | 分布式集员估计；包围椭球上的递归凸优化 | "保证包含真值"性质 | 保证包含的形式化 | 传感器网络传输调度 | BACKGROUND | 10.1109/TCYB.2017.2769722 |
+| Ellipsoidal state-bounding-based set-membership estimation for linear system with UBB disturbances | 2016 | generic linear | **UBB** | 椭球 | 预测-校正集员递推；**最小化可行椭球体积** | 收缩可行集体积这一目标 | 体积作集合尺度指标 | 线性动态系统 | BACKGROUND | 10.1049/iet-cta.2015.0654 |
+| Improved set-membership estimation approach based on zonotopes and ellipsoids | 2014 | generic | **UBB** | zonotope + 椭球 | zonotope→椭球混合；P-radius 切换准则 | zonotope 作为一种有界集表示的背景 | 见下方"关于 zonotope 的更正" | 动态系统；且**不**支持角扇区精确求交 | BACKGROUND | 10.1109/ECC.2014.6862412 |
+| Distributed Bearing-based Formation Control and Network Localization with Exogenous Disturbances | 2020 | **bearing** | bounded disturbance | 定位误差的界集 | 鲁棒稳定性；方向测量定位误差的显式上界集 | 少数把方向测量与显式有界误差集耦合的工作 | 误差上界集的构造 | 编队控制框架 | USEFUL | arXiv:2007.07458 |
+| Target localization from bearings-only observations | 1997 | **bearings-only** | **非概率（不预设随机或系统误差）** | — | 不预设误差分布的估计方法；可观测性分析 | 罕见的非贝叶斯 bearings-only 估计 | "不预设误差分布"的立场 | 无集合表示；无几何求交 | BACKGROUND | 10.1109/7.570703 |
+| Networked pointing system: Bearing-only target localization and pointing control | 2025 | **bearing-only** | — | — | 方向估计 + 指向控制；可定位性条件 | 最小可定位条件（两智能体与目标不共线），可作问题 2 候选区域的合法性下界 | 可定位性条件 | 控制律 | USEFUL | arXiv:2506.18460 |
+| The Algorithm of Group Target Tracking Based on Bearing-only Measurements | 2024 | **bearing-only** | — | — | 群目标跟踪算法 | 中文控制界的相邻工作（CCC） | — | 群目标跟踪 | BACKGROUND | 10.23919/ccc63176.2024.10661907 |
+| Set-membership estimation for linear time-varying descriptor systems | 2020 | generic | UBB | 可行集 | 描述子系统集员估计 | 几何不可迁移 | — | 描述子系统 | DROP | 10.1016/j.automatica.2020.108867 |
+| H∞-optimal Interval Observer Synthesis via Mixed-Monotone Decompositions | 2022 | generic | **interval** | 区间（盒子） | 区间观测器，构造即保证包含 | 区间/盒子表示概念 | 区间表示 | LMI/SDP 机制 | BACKGROUND | arXiv:2203.07430 |
+| Distributed Resilient Interval Observer Synthesis | 2024 | generic | **interval** | 区间 | 分布式区间观测器，ℓ1 误差界最小化 | "最小化误差界" | 误差界最小化 | 同上 | BACKGROUND | arXiv:2401.15511 |
 
-- **Ben Chabane et al. 2014**（zonotope/椭球混合集员，`10.1109/ECC.2014.6862412`）—
-  唯一的 A 级：zonotope 代数是最接近凸多边形可行集的现成工具。
-- 次级桥梁：**Ge et al. 2017**（保证包含性质）、**Liu et al. 2016**（可行集体积最小化）。
+### 关于 zonotope 的更正（对应更正表 #3）
 
-**明确结论：本簇没有找到任何直接 ANCHOR。** 没有一篇文献做"有界角度误差下的
-方向线求交 → 多边形 → 直径"。问题 1 的算法需要自行设计——但这是**好消息**：
-题目要求的构造比文献里的椭球/zonotope 近似更简单，可以精确求解。
+Round 1 曾写"zonotope 对 Minkowski 和与求交封闭——累积角扇区求交的天然代数"。
+**这是错的。** 正确的表述是：
+
+```
+普通 zonotope：
+  - 对 affine / linear transformation 封闭
+  - 对 Minkowski sum 封闭
+  - 一般 不 对 intersection 封闭
+```
+
+若需精确处理交集，通常需要 `constrained zonotope`、`zonotope bundle`，
+或退而求其次使用 `outer approximation` 等扩展或近似形式。
+
+因此 **Ben Chabane et al. 2014 不再作为 ANCHOR**。它作为
+bounded-set representation / set-membership estimation / outer approximation 的
+背景文献保留，等级 **BACKGROUND**。
+
+### 本节结论（修正后）
+
+- **有界误差 × 方向定位不是两个互不相交的社区。** 该交集有多篇直接论文
+  （Isler & Bajcsy 2006；Calafiore 2026；Li et al. 2025；Liu & Zhao 2014）。
+- **本轮仍未找到与 B题完全同构的论文**：即
+  "±1° 有界角度误差 → 多个角扇区精确求交 → 凸多边形 → 计算欧氏直径"。
+  最接近的是 Isler & Bajcsy 2006（凸多边形求交 + 面积，但测量模型是通用多边形）
+  与 Calafiore 2026（UBB + 多面体 + 保证集值估计，但测量是测距）。
+- **不能声称 diameter 在文献中不存在。** 集合尺度是既有指标族：
+  面积（Isler & Bajcsy）、最小外接球半径 / worst-case 误差界（CLOSURE）、
+  generalization radius（Liu & Zhao）、体积（Liu et al. 2016）、
+  F-radius 与区间面积（InZSMF 2025）。缺的是**在本题几何下的具体算法与结论**，
+  不是这个概念本身。
 
 ---
 
@@ -99,41 +169,87 @@ UAV 域内做的"在候选航点中选下一个使 det(FIM) 最大者"，与 B �
 
 ### 候选论文
 
-| Title | Year | Core method | Optimization criterion | Key geometric result | Direct relevance to B | Grade | DOI/arXiv |
+| Title | Year | Core method | Scalar optimality criterion | Key geometric result | Direct relevance to B | Grade | DOI / arXiv |
 |---|---|---|---|---|---|---|---|
-| Optimal sensor placement for target localisation and tracking in 2D and 3D | 2013 | frame theory 统一 bearing-only / range-only / RSS | FIM 型最优性 | 2D/3D 最优放置的**充要条件**；regular/irregular 两类；梯度控制律可构造 | 问题 2 的数学内核：闭式最优几何 | **ANCHOR** | 10.1080/00207179.2013.792606（arXiv:1210.7397） |
-| Optimal placement of bearing-only sensors for target localization | 2012 | FIM + frame theory，仅 bearing-only | FIM 最优性 | 两类最优放置；**显式构造算法**；irregular 可降维转为 regular | 上篇的会议版，补齐构造算法 | **ANCHOR** | 10.1109/ACC.2012.6314884 |
-| Optimal Placement of Heterogeneous Sensors for Targets with Gaussian Priors | 2013 | 从**任意高斯先验**出发最大化**更新后** FIM；异构传感器含 bearing-only；多步 | 更新后 det(FIM) | 任意先验下的最优放置条件；传感器可多次不同精度的独立测量 | **与问题 2 结构完全同构**：测一次→先验→选第二测点 | **ANCHOR** | 10.1109/TAES.2013.6558009 |
-| Optimal Sensor Placement Using Combinations of Hybrid Measurements | 2025 | TDOA/RSS/**AOA**/TOA 组合的 CRB | **A-optimality：min trace(CRB)** | 各测量类型的最优几何约束，含 AOA 的显式结果 | "最优夹角"的直接文献来源 | **ANCHOR** | arXiv:2504.03769 |
-| Improving D-Optimal Sensor Placement for Bearing-Only Localization via Maximum-Entropy Reweighting | 2026 | 两层：KL 散度粒子重加权 + 重加权 FIM 上的 D-最优放置 | **D-optimality（det FIM）** | 两层解耦：重加权跨模态通用，放置专属方向几何；多源 | 最新且直接是 bearing-only 布站，明确多源 | **ANCHOR** | arXiv:2605.11116 |
-| Optimization of observer trajectories for bearings-only target localization | 1999 | 最优控制（微分包含） | **max det(FIM)**，带状态约束 | 最优观测者轨迹；机动提升可观测性 | 横跨 B/C：同一准则的动态版 | **ANCHOR** | 10.1109/7.784059 |
-| Optimal Sensor Placement for Source Localization: A Unified ADMM Approach | 2021 | CRLB 统一 + ADMM/MM 求解器 | A / D / E-最优性可切换 | 统一求解器，可不近似准则、可处理相关噪声 | **优化器模板**；测量类型为 TOA/TDOA/RSS | USEFUL | arXiv:2109.03639 |
-| Optimal Sensor Placement for Multiple Target Positioning with Range-Only Measurements | 2013 | 传感器位置上的凸优化 | **最大化跨目标的 log det FIM 凸组合** | 最优构型显式依赖约束、目标位置与先验不确定度 | 多目标目标函数形式 → 问题 3 | USEFUL | 10.3390/s130810674 |
-| Multisensor-Multitarget Bearing-Only Sensor Registration | 2016 | 融合节点上的 ML 偏差估计 | 推导 CRLB | 偏差仅有机动下可辨识 | bearing-only 的 ML 估计 + CRLB | USEFUL | arXiv:1603.03450 |
-| Relationship Between Geometric Translations and TLS Estimation Bias in Bearings-Only Target Localization | 2008 | TLS 估计偏差分析 | — | 估计偏差依赖**坐标原点位置** | 题目把原点固定在圆域中心——这是一个真实的设计注意事项 | BACKGROUND | 10.1109/TSP.2007.909052 |
-| Fisher-Information-Based Sensor Placement for Structural Digital Twins | 2026 | 伴随法算 FIM 乘积，D-最优 log-det | D-optimality（log det） | 区分 **detectability 与 localizability** | 仅概念层面（结构力学） | BACKGROUND | arXiv:2602.02981 |
+| Optimal sensor placement for target localisation and tracking in 2D and 3D | 2013 | frame theory 统一 bearing-only / range-only / RSS | FIM 型（原文给出最优性的充要条件） | 2D/3D 最优放置的**充要条件**；regular/irregular 两类；梯度控制律可构造 | 问题 2 的数学内核：闭式最优几何 | **ANCHOR** | 10.1080/00207179.2013.792606（预印本 arXiv:1210.7397） |
+| Optimal Placement of Heterogeneous Sensors for Targets with Gaussian Priors | 2013 | 从**任意高斯先验**出发最大化**更新后** FIM；异构传感器含 bearing-only；多步 | D-optimality（det FIM） | 任意先验下的最优放置条件 | **与问题 2 结构同构**：测一次 → 先验 → 选第二测点 | **ANCHOR** | 10.1109/TAES.2013.6558009 |
+| Optimal Sensor Placement Using Combinations of Hybrid Measurements | 2025 | TDOA/RSS/**AOA**/TOA 组合的 CRB | **A-optimality（min trace CRB）** | 各测量类型的最优几何约束，含 AOA 的显式结果 | "最优夹角"的直接文献来源 | **ANCHOR** | arXiv:2504.03769 |
+| Optimization of observer trajectories for bearings-only target localization | 1999 | 最优控制（微分包含） | **D-optimality（max det FIM）**，带状态约束 | 最优观测者轨迹；机动提升可观测性 | 横跨 B/C：同一准则的动态版 | **ANCHOR** | 10.1109/7.784059 |
+| Optimal Spatial-Temporal Triangulation for Bearing-Only Cooperative Motion Estimation | 2023 | 分布式递归最小二乘，并入**三角几何约束** | — | 指数收敛性证明；精度与收敛速度优于 DKF | 与 Zhao–Chen–Lee 同组（Shiyu Zhao）；补上构造性估计器 | USEFUL (high) | arXiv:2310.15846 |
+| Improving D-Optimal Sensor Placement for Bearing-Only Localization via Maximum-Entropy Reweighting | 2026 | KL 散度粒子重加权 + 重加权 FIM 上的最优放置 | **D-optimality（det FIM）** | 两层解耦：重加权跨模态通用，放置专属方向几何 | 放置准则与 Zhao/Yang 大量重叠；其特色（跨模态重加权）B题用不上 | USEFUL (high) | arXiv:2605.11116 |
+| Optimal Sensor Placement for Source Localization: A Unified ADMM Approach | 2021 | CRLB 统一 + ADMM/MM 求解器 | A / D / E-最优性可切换 | 统一求解器，可处理相关噪声 | **优化器模板**；测量类型为 TOA/TDOA/RSS | USEFUL | arXiv:2109.03639 |
+| Optimal Sensor Placement for Multiple Target Positioning with Range-Only Measurements | 2013 | 传感器位置上的凸优化 | **最大化跨目标的 log det FIM 凸组合** | 最优构型显式依赖约束、目标位置与先验不确定度 | 多目标准则形式 → 问题 3 | USEFUL | 10.3390/s130810674 |
+| Multisensor-Multitarget Bearing-Only Sensor Registration | 2016 | 融合节点上的 ML 偏差估计 | 推导 CRLB | 偏差仅有机动下可辨识 | bearing-only 的 ML 估计 | USEFUL | arXiv:1603.03450 |
+| Relationship Between Geometric Translations and TLS Estimation Bias in Bearings-Only Target Localization | 2008 | TLS 估计偏差分析 | — | 估计偏差依赖**坐标原点位置** | 题目把原点固定在圆域中心——真实的设计注意事项 | BACKGROUND | 10.1109/TSP.2007.909052 |
+| Fisher-Information-Based Sensor Placement for Structural Digital Twins | 2026 | 伴随法算 FIM 乘积 | **D-optimality（log det）** | 区分 detectability 与 localizability | 仅概念层面（结构力学） | BACKGROUND | arXiv:2602.02981 |
 | Outlier Detection and Optimal Anchor Placement for 3D Underwater Optical WSN | 2018 | 半二次最小化 | **D-optimality**（组合 FIM） | 满足 D-最优性的锚点布置 | 方法桥梁 | BACKGROUND | arXiv:1810.03110 |
 
-### FIM / CRLB / GDOP、A-/D-最优性、最优角度之间的关系
+### 去重说明（对应更正表 #6）
 
-- **FIM 是共同底座**：给定方向测量的似然，单次角度测量的 FIM 对目标位置的贡献
-  正比于 1/σ² 与 1/r²。Zhao–Chen–Lee、Bhattacharya、Oshman 都以此为起点。
-- **CRLB = FIM⁻¹**，是协方差的下界；因此"最大化 FIM"与"最小化 CRLB"是同一件事
-  的两种写法。CRLB 的**几何含义是误差椭球**（uncertainty ellipse）。
-- **A-optimality = min trace(CRB)**，即最小化误差椭球**半轴平方和**；Tang 2025 与
-  Sahu 2021 用它，因为 trace 是凸的、便于优化。
-- **D-optimality = max det(FIM)**，即最小化误差椭球**体积**（det(CRB) 最小）；
-  Dehghan 2014、Bhattacharya 2026、Oshman 1999 用它，因为行列式对几何构型最敏感。
-- **GDOP** 是 CRLB 的归一化标量形式（在测距/测角精度已归一后），本簇检索未直接
-  命中以 GDOP 命名的 B 簇论文——这是 OpenAlex 术语层面的一个检索缺口。
-- **最优角度**：在 2D、两个测点、目标固定且距离固定的设定下，最优构型由
-  frame theory 的充要条件给出；直观结果是两视线的**交会角趋近 90°**（交会角正弦
-  最大）。Xiao 2026 把这一点直接写成"intersection angle sine term"加入目标函数，
-  与 Tang 2025 的 AOA 几何约束互为印证。
+`Optimal placement of bearing-only sensors for target localization`（ACC 2012，
+`10.1109/ACC.2012.6314884`）与 `Optimal sensor placement for target localisation and
+tracking in 2D and 3D`（Int. J. Control 2013，`10.1080/00207179.2013.792606`）
+属**同一研究工作的会议版与期刊扩展版**。Round 1 曾把它们并列为两个独立 ANCHOR。
 
-**对问题 2 的直接价值**：Zhao–Chen–Lee 给闭式最优几何，Yang 2013 给"有先验时"
-的放置准则，Tang 2025 / Xiao 2026 给最优夹角的可比较数值。三者结合足以支撑
-"第二检测点候选区域"的建模与论证。
+正确处理：**深读集合中只占一个主槽位**，以期刊版为主条目：
+
+```
+Zhao, Chen & Lee — Optimal sensor placement for target localisation and
+tracking in 2D and 3D (Int. J. Control 2013)
+  Earlier conference version:
+  Optimal placement of bearing-only sensors for target localization
+  (ACC 2012, 10.1109/ACC.2012.6314884)
+```
+
+会议版若含期刊版缺失的构造细节，仍可在深读时一并查阅，但**不重复计入 ANCHOR 数量**。
+
+### FIM / CRLB / GDOP 与标量最优性准则（对应更正表 #7）
+
+Round 1 曾写"CRLB = FIM⁻¹，所以最大化 FIM 与最小化 CRLB 是同一件事"。
+该表述过于宽泛，现严格化如下。
+
+在满足常规正则条件且 FIM 非奇异时，Cramér–Rao 下界为
+
+```math
+C_{CRLB} = J^{-1}
+```
+
+但 **J 是矩阵，矩阵本身没有"最大化"这个操作**。要把它变成可优化的问题，
+必须指定一个**标量最优性准则**：
+
+```math
+\text{D-optimality:} \quad \max \det(J) \iff \min \det(J^{-1})
+```
+
+```math
+\text{A-optimality:} \quad \min \operatorname{trace}(J^{-1})
+```
+
+```math
+\text{E-optimality:} \quad \max \lambda_{\min}(J)
+```
+
+几何含义：
+
+- **D-optimality** 最小化误差椭球的**体积**（det(CRB) 最小）。
+- **A-optimality** 最小化误差椭球**半轴平方和**，即 trace(CRB)。
+- **E-optimality** 最小化误差椭球的**最大半轴**。
+
+三者**不等价**，会给出不同的最优布站。本报告此后所有"最大化 FIM / 最小化 CRLB"
+的措辞都替换为带准则名的表述。
+
+关于 **GDOP**：GDOP 是 CRLB 的归一化标量形式，其数值依赖测量精度是否已归一、
+以及参考哪一类误差分量。本报告不使用未定义归一化条件的 GDOP 数值；
+若后续使用，必须同时给出定义与归一化约定。补检仍未命中以 GDOP 命名的 B 簇论文。
+
+### 关于最优角度
+
+在 2D、两个测点、目标固定且距离固定的设定下，最优构型由 frame theory 的充要条件
+给出；直观结果是两视线的**交会角趋近 90°**（交会角正弦最大）。Xiao 2026 把这一点
+直接写成 "intersection angle sine term" 加入目标函数，Tang 2025 的 AOA 几何约束
+与之互为印证。补检新增 **Fu et al. 2026**（arXiv:2410.18669），它更进一步：
+先建立**依赖于方位数据的跟踪误差界**，再**解析地**求出使跟踪不确定性下降的
+**最优目标方位**——这正是问题 2 的提问方式。
 
 ---
 
@@ -141,183 +257,256 @@ UAV 域内做的"在候选航点中选下一个使 det(FIM) 最大者"，与 B �
 
 ### 候选论文
 
-| Title | Year | Core method | Planning objective | Uncertainty metric | Single-step or trajectory | Direct relevance to B | Grade | DOI/arXiv |
+| Title | Year | Core method | Planning objective | Uncertainty metric | Horizon | Direct relevance to B | Grade | DOI / arXiv |
 |---|---|---|---|---|---|---|---|---|
-| Optimization of observer trajectories for bearings-only target localization | 1999 | 最优控制 / 微分包含 | max det(FIM)，带状态约束 | FIM det | **轨迹**（全局最优控制） | 问题 2→3 的桥梁：轨迹级信息最优的经典范式 | **ANCHOR** | 10.1109/7.784059 |
-| Optimal path planning for DRSSI based localization of an RF source by multiple UAVs | 2014 | EKF + 候选航点上的局部 CRLB | 在下一候选航点上 max det(CRLB⁻¹) | CRLB / 估计不确定区域 | **单步前瞻**（离散候选集） | 与问题 3 决策环**结构同构**，且同在 RF+UAV 域 | **ANCHOR** | 10.1109/IROM.2014.6990961 |
+| Optimization of observer trajectories for bearings-only target localization | 1999 | 最优控制 / 微分包含 | max det(FIM)，带状态约束 | FIM det | 轨迹 | 问题 2→3 的桥梁 | **ANCHOR** | 10.1109/7.784059 |
+| Optimal path planning for DRSSI based localization of an RF source by multiple UAVs | 2014 | EKF + 候选航点上的局部 CRLB | 在下一候选航点上 max det(CRLB⁻¹) | CRLB / 估计不确定区域 | **单步前瞻**（离散候选集） | 决策架构与问题 3 高度相似（**但测量模型不同，见下**） | **ANCHOR** | 10.1109/IROM.2014.6990961 |
 | Path planning for localization of an RF source by multiple UAVs on the Crammer-Rao Lower Bound | 2013 | 局部 CRLB 上的最速下降 + 空间离散 | min CRLB 标准差 | CRLB | 单步 | 上篇的前身，同一课题组 | USEFUL | 10.1109/IROM.2013.6510083 |
-| GyroCopter: Differential Bearing Measuring Trajectory Planner for Tracking and Localizing RF Sources | 2024 | 利用飞行动力学做恒定陀旋产生"伪方位"测量；推导最优旋转速度 | 方位获取效率 | — | **轨迹**规划，多 RF 源，实地验证 | 唯一处理**多 RF 源**的方位获取规划，机器狗循环的多目标类比 | **ANCHOR** | arXiv:2410.13081 |
-| Trajectory Optimization in Single and Dual-UAV Bearing-Only Target Localization | 2026 | 谱加权 FIM 目标 + 带运动约束的 PSO | 谱加权 FIM；双机加交会角正弦项 | FIM（谱） | **轨迹**，单机与双机 | 最新 bearing-only 轨迹优化；交会角项即"最优夹角"的工程化表达 | **ANCHOR** | arXiv:2606.09188 |
-| A Bearing-Strength Method for Motion Estimation of Unknown Energy Emitters | 2026 | 方位 + 接收强度融合 | 可观测性 | 可观测性条件 | 运动策略分析 | 明确指出 bearing-only 的可观测性**要求横向运动**，加场强可解除该要求；题目的测向机正是"方位+场强" | **ANCHOR** | arXiv:2607.12515 |
-| RF Source Seeking using Frequency Measurements | 2018 | 多普勒频率反馈 + 方位扰动 | 逼近辐射源 | — | 连续自适应轨迹 | 圆周运动消解方向二义性，收敛到源附近 | USEFUL | arXiv:1803.02494 |
-| Adaptive Informative Path Planning with Multimodal Sensing | 2020 | POMDP + POMCP，约束可行性 | 信息增益 vs 能量，**在多个传感器间选择** | belief 熵 | 轨迹（滚动时域） | POMDP 框架可承载"切换频道"的离散动作与代价 | USEFUL | arXiv:2003.09746 |
-| Multi-UAV Active Sensing with Information Gain-based Planning and Belief Fusion | 2026 | 因子图 belief map + IGbIPP | 信息增益（对比熵下降） | 熵 / 建图误差 | 轨迹（滚动时域） | 通用 IPP 模板 + 多机信念融合 | USEFUL | arXiv:2606.10986 |
-| Homotopic information gain for sparse active target tracking | 2026 | 同伦信息增益，是度量信息增益的下界 | 同伦信息增益 | 信息增益 | 轨迹 | 稀疏观测下的信息增益度量思路 | USEFUL | arXiv:2602.17926 |
-| Bearings-only target localization for an acoustical unattended ground sensor network | 2001 | 准 ML + 方位关联 | — | — | 静态，多目标 | 多源**数据关联**（问题 3/4 必须解决的一步） | USEFUL | 10.1117/12.441279 |
+| A set-membership approach to find and track multiple targets using a fleet of UAVs | 2018 | 有界集上的集员估计 + 控制量优化 | **最小化下一步估计不确定性** | **集合尺度（非概率）** | 单步（滚动） | **问题 3 的最近架构**：目标数未知 + 搜索 + 跟踪 | **ANCHOR** | 10.1109/cdc.2018.8619672 |
+| Cooperative guidance ... set membership approach | 2019 | 统一不确定性准则驱动轨迹 | 覆盖"已发现 + 未发现"目标的准则 | 集合尺度 | 单步 | 搜索-跟踪权衡的显式准则 | USEFUL (high) | 10.1016/j.ifacol.2019.11.266 |
+| Localization of Partially Hidden Moving Targets ... Bounded-Error Estimation | 2023 | 分布式集员估计 + MPC | 降低估计不确定性 | 集合尺度 | MPC 滚动时域 | 问题 3 高水平参考 | USEFUL (high) | 10.1109/tro.2023.3303693 |
+| Trajectory Optimization for Unknown Maneuvering Target Tracking with Bearing-only Measurements | 2024 | GP 学习 + 伪线性变换；**解析求最优目标方位** | 最小化跟踪不确定性 | 概率型方位数据依赖界 | 轨迹 | bearing-only；解析的"下一观测方位" = 问题 2 | **ANCHOR** | arXiv:2410.18669 |
+| GyroCopter: Differential Bearing Measuring Trajectory Planner for Tracking and Localizing RF Sources | 2024 | 飞行动力学产生伪方位测量；推导最优旋转速度 | 方位获取效率 | — | 轨迹 | 唯一处理**多 RF 源**的方位获取规划 + 实地验证 | **ANCHOR** | arXiv:2410.13081 |
+| Trajectory Optimization in Single and Dual-UAV Bearing-Only Target Localization | 2026 | 谱加权 FIM 目标 + 带运动约束的 PSO | 谱加权 FIM；双机加交会角正弦项 | FIM（谱） | 轨迹 | 最新 bearing-only 轨迹优化 | **ANCHOR** | arXiv:2606.09188 |
+| A Bearing-Strength Method for Motion Estimation of Unknown Energy Emitters | 2026 | 方位 + 接收强度融合 | 可观测性 | 可观测性条件 | 运动策略 | 指出 bearing-only 可观测性**要求横向运动**；题目的测向机正是"方位+场强" | **ANCHOR** | arXiv:2607.12515 |
+| RF Source Seeking using Frequency Measurements | 2018 | 多普勒频率反馈 + 方位扰动 | 逼近辐射源 | — | 连续自适应 | 圆周运动消解方向二义性 | USEFUL | arXiv:1803.02494 |
+| Adaptive Informative Path Planning with Multimodal Sensing | 2020 | POMDP + POMCP | 信息增益 vs 能量，**多传感器间选择** | belief 熵 | 滚动时域 | POMDP 可承载"切换频道"的离散动作与代价 | USEFUL | arXiv:2003.09746 |
+| Multi-UAV Active Sensing with Information Gain-based Planning and Belief Fusion | 2026 | 因子图 belief map + IGbIPP | 信息增益 | 熵 | 滚动时域 | 通用 IPP 模板 | USEFUL | arXiv:2606.10986 |
+| Homotopic information gain for sparse active target tracking | 2026 | 同伦信息增益（度量下界） | 同伦信息增益 | 信息增益 | 轨迹 | 稀疏观测下的信息增益度量 | USEFUL | arXiv:2602.17926 |
+| Bearings-only target localization for an acoustical unattended ground sensor network | 2001 | 准 ML + 方位关联 | — | — | 静态，多目标 | 多源**数据关联** | USEFUL | 10.1117/12.441279 |
 | Measurement Testbed for Radar and Emitter Localization of UAV at 3.75 GHz | 2022 | 测量试验台 | — | — | 硬件 | 背景 | BACKGROUND | arXiv:2210.07168 |
 | Multi-Robot IPP / Active Markov ITPP / Online IPP for 3D Surface | 2011–2021 | GP 上的熵与互信息 IPP | 熵、互信息 | GP 后验 | 轨迹 | 通用 IPP 背景，非 RF | BACKGROUND | arXiv:1302.0723 / 1101.5632 / 2103.09556 |
 
-**失败查询记录**：`UAV radio source localization path planning trajectory optimization`
-返回的 6 条**全部**是通用 UAV 轨迹规划（自主着陆、系绳 UGV-UAV、AoI 数据采集、
-δ-spaces），无一条涉及辐射源。改用 `radio emitter geolocation UAV search bearing
-measurements` 后命中率大幅提升——说明"UAV + trajectory optimization"会淹没
-"RF source" 这一语义。
+### Dehghan 2014 的适用范围（对应更正表 #8）
 
-**规划目标统计**（题目第 3 节要求判断的）：
-- det(FIM) / 最大化信息矩阵行列式：Oshman 1999、Dehghan 2014、Bhattacharya 2026
-- min trace(CRLB)（A-optimality）：Tang 2025、Sahu 2021
-- posterior entropy：Habibi 2026、Choudhury 2020、Cao 2013
-- **未出现**：uncertainty-set volume（仅出现在集员估计一侧，Liu 2016）、
-  首次发现概率（本簇未检索到——属 D 簇范畴）
+保留该文献，它仍是高价值结果。但**不再声称** "exact structural match" 或
+"几乎一一对应 B题 measurement model"。
+
+其 measurement model 是 **DRSSI / RSSI**（差分接收信号强度），
+而 B题的核心测量是 **bearing / AOA，带 ±1° 硬误差**。准确表述是：
+
+```
+其 sequential decision architecture 与 B题高度相似：
+
+    当前估计
+      → 评价候选下一航点
+      → 选择信息收益更大的观测位置
+      → 新测量
+      → 更新估计
+
+但其 measurement model 与 B题不同，
+因此只能迁移"决策框架 / path-planning structure"，
+不能直接搬用全部测量公式。
+```
+
+### 失败查询记录（保留）
+
+`UAV radio source localization path planning trajectory optimization` 返回的 6 条
+**全部**是通用 UAV 轨迹规划（自主着陆、系绳 UGV-UAV、AoI 数据采集、δ-spaces），
+无一条涉及辐射源。改用 `radio emitter geolocation UAV search bearing measurements`
+后命中率大幅提升——"UAV + trajectory optimization" 会淹没 "RF source" 这一语义。
+
+### 规划目标统计
+
+- **D-optimality（max det FIM / min det CRLB）**：Oshman 1999、Dehghan 2014
+- **A-optimality（min trace CRLB）**：Tang 2025、Sahu 2021
+- **posterior entropy / 信息增益**：Habibi 2026、Choudhury 2020、Cao 2013、
+  Wakulicz 2026
+- **集合尺度（非概率）**：Reynaud 2018、Reboul 2019、Ibenthal 2020/2023 ——
+  **本轮新增，且是与 B题误差模型最匹配的一类**
+- **未出现**：首次发现概率（本簇未检索到——属 D 簇范畴）
 
 ---
 
 ## 5. Cross-cluster synthesis
 
-### 统一建模链是否被文献支持
+### 统一建模链
 
 ```
-方向观测
-   ↓
-bounded-error / probabilistic localization
-   ↓
-当前不确定区域
-   ↓
-FIM / CRLB / area / entropy 评价指标
-   ↓
-选择下一观测位置
-   ↓
-trajectory / path planning
-   ↓
-新的方向观测  →  继续缩小不确定性
+B题的观测模型：bearing measurement + hard angular bound ±1°
+        ↓
+每次测量形成一个 guaranteed angular sector
+   （角扇区 = 顶点 + 两条射线 = 两个线性半平面约束）
+        ↓
+多个 sector 精确求交（convex polygon intersection / polygon clipping）
+        ↓
+convex feasible polygon（定位区域）
+        ↓
+polygon diameter / area / 其他集合尺度
+        ↓
+选择下一观测点
+        ↓
+两类可能策略：
+
+   A. 直接 worst-case / feasible-set reduction
+      最小化下一步后可能定位区域的最坏直径
+
+   B. 使用概率近似后借用
+      FIM / CRLB / A-opt / D-opt
+      作为 surrogate benchmark
+        ↓
+移动 / 新观测
+        ↓
+更新 feasible set
 ```
 
-**判断：这条链在文献中只被"分段"支持，接缝恰好落在 B 题最独特的地方。**
+### 已有文献直接支持
 
-| 环节 | 文献状态 | 说明 |
+| 环节 | 文献支持 | 具体来源 |
 |---|---|---|
-| ① 方向观测的 FIM | ✅ **成熟公式可直接借用** | 单次方位测量的 FIM 是标准结果，见 Zhao 2013、Oshman 1999、Tang 2025、Xiao 2026 |
-| ② 有界误差 → 可行区域 | ⚠️ **形式借用，构造自建** | 集员估计提供"保证包含"的形式与 zonotope 代数（Bertsekas 1971；Ge 2017；Ben Chabane 2014），但都在动态系统语境。B 题的可行集 = 角扇区求交 = **凸多边形**，可精确计算（半平面求交），比文献的椭球/zonotope 近似更精确 |
-| ③ 不确定度指标 | ❌ **需自行设计** | 文献只提供 volume / det FIM / trace CRB / entropy；**直径（diameter）不存在于检索到的文献中**，而题目第 1 问明确要求直径 |
-| ④ 下一观测位置选择 | ✅ **准则可直接借用** | Dehghan 2014 就是"候选航点中选 det(FIM) 最大者"；Yang 2013 给"有先验时"的更新准则；Zhao 2013 给闭式最优几何 |
-| ⑤ 轨迹 / 路径规划 | ✅ **框架可借用** | Oshman 1999（最优控制 + det FIM）、Xiao 2026（谱加权 FIM + PSO）、GyroCopter 2024（bearing 获取 + 多源 + 实地验证） |
-| ⑥ 联合优化（搜索+定位+清除） | ❌ **需自行设计** | 见下方缺口 4/5 |
+| unknown-but-bounded / set-membership philosophy | ✅ 成熟 | Bertsekas 1971、Belfonte 1991、Liu et al. 2016、Li et al. 2025 |
+| **有界不确定性 → 凸多边形测量子集 → 求交合并 → 集合尺度** | ✅ **成熟（本轮新确认）** | **Isler & Bajcsy 2006** |
+| UBB → 相容集 → 多面体 → 保证集值估计 | ✅ 有直接论文 | Calafiore 2026 |
+| **集合尺度（worst-case 误差界 / 最小外接球）作精度指标** | ✅ **有先例** | CLOSURE 2024、Liu & Zhao 2014、InZSMF 2025 |
+| bearing-only optimal geometry | ✅ 成熟 | Zhao–Chen–Lee 2013、Tang 2025、Zheng 2023 |
+| FIM / CRLB 观测几何 | ✅ 成熟（须带标量准则） | Zhao 2013、Oshman 1999、Yang 2013、Sahu 2021 |
+| 解析地求"下一个最优观测方位" | ✅ 有直接论文 | Fu et al. 2026（arXiv:2410.18669） |
+| active sensing / sequential next-waypoint planning | ✅ 成熟 | Dehghan 2014、Xiao 2026、Choudhury 2020 |
+| **有界误差下的多目标搜索 + 目标数未知** | ✅ **有直接论文（本轮新确认）** | Reynaud 2018、Reboul 2019、Ibenthal 2020/2023 |
+| 不确定集的精确增量递推 | ✅ 有直接论文 | Hill et al. 2016（arXiv:1612.04918） |
 
-### 已有成熟公式、可直接借用的部分
+### 需要本题自行设计
 
-1. 方位测量的 FIM 与 CRLB（含 1/r² 距离衰减），以及 det/trace 两种最优性准则的
-   等价关系。
-2. 最优观测几何的**充要条件与构造算法**（Zhao–Chen–Lee frame theory）。
-3. 在**已有先验**下最大化更新后 FIM 的放置准则（Yang 2013）——问题 2 的正确形式。
-4. 单步前瞻式"下一个航点用 det(FIM) 选"的完整流程（Dehghan 2014）。
-5. 集员估计的**保证包含**要求（真值必在集合内）与可行集收缩的优化框架。
+1. **±1° 角扇区的精确几何求交**在 B题具体设定下的算法细节：扇区表示、
+   半平面求交、增量式更新、顶点集维护、退化处理（近共线、扇区不交、单点退化）。
+   *（通用框架有 Isler & Bajcsy 2006；本题几何下的具体算法未见。）*
+2. **polygon diameter 算法**及其两个特例：凸多边形直径（旋转卡壳 / 凸包），以及
+   两测点下四边形 6 对顶点距离的闭式比较；以及"以直径为直径的圆能否覆盖此定位
+   区域"这一判断题的证明。*（直径作为集合尺度有先例，本题的具体构造未见。）*
+3. **基于 hard-bound feasible polygon 的 second-point strategy**：把"使求交后可行
+   多边形直径最小"直接作为候选点评分函数，并在候选区域上求解。
+   *（Reynaud 2018 / Reboul 2019 的最小化集合不确定性准则形式相同，但测量模型
+   与几何不同。）*
+4. **搜索、频道检测、定位和清除的联合时间优化**：离散频道（任意两频道切换恒 1 s）、
+   固定 5 s 检测、20 m 内 3 s 光学、2 s 清除、5 m 内直接清除、5 m/s 移动、
+   程序运行 20 分钟上限（且受 25 分钟测试窗口约束，以较早到达者为准）、
+   目标数未知 10–16。*检索到的规划工作都没有这个代价模型。*
 
-### 需要我们自行设计的部分
-
-1. **可行集的精确几何构造**：角扇区（顶点 + 两条射线）的表示、半平面求交、
-   增量式求交更新、顶点集维护与退化处理（近共线、扇区不交）。
-2. **直径算法**：凸多边形直径（旋转卡壳 / 凸包），以及两测点特殊情形下
-   四边形 6 对顶点距离的闭式比较；题目还要判断"以直径为直径的圆能否覆盖"。
-3. **有界误差下的"下一测点"准则**：这是**最关键的建模决策**。两条路线：
-   - (a) 把 ±1° 解释为均匀分布，σ² = (2°)²/12，然后沿用 FIM/CRLB 体系；
-   - (b) 完全留在有界误差世界，直接选使**求交后可行多边形直径最小**的候选点，
-     分布无关。
-   路线 (b) 在数学上更干净、更贴合题目，且**正因为我们能精确算出可行集才可能**，
-   但现有文献不做这件事——这既是风险也是论文的贡献点。建议以 (b) 为主线、
-   (a) 作对照与敏感性分析。
-4. **B 题特有的代价结构**：频道切换 1 s/跳、单次检测 5 s、光学精确定位 3 s、
-   清除 2 s、进入 20 m 内才能清除、机器狗 5 m/s、20 分钟硬上限、目标数未知
-   10–16。检索到的规划工作都没有这个代价模型。
-5. **搜索与清除的联合策略**：目标数未知 + 需先发现再定位。
+**表述纪律**：以上四项一律写作"本次受控检索尚未找到完全同构的现成方案"，
+**不写作"文献完全没有"**。
 
 ---
 
-## 6. Recommended Deep Reading Set
+## 6. ANCHOR 与 Deep Reading Set
 
-按优先级排序，进入下一轮全文阶段。
+### ANCHOR 判定标准
 
-1. **Zhao, Chen & Lee — Optimal Sensor Placement for Target Localization and Tracking
-   in 2D and 3D**（Int. J. Control 2013；`10.1080/00207179.2013.792606`；预印本
-   arXiv:1210.7397）。问题 2 的数学内核全在充要条件和构造算法里，摘要写不下。
-2. **Yang, Kaplan, Blasch & Bakich — Optimal Placement of Heterogeneous Sensors for
-   Targets with Gaussian Priors**（`10.1109/TAES.2013.6558009`）。唯一"已有一次
-   测量/先验，下一次放哪里"的现成形式化，直接对应问题 2 的表述。
-3. **Tang, Xu, Yang, Kong & Ma — Optimal Sensor Placement Using Combinations of
-   Hybrid Measurements**（arXiv:2504.03769）。A-optimality 下 AOA 的显式最优几何
-   约束，用来校准我们算出的"最优夹角"是否与文献一致。
-4. **Oshman & Davidson — Optimization of observer trajectories for bearings-only
-   target localization**（`10.1109/7.784059`）。轨迹级 det(FIM) 的经典范式，是
-   问题 2 与问题 3 之间的桥。
-5. **Dehghan, Moradi & Shahidian — Optimal path planning for DRSSI based localization
-   of an RF source by multiple UAVs**（`10.1109/IROM.2014.6990961`）。RF+UAV 域内
-   与问题 3 决策环最接近的实现，单步前瞻选航点。
-6. **Xiao, Huang, Li, Shang & Guan — Trajectory Optimization in Single and Dual-UAV
-   Bearing-Only Target Localization**（arXiv:2606.09188）。最新的 bearing-only
-   轨迹优化；"交会角正弦项"给出了最优夹角的工程化写法。
-7. **Chen, Rezatofighi & Ranasinghe — GyroCopter: Differential Bearing Measuring
-   Trajectory Planner**（arXiv:2410.13081）。唯一的多 RF 源方位获取规划 + 实地
-   验证，是问题 3/4 多目标循环的类比。
-8. **Ben Chabane, Stoica, Álamo, Camacho & Dumur — Improved set-membership estimation
-   based on zonotopes and ellipsoids**（`10.1109/ECC.2014.6862412`）。zonotope
-   代数是我们构造问题 1 可行集的唯一现成工具来源。
-9. **Bhattacharya — Improving D-Optimal Sensor Placement for Bearing-Only Localization
-   via Maximum-Entropy Reweighting**（arXiv:2605.11116）。最新、多源、直接
-   bearing-only 的布站工作，可用于问题 3/4 的后验收缩设计。
+ANCHOR 必须满足：**直接改变我们对 B题模型、算法、目标函数或关键证明的设计**。
+不因为 citation count 高、领域经典、或概念相邻就标为 ANCHOR。
+
+### ANCHOR（12 篇）
+
+| # | 论文 | Cluster | 它改变了什么 |
+|---|---|---|---|
+| A1 | Isler & Bajcsy 2006, *The Sensor Selection Problem for Bounded Uncertainty Sensing Models* | A | 问题 1/2 的框架：凸多边形测量子集求交 + 集合尺度 + 选观测 |
+| A2 | Calafiore 2026, *Set-Membership Localization via Range Measurements* | A | 精确可行集的外包围与保证集值估计 |
+| A3 | Li et al. 2025, *A Set-Membership Filter for Group Target Tracking Using Bounded Bearing-Only Measurements* | A | bounded bearing-only 集员的存在性锚点 |
+| A4 | Reynaud et al. 2018, *A set-membership approach to find and track multiple targets using a fleet of UAVs* | A/C | 问题 3 的决策环：目标数未知 + 未发现目标集 |
+| B1 | Zhao, Chen & Lee 2013, *Optimal sensor placement for target localisation and tracking in 2D and 3D*（含 ACC 2012 会议版） | B | 最优几何的充要条件与构造算法 |
+| B2 | Yang et al. 2013, *Optimal Placement of Heterogeneous Sensors for Targets with Gaussian Priors* | B | "已有先验时下一步放哪里"的正确形式 |
+| B3 | Tang et al. 2025, *Optimal Sensor Placement Using Combinations of Hybrid Measurements* | B | A-optimality 下 AOA 的显式最优几何 |
+| B4 | Oshman & Davidson 1999, *Optimization of observer trajectories for bearings-only target localization* | B/C | 轨迹级 det(FIM) 的经典范式 |
+| C1 | Dehghan et al. 2014, *Optimal path planning for DRSSI based localization of an RF source by multiple UAVs* | C | RF+UAV 单步前瞻决策架构（**仅架构**） |
+| C2 | Chen et al. 2024, *GyroCopter: Differential Bearing Measuring Trajectory Planner* | C | 多 RF 源的方位获取 + 实地验证 |
+| C3 | Xiao et al. 2026, *Trajectory Optimization in Single and Dual-UAV Bearing-Only Target Localization* | C | 交会角正弦项的工程化写法 |
+| C4 | Fu et al. 2024/2026, *Trajectory Optimization for Unknown Maneuvering Target Tracking with Bearing-only Measurements* | C | 解析求"下一个最优观测方位" |
+
+**Round 1 → 本次修订的 ANCHOR 变化**：
+
+- **新增 4 篇**（A1–A4），全部来自 A 簇补检。
+- **去重 1 组**：ACC 2012 并入 B1，不再单独计数。
+- **降级 2 篇**：Ben Chabane 2014 → BACKGROUND（zonotope 不对交集封闭，
+  不能支持角扇区求交）；Bhattacharya 2026 → USEFUL (high)（其放置准则与
+  B1/B2 大量重叠，特色是跨模态重加权，B题用不上）。
+
+### Deep Reading Set（10 篇）
+
+**Tier 1 — 必须立刻深读（6 篇）**
+
+| # | 论文 | 为什么要全文 | 从正文要提取什么 |
+|---|---|---|---|
+| 1 | **Isler & Bajcsy 2006** (`10.1109/tase.2006.876615`) | 问题 1 与问题 2 的通用框架就在正文里，摘要只说了结论 | 传感器模型的形式化；求交合并的算法与数据结构；面积指标的用法；2-近似保证的证明思路；"给定可能位置集合而非单点估计"这一松弛的完整处理 |
+| 2 | **Calafiore 2026** (arXiv:2603.04867) | 问题 1 的最近同构；外包围与内近似的凸规划形式直接可用 | 相容集的定义式；多面体包含性的证明；取紧外包围盒/椭球的凸程序；内近似的球/椭球形式；与 SDP 松弛路线的对比 |
+| 3 | **Reynaud et al. 2018** (`10.1109/cdc.2018.8619672`) | 问题 3 的目标数未知 + 搜索 + 定位决策环 | 两个集合（已定位 / 未发现）的递推更新式；控制目标函数的构造；"下一步不确定性"如何度量与优化；算法伪代码与计算复杂度 |
+| 4 | **Zhao, Chen & Lee 2013** (`10.1080/00207179.2013.792606`) | 问题 2 的数学内核全在充要条件与构造算法里 | 最优放置的充要条件；regular / irregular 两类的定义；显式构造算法；梯度控制律；统一 bearing / range / RSS 的 frame 表述 |
+| 5 | **Yang et al. 2013** (`10.1109/TAES.2013.6558009`) | 唯一"已有一次测量/先验，下一次放哪里"的现成形式化 | 更新后 FIM 的表达式；任意高斯先验如何进入准则；多步顺序放置的递推；异构传感器的处理 |
+| 6 | **Dehghan et al. 2014** (`10.1109/IROM.2014.6990961`) | 问题 3 决策环最接近的实现 | 候选航点的生成方式；局部 CRLB 的评价方式；单步前瞻的完整流程；**其 DRSSI 测量模型与 B题的差异点** |
+
+**Tier 2 — 有时间再读（4 篇）**
+
+| # | 论文 | 为什么需要 | 提取重点 |
+|---|---|---|---|
+| 7 | **Li et al. 2025** (`10.1109/icsps66615.2025.11347948`) | 确认 bounded bearing-only 集员的具体构造 | 紧集如何建模；集合传播的近似阶；群目标扩散情形 |
+| 8 | **Tang et al. 2025** (arXiv:2504.03769) | 校准我们算出的"最优夹角"是否与文献一致 | AOA 的 A-optimality 显式几何约束；混合测量下的比较 |
+| 9 | **Oshman & Davidson 1999** (`10.1109/7.784059`) | 轨迹级 det(FIM) 的经典范式 | 微分包含形式；带状态约束的最优控制解法；可观测性与机动的结论 |
+| 10 | **Xiao et al. 2026** (arXiv:2606.09188) | 交会角项如何进入目标函数 | 谱加权 FIM 的定义；双机交会角正弦项；PSO 的约束处理 |
+
+*（Round 1 深读集中的 Ben Chabane 2014 已移出——见更正表 #3。#6 GyroCopter 与
+#4 Fu et al. 降为备用：前者是多源方位获取，后者与 Tier 1 #4 部分重叠。）*
 
 ---
 
 ## 7. Search Gaps
 
-只列本轮**真实存在**的缺口。
+只列本轮**真实存在**的缺口。所有条目一律表述为检索观察，不表述为文献不存在。
 
-1. **有界误差 × 方向定位的交集为空。** 两次精确短语 arXiv 查询（单复数各一）
-   返回 0；OpenAlex 上两个术语的结果集分属不重叠社区。
-   （诚实caveat：arXiv 的引号+AND 形式在其它查询上也失败过，所以"arXiv 上为 0"
-   部分是查询方言造成的假阴性；但 OpenAlex 的社区不相交是独立证据。）
-2. **没有文献用可行区域的"直径"作为定位精度指标。** 文献用可行集体积、
-   det/trace(FIM 或 CRB)、posterior entropy。题目第 1 问明确要求直径。
-3. **所有 FIM/CRLB 布站与规划文献都假设高斯（方差给定）测量噪声**，而题目给的是
-   ±1° 硬上下界。"硬界→方差"的映射是一个没有任何检索到的文献为其背书的建模假设。
-4. **规划工作几乎都是单目标，或多目标但目标数已知。** 问题 3/4 目标数未知
-   （10–16）且需要**先发现**再定位。唯一的多数 RF 源工作（GyroCopter 2024）处于
-   已捕获后的跟踪阶段。
-5. **没有文献建模 B 题的代价结构**：离散频道切换（1 s × 频道距离）+ 固定 5 s
-   检测 + 20 m 内 3 s 光学 + 2 s 清除，且受 20 分钟硬上限约束。最接近的是
-   POMDP 多模态传感（Choudhury 2020），但代价模型不同。
-6. **GDOP 术语未命中 B 簇论文。** 用该词检索的 B/C 簇结果里没有以 GDOP 命名的
-   工作——可能是 OpenAlex 对缩写术语的检索弱点，不代表文献不存在。
-7. **仅检索了英文源。** B 题是中文学科竞赛题，"交会定位""示向度""测向"等
-   术语可能存在中文文献（CNKI/万方），arXiv 与 OpenAlex 均不索引。本轮未检索。
-8. **E 簇（定向干扰源 / 有限视场）与 F 簇（negative information）按指示未系统检索。**
-   意外命中的相关线索：Chen et al. 2026（arXiv:2607.12515）关于"横向运动是可观测性
-   必要条件"的分析，与问题 4 的定向源排查条件可能相关。未发现自然出现的
-   negative-information 论文。
+1. **与 B题完全同构的几何未检索到。** 即
+   "±1° 有界角误差 → 多角扇区精确求交 → 凸多边形 → 欧氏直径"。
+   最接近的是 Isler & Bajcsy 2006（凸多边形求交 + 面积）与 Calafiore 2026
+   （UBB + 多面体 + 保证集值估计）。**这是应用层面的空白，不是框架层面的空白。**
+2. **"直径"作为具体算法未检索到**，但**作为概念有大量先例**（面积、最小外接球
+   半径、generalization radius、体积、F-radius、区间面积）。问题 1 要求直径，
+   需要我们给出凸多边形的直径算法与覆盖判定。参见更正表 #2。
+3. **硬界 → 方差的映射无文献背书。** FIM/CRLB 布站与规划文献均假设高斯噪声
+   （方差给定），题目给的是 ±1° 硬上下界。补检发现
+   Brändle et al. 2026（arXiv:2604.00561）为"无界噪声下的集员估计"给出了严格处理，
+   可作为方法论中转，但仍不直接回答"如何把 ±1° 硬界变成方差"。
+4. **B题的代价结构无文献建模。** 离散频道（任意两频道切换恒 **1 s**）、固定 5 s
+   检测、20 m 内 3 s 光学、2 s 清除、5 m 内直接清除、5 m/s 移动、
+   程序运行 20 分钟上限（受 25 分钟测试窗口约束）、目标数未知 10–16。
+   最接近的是 POMDP 多模态传感（Choudhury 2020），代价模型不同。
+5. **Semantic Scholar 补检返回空。** 查询
+   `bearing-only target tracking ellipsoidal outer-bounding set-membership estimation`
+   返回空数组（非报错）。**可能是速率限制伪影，不作为该文献不存在的证据。**
+   本任务的 A1 核查因此只依赖 OpenAlex 与 Crossref。
+6. **GDOP 术语仍未命中 B 簇论文。** 可能是 OpenAlex 对缩写术语的检索弱点，
+   不代表文献不存在。
+7. **中文文献仍未检索。** B 题是中文学科竞赛题，"交会定位""示向度""测向"
+   等术语可能存在中文文献（CNKI/万方），arXiv 与 OpenAlex 均不索引。补检中
+   命中的 CCC 2024 群目标 bearing-only 论文（`10.23919/ccc63176.2024.10661907`）
+   是弱信号。本轮未检索中文源。
+8. **D/E/F 簇未系统检索。** D 簇（多目标搜索+定位+路径）本轮通过 A 簇补检
+   间接收获 4 篇（Reynaud/Reboul/Ibenthal），但仍不完整；E 簇（定向干扰源 /
+   有限视场）与 F 簇（negative information）按指示未系统检索。意外命中：
+   Chen et al. 2026（arXiv:2607.12515）关于"横向运动是可观测性必要条件"的分析，
+   与问题 4 的定向源排查可能相关。
+9. **本轮 10 次查询中 1 次零返回（Semantic Scholar），2 次仅部分有效**
+   （查询 1/3 未能解析出 brief 中 A1 的标题原文；查询 9 被 cs.DS 的
+   worst-case-analysis 文献淹没）。这些失败已逐条记录在
+   `raw/round1_correction_A.json`。
 
 ---
 
 ## 8. Next-step Recommendation
 
-**推荐 C（A + B）：对 anchor papers 获取全文深读，同时针对缺口做第二轮 L2。**
+**推荐 A：对 Tier 1 的 6 篇获取全文深读**（本轮按要求未下载任何 PDF）。
 
-**理由：**
+**理由：** 修正后的图景改变了下一轮的优先级。Round 1 曾建议"深读 9 篇 anchor +
+再做一轮 L2 换词汇重搜"；补检已经用 10 次查询完成了那个"换词汇重搜"，
+并且**推翻了它的前提**（A 簇不是空白，而是术语没选对）。因此现在最缺的不是
+更多检索，而是**把已找到的直接论文读透**：
 
-*需要 A（深读全文）*：9 篇推荐文献里，问题 2 所需的**闭式最优几何条件**（Zhao–Chen–Lee
-的充要条件与构造算法）、**AOA 的 A-optimality 显式约束**（Tang 2025）、
-**带先验的更新后 FIM 准则**（Yang 2013）都无法从摘要重建——摘要只说了"证明了充要
-条件"，具体条件必须看正文。这些直接决定问题 2 的模型能否写出来。
+- 问题 1 的算法骨架在 **Isler & Bajcsy 2006** 与 **Calafiore 2026** 的正文里；
+  摘要不足以重建。
+- 问题 2 的闭式几何在 **Zhao–Chen–Lee 2013** 与 **Yang 2013** 的正文里。
+- 问题 3 的决策环在 **Reynaud 2018** 与 **Dehghan 2014** 的正文里。
 
-*需要 B（针对性 L2）*：缺口 1/3 是本轮最关键的发现——整个规划文献建在高斯噪声
-假设上，而题目是硬界。这不是"再多读几篇"能解决的，需要换词汇重搜。第二轮 L2
-应当：
-- 换用 **guaranteed / robust / interval / set-inversion / worst-case / minimax
-  feasibility** 这一族术语，而不是 set-membership 单打；
-- 明确加入 **"intersection of angular sectors"、"angle-only triangulation region"、
-  "bearing polygon"** 这类几何描述词；
-- 纳入**中文文献源**（缺口 7）；
-- 把 D 簇（多目标搜索+定位+路径）正式纳入，因为问题 3 的主体在那里，本轮按指示
-  未展开。
+**补检同义词族（若仍需扩检）**：`guaranteed / robust / interval / set-inversion /
+worst-case / minimax feasibility`，以及几何描述词
+`intersection of angular sectors` / `angle-only triangulation region` / `bearing polygon`。
+本轮已验证：**不含 "bearing" 的策略性措辞召回最好。**
 
-**不建议**在下一轮做 citation snowball——本轮 corpus 的强项已集中在 5 个课题组，
-snowball 会放大既有偏差，而不是补上缺口。
+**仍不建议 citation snowball。** 本轮 corpus 的强项集中在少数课题组
+（Zhao 组、Kieffer 组、Liu/Zhao 组），snowball 会放大既有偏差。
 
-**本轮完成。不进入下一轮。**
+**本轮修正完成。不进入下一轮，不自动下载 PDF。**
