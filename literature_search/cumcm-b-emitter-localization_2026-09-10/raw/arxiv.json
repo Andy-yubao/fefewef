@@ -1,0 +1,105 @@
+{
+  "run": "cumcm-b-emitter-localization_2026-09-10",
+  "level": "L1 (controlled probing run)",
+  "bucket": "A - arXiv",
+  "tool": "mcp__arxiv-mcp-server__search_papers",
+  "date": "2026-09-10",
+  "dialect_finding": "Quoted-phrase + boolean AND queries return 0 hits in this arXiv backend. Bare multi-term relevance queries work. All productive queries below use the bare form.",
+  "queries": [
+    {
+      "n": 1, "cluster": "A", "abstract_mode": "full",
+      "q": "\"bearing-only\" AND \"set-membership\"",
+      "returned": 0, "effective": false,
+      "note": "Zero. Retried with plural spelling in query 3 - also zero."
+    },
+    {
+      "n": 2, "cluster": "A", "abstract_mode": "full",
+      "q": "\"bounded-error\" AND localization AND interval",
+      "returned": 2, "effective": true,
+      "ids": ["2203.07430", "2401.15511"]
+    },
+    {
+      "n": 3, "cluster": "A", "abstract_mode": "full",
+      "q": "\"bearings-only\" AND \"set-membership\"",
+      "returned": 0, "effective": false,
+      "note": "Plural spelling retry. Zero again. Confirms the phrase-pair does not co-occur."
+    },
+    {
+      "n": 4, "cluster": "A", "abstract_mode": "full",
+      "q": "bearings-only localization",
+      "returned": 6, "effective": true,
+      "ids": ["2304.08182", "2606.09188", "1408.6552", "2506.18460", "1603.03450", "1809.03594"]
+    },
+    {
+      "n": 5, "cluster": "A", "abstract_mode": "full",
+      "q": "bounded error bearing localization feasible region interval",
+      "returned": 6, "effective": true,
+      "ids": ["2608.09013", "2408.06984", "2007.07458", "1509.06625", "2505.01787", "2304.08182"],
+      "note": "'feasible region' swamped by math.OC feasibility-problem literature. Mostly off-target."
+    },
+    {
+      "n": 6, "cluster": "B", "abstract_mode": "full",
+      "q": "optimal sensor placement bearing localization Fisher information geometry",
+      "returned": 6, "effective": true,
+      "ids": ["2605.11116", "1210.7397", "2602.02981", "1810.03110", "2109.03639", "2504.03769"]
+    },
+    {
+      "n": 7, "cluster": "C", "abstract_mode": "full",
+      "q": "UAV radio source localization path planning trajectory optimization",
+      "returned": 6, "effective": false,
+      "ids": ["2407.01366", "2111.00495", "2204.01828", "2305.00281", "1804.09356", "2205.02202"],
+      "note": "FAILED QUERY: dominated by generic UAV trajectory planning (landing, tethered, AoI). No RF-source content. Retried as query 9."
+    },
+    {
+      "n": 8, "cluster": "C", "abstract_mode": "full",
+      "q": "active sensing informative path planning source localization information gain",
+      "returned": 6, "effective": true,
+      "ids": ["2606.10986", "1302.0723", "2003.09746", "2103.09556", "2602.17926", "1101.5632"]
+    },
+    {
+      "n": 9, "cluster": "C", "abstract_mode": "full",
+      "q": "radio emitter geolocation UAV search bearing measurements",
+      "returned": 6, "effective": true,
+      "ids": ["2210.07168", "1803.02494", "2410.13081", "2410.12556", "2607.12515", "2201.05518"]
+    }
+  ],
+  "records": {
+    "2605.11116": {"title": "Improving D-Optimal Sensor Placement for Bearing-Only Localization via Maximum-Entropy Reweighting", "year": 2026, "authors": ["Raktim Bhattacharya"], "url": "https://arxiv.org/abs/2605.11116", "cat": ["eess.SP"]},
+    "2606.09188": {"title": "Trajectory Optimization in Single and Dual-UAV Bearing-Only Target Localization", "year": 2026, "authors": ["Zhijian Xiao", "Huayu Huang", "Bin Li", "Yang Shang", "Banglei Guan"], "url": "https://arxiv.org/abs/2606.09188", "cat": ["cs.RO", "cs.CV"]},
+    "2607.12515": {"title": "A Bearing-Strength Method for Motion Estimation of Unknown Energy Emitters", "year": 2026, "authors": ["Haoyu Chen", "Zian Ning", "Yin Zhang", "Shiyu Zhao"], "url": "https://arxiv.org/abs/2607.12515", "cat": ["cs.RO"]},
+    "2606.10986": {"title": "Multi-UAV Active Sensing with Information Gain-based Planning and Belief Fusion", "year": 2026, "authors": ["S. Habibi", "L. Marques"], "url": "https://arxiv.org/abs/2606.10986", "cat": ["cs.RO", "eess.SY"]},
+    "2602.17926": {"title": "Homotopic information gain for sparse active target tracking", "year": 2026, "authors": ["Jennifer Wakulicz", "Ki Myung Brian Lee", "Teresa Vidal-Calleja", "Robert Fitch"], "url": "https://arxiv.org/abs/2602.17926", "cat": ["cs.RO"]},
+    "2602.02981": {"title": "Fisher-Information-Based Sensor Placement for Structural Digital Twins: Analytic Results and Benchmarks", "year": 2026, "authors": ["Harbir Antil", "Animesh Jain", "Rainald Lohner"], "url": "https://arxiv.org/abs/2602.02981", "cat": ["math.OC", "math.NA"]},
+    "2608.09013": {"title": "Radial-type error bounds for semidefinite feasibility problems without strict feasibility", "year": 2026, "authors": ["Mitsuhiro Nishijima", "Guoyin Li", "Bruno F. Lourenco"], "url": "https://arxiv.org/abs/2608.09013", "cat": ["math.OC"]},
+    "2504.03769": {"title": "Optimal Sensor Placement Using Combinations of Hybrid Measurements for Source Localization", "year": 2025, "authors": ["Kang Tang", "Sheng Xu", "Yuqi Yang", "He Kong", "Yongsheng Ma"], "url": "https://arxiv.org/abs/2504.03769", "cat": ["eess.SP", "cs.RO"]},
+    "2506.18460": {"title": "Networked pointing system: Bearing-only target localization and pointing control", "year": 2025, "authors": ["Shiyao Li", "Bo Zhu", "Yining Zhou", "Jie Ma", "Baoqing Yang", "Fenghua He"], "url": "https://arxiv.org/abs/2506.18460", "cat": ["eess.SY"]},
+    "2505.01787": {"title": "On a robust approach to \"split\" feasibility problems: solvability and global error bound conditions", "year": 2025, "authors": ["Amos Uderzo"], "url": "https://arxiv.org/abs/2505.01787", "cat": ["math.OC"]},
+    "2410.13081": {"title": "GyroCopter: Differential Bearing Measuring Trajectory Planner for Tracking and Localizing Radio Frequency Sources", "year": 2024, "authors": ["Fei Chen", "S. Hamid Rezatofighi", "Damith C. Ranasinghe"], "url": "https://arxiv.org/abs/2410.13081", "cat": ["cs.RO", "eess.SP", "eess.SY"]},
+    "2410.12556": {"title": "Leveraging Augmented Reality for Improved Situational Awareness During UAV-Driven Search and Rescue Missions", "year": 2024, "authors": ["Rushikesh Nalamothu", "Puneet Sontha", "Janardhan Karravula", "Ankit Agrawal"], "url": "https://arxiv.org/abs/2410.12556", "cat": ["cs.RO"]},
+    "2408.06984": {"title": "Local geometry of feasible regions via smooth paths", "year": 2024, "authors": ["Adrian S. Lewis", "Adriana Nicolae", "Tonghua Tian"], "url": "https://arxiv.org/abs/2408.06984", "cat": ["math.OC", "math.MG"]},
+    "2407.01366": {"title": "UAV Trajectory Planning with Path Processing", "year": 2024, "authors": ["Zdenek Boucek", "Miroslav Flidr", "Ondrej Straka"], "url": "https://arxiv.org/abs/2407.01366", "cat": ["cs.RO", "eess.SY"]},
+    "2401.15511": {"title": "Distributed Resilient Interval Observer Synthesis for Nonlinear Discrete-Time Systems", "year": 2024, "authors": ["Mohammad Khajenejad", "Scott Brown", "Sonia Martinez"], "url": "https://arxiv.org/abs/2401.15511", "cat": ["eess.SY"]},
+    "2305.00281": {"title": "Path and trajectory planning of a tethered UAV-UGV marsupial robotic system", "year": 2023, "authors": ["S. Martinez-Rozas", "D. Alejo", "F. Caballero", "L. Merino"], "url": "https://arxiv.org/abs/2305.00281", "cat": ["cs.RO"]},
+    "2304.08182": {"title": "Range-Only Bearing Estimator for Localization and Mapping", "year": 2023, "authors": ["Matteo Marcantoni", "Bayu Jayawardhana", "Kerstin Bunte"], "url": "https://arxiv.org/abs/2304.08182", "cat": ["eess.SY", "math.OC"]},
+    "2210.07168": {"title": "Measurement Testbed for Radar and Emitter Localization of UAV at 3.75 GHz", "year": 2022, "authors": ["Julia Beuster", "Carsten Andrich", "Michael Dobereiner", "Steffen Schieler", "Maximilian Engelhardt", "Christian Schneider", "Reiner Thoma"], "url": "https://arxiv.org/abs/2210.07168", "cat": ["eess.SP"]},
+    "2205.02202": {"title": "Two-step Planning of Dynamic UAV Trajectories using Iterative delta-Spaces", "year": 2022, "authors": ["Sebastian Schrader", "Daniel Schleich", "Sven Behnke"], "url": "https://arxiv.org/abs/2205.02202", "cat": ["cs.RO"]},
+    "2204.01828": {"title": "Path and trajectory planning of a tethered UAV-UGV marsupial robotic system", "year": 2022, "authors": ["S. Martinez-Rozas", "D. Alejo", "F. Caballero", "L. Merino"], "url": "https://arxiv.org/abs/2204.01828", "cat": ["cs.RO"]},
+    "2203.07430": {"title": "H-infinity-optimal Interval Observer Synthesis for Uncertain Nonlinear Dynamical Systems via Mixed-Monotone Decompositions", "year": 2022, "authors": ["Mohammad Khajenejad", "Sze Zheng Yong"], "url": "https://arxiv.org/abs/2203.07430", "cat": ["eess.SY"]},
+    "2201.05518": {"title": "UGV-UAV Object Geolocation in Unstructured Environments", "year": 2022, "authors": ["David Guttendorf", "et al."], "url": "https://arxiv.org/abs/2201.05518", "cat": ["cs.RO"]},
+    "2111.00495": {"title": "Local Trajectory Planning For UAV Autonomous Landing", "year": 2021, "authors": ["Yossi Magrisso", "Ehud Rivlin", "Hector Rotstein"], "url": "https://arxiv.org/abs/2111.00495", "cat": ["cs.RO"]},
+    "2109.03639": {"title": "Optimal Sensor Placement for Source Localization: A Unified ADMM Approach", "year": 2021, "authors": ["Nitesh Sahu", "Linlong Wu", "Prabhu Babu", "Bhavani Shankar M. R.", "Bjorn Ottersten"], "url": "https://arxiv.org/abs/2109.03639", "cat": ["eess.SP"]},
+    "2103.09556": {"title": "Online Informative Path Planning for Active Information Gathering of a 3D Surface", "year": 2021, "authors": ["Hai Zhu", "Jen Jen Chung", "Nicholas R. J. Lawrance", "Roland Siegwart", "Javier Alonso-Mora"], "url": "https://arxiv.org/abs/2103.09556", "cat": ["cs.RO"]},
+    "2007.07458": {"title": "Distributed Bearing-based Formation Control and Network Localization with Exogenous Disturbances", "year": 2020, "authors": ["Yoo-Bin Bae", "Seong-Ho Kwon", "Young-Hun Lim", "Hyo-Sung Ahn"], "url": "https://arxiv.org/abs/2007.07458", "cat": ["eess.SY"]},
+    "2003.09746": {"title": "Adaptive Informative Path Planning with Multimodal Sensing", "year": 2020, "authors": ["Shushman Choudhury", "Nate Gruver", "Mykel J. Kochenderfer"], "url": "https://arxiv.org/abs/2003.09746", "cat": ["cs.AI"]},
+    "1810.03110": {"title": "Outlier Detection and Optimal Anchor Placement for 3D Underwater Optical Wireless Sensor Networks Localization", "year": 2018, "authors": ["Nasir Saeed", "Tareq Y. Al-Naffouri", "Mohamed-Slim Alouini"], "url": "https://arxiv.org/abs/1810.03110", "cat": ["eess.SP"]},
+    "1809.03594": {"title": "Underwater Surveying via Bearing only Cooperative Localization", "year": 2018, "authors": ["Hunter Damron", "Alberto Quattrini Li", "Ioannis Rekleitis"], "url": "https://arxiv.org/abs/1809.03594", "cat": ["cs.RO"]},
+    "1804.09356": {"title": "Age-Optimal Trajectory Planning for UAV-Assisted Data Collection", "year": 2018, "authors": ["Juan Liu", "Xijun Wang", "Bo Bai", "Huaiyu Dai"], "url": "https://arxiv.org/abs/1804.09356", "cat": ["cs.IT"]},
+    "1803.02494": {"title": "RF Source Seeking using Frequency Measurements", "year": 2018, "authors": ["Muhammed Faruk Gencel", "Upamanyu Madhow", "Joao Pedro Hespanha"], "url": "https://arxiv.org/abs/1803.02494", "cat": ["eess.SP"]},
+    "1603.03450": {"title": "Multisensor-Multitarget Bearing-Only Sensor Registration", "year": 2016, "authors": ["Ehsan Taghavi", "R. Tharmarasa", "T. Kirubarajan", "Mike McDonald"], "url": "https://arxiv.org/abs/1603.03450", "cat": ["stat.ME", "eess.SY"]},
+    "1509.06625": {"title": "Real-time, local spline interpolation schemes on bounded intervals", "year": 2015, "authors": ["Maria D. van der Walt"], "url": "https://arxiv.org/abs/1509.06625", "cat": ["math.NA"]},
+    "1408.6552": {"title": "Bearing Rigidity and Almost Global Bearing-Only Formation Stabilization", "year": 2014, "authors": ["Shiyu Zhao", "Daniel Zelazo"], "url": "https://arxiv.org/abs/1408.6552", "cat": ["eess.SY"]},
+    "1302.0723": {"title": "Multi-Robot Informative Path Planning for Active Sensing of Environmental Phenomena: A Tale of Two Algorithms", "year": 2013, "authors": ["Nannan Cao", "Kian Hsiang Low", "John M. Dolan"], "url": "https://arxiv.org/abs/1302.0723", "cat": ["cs.LG", "cs.AI", "cs.MA", "cs.RO"]},
+    "1210.7397": {"title": "Optimal Sensor Placement for Target Localization and Tracking in 2D and 3D", "year": 2012, "authors": ["Shiyu Zhao", "Ben M. Chen", "Tong H. Lee"], "url": "https://arxiv.org/abs/1210.7397", "cat": ["math.OC", "eess.SY"], "journal_version": "Int. J. Control 2013, doi:10.1080/00207179.2013.792606 (see openalex.json W2141276434)"},
+    "1101.5632": {"title": "Active Markov Information-Theoretic Path Planning for Robotic Environmental Sensing", "year": 2011, "authors": ["Kian Hsiang Low", "John M. Dolan", "Pradeep Khosla"], "url": "https://arxiv.org/abs/1101.5632", "cat": ["cs.LG", "cs.AI", "cs.MA", "cs.RO"]}
+  }
+}

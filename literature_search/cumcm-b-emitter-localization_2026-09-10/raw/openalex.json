@@ -1,0 +1,62 @@
+{
+  "run": "cumcm-b-emitter-localization_2026-09-10",
+  "level": "L1 (controlled probing run)",
+  "bucket": "C - OpenAlex",
+  "tool": "mcp__paper-search-mcp__search_openalex",
+  "date": "2026-09-10",
+  "dialect_finding": "OpenAlex relevance search degrades badly on long natural-language-ish queries and on the token 'bearing' (resolves to mechanical bearings). Short, terminological, 2-3 token queries work well.",
+  "queries": [
+    {
+      "n": 1, "cluster": "A", "q": "bearing-only localization set-membership",
+      "returned": 6, "effective": false,
+      "ids": ["W1987447680", "W2105931454", "W2163106706", "W2563167163", "W1611787727", "W2115138750"],
+      "note": "FAILED: 'bearing' matched mechanical bearings (bearing fault diagnosis). 1 of 6 vaguely on-topic. Reproduced the failure already observed in the live connectivity test."
+    },
+    {
+      "n": 2, "cluster": "A", "q": "set-membership estimation",
+      "returned": 6, "effective": true,
+      "ids": ["W2769728167", "W2149371065", "W3004522146", "W1896002532", "W2318897747", "W1973654167"]
+    },
+    {
+      "n": 3, "cluster": "B", "q": "bearing-only optimal sensor placement",
+      "returned": 6, "effective": true,
+      "ids": ["W2122264639", "W2141276434", "W1976172966", "W2912412749", "W2091794441", "W2000618191"]
+    },
+    {
+      "n": 4, "cluster": "C", "q": "RF source localization path planning",
+      "returned": 6, "effective": true,
+      "ids": ["W2321717374", "W2043605094", "W2073444337", "W2102159398", "W2557998141", "W2742299865"]
+    },
+    {
+      "n": 5, "cluster": "A/B", "q": "bearings-only target localization",
+      "returned": 6, "effective": true,
+      "ids": ["W2166000463", "W2149154415", "W1841709236", "W2146065462", "W2009454421", "W2130160095"]
+    }
+  ],
+  "records": {
+    "W2769728167": {"title": "A Dynamic Event-Triggered Transmission Scheme for Distributed Set-Membership Estimation Over Wireless Sensor Networks", "year": 2017, "doi": "10.1109/TCYB.2017.2769722", "citations": 501, "relevance": "high", "note": "Bounding ellipsoidal estimation set guaranteed to contain the true state under unknown-but-bounded (UBB) noise."},
+    "W2149371065": {"title": "Recursive state estimation for a set-membership description of uncertainty", "year": 1971, "doi": "10.1109/TAC.1971.1099674", "citations": 710, "relevance": "high", "note": "Foundational set-membership estimation. Energy constraint -> ellipsoid; instantaneous bound -> bounding ellipsoid."},
+    "W3004522146": {"title": "Set-membership estimation for linear time-varying descriptor systems", "year": 2020, "doi": "10.1016/j.automatica.2020.108867", "citations": 117, "relevance": "medium"},
+    "W1896002532": {"title": "Optimal estimation theory for dynamic systems with set membership uncertainty", "year": 1991, "doi": "10.1016/0005-1098(91)90134-N", "citations": 686, "relevance": "medium"},
+    "W2318897747": {"title": "Ellipsoidal state-bounding-based set-membership estimation for linear system with unknown-but-bounded disturbances", "year": 2016, "doi": "10.1049/iet-cta.2015.0654", "citations": 69, "relevance": "high", "note": "Minimises the volume of the feasible ellipsoid set - the same metric role that region diameter plays in B problem 1."},
+    "W1973654167": {"title": "Improved set-membership estimation approach based on zonotopes and ellipsoids", "year": 2014, "doi": "10.1109/ECC.2014.6862412", "citations": 38, "relevance": "high", "note": "Zonotope representation + P-radius switch criterion. Zonotope algebra is the closest indexed tool to a convex-polygon feasible set."},
+    "W2122264639": {"title": "Optimal placement of bearing-only sensors for target localization", "year": 2012, "doi": "10.1109/ACC.2012.6314884", "citations": 30, "relevance": "high", "note": "ACC 2012. FIM + frame theory; two types of optimal placement (regular/irregular); explicit construction algorithms."},
+    "W2141276434": {"title": "Optimal sensor placement for target localisation and tracking in 2D and 3D", "year": 2013, "doi": "10.1080/00207179.2013.792606", "citations": 122, "relevance": "high", "note": "JOURNAL VERSION of arXiv:1210.7397 - same research work, deduplicated."},
+    "W1976172966": {"title": "Optimal Placement of Heterogeneous Sensors for Targets with Gaussian Priors", "year": 2013, "doi": "10.1109/TAES.2013.6558009", "citations": 95, "relevance": "high", "note": "Bearing-only among heterogeneous sensor types; arbitrary Gaussian prior; maximises the UPDATED FIM; multi-step sequential placement. Structurally identical to B problem 2."},
+    "W2912412749": {"title": "Deep Learning Algorithms for Bearing Fault Diagnostics - A Comprehensive Review", "year": 2020, "doi": "10.1109/ACCESS.2020.2972859", "citations": 891, "relevance": "none", "note": "Off-topic: 'bearing' ambiguity again."},
+    "W2091794441": {"title": "Optimal Sensor Placement for Multiple Target Positioning with Range-Only Measurements in Two-Dimensional Scenarios", "year": 2013, "doi": "10.3390/s130810674", "citations": 94, "relevance": "medium", "note": "Convex combination of log det FIM across MULTIPLE targets. Objective form transfers to multi-emitter B problem 3."},
+    "W2000618191": {"title": "Wireless Sensor Networks for Condition Monitoring in the Railway Industry: A Survey", "year": 2014, "doi": "10.1109/TITS.2014.2366512", "citations": 532, "relevance": "none"},
+    "W2321717374": {"title": "Optimal path planning for DRSSI based localization of an RF source by multiple UAVs", "year": 2014, "doi": "10.1109/IROM.2014.6990961", "citations": 27, "relevance": "high", "note": "UAV + RF source + EKF + CRLB as the path objective; maximises det(FIM) over the NEXT waypoint. Single-step lookahead. Exact structural match to 'choose the next observation point'."},
+    "W2043605094": {"title": "Path planning for localization of an RF source by multiple UAVs on the Crammer-Rao Lower Bound", "year": 2013, "doi": "10.1109/IROM.2013.6510083", "citations": 11, "relevance": "high", "note": "Predecessor of W2321717374, same group. Steepest-descent on local CRLB."},
+    "W2073444337": {"title": "Overview of the RF source development programme at IPP Garching", "year": 2006, "doi": "10.1088/0029-5515/46/6/S03", "citations": 395, "relevance": "none", "note": "Off-topic: 'RF source' = fusion plasma heating."},
+    "W2102159398": {"title": "RF-IDraw", "year": 2014, "doi": "10.1145/2619239.2626330", "citations": 362, "relevance": "none"},
+    "W2557998141": {"title": "Recent Advances in Indoor Localization: A Survey on Theoretical Approaches and Applications", "year": 2016, "doi": "10.1109/COMST.2016.2632427", "citations": 929, "relevance": "low"},
+    "W2742299865": {"title": "Localization of sound sources in robotics: A review", "year": 2017, "doi": "10.1016/j.robot.2017.07.011", "citations": 267, "relevance": "low", "note": "Also returned in the live connectivity test. Acoustic bearing-only background."},
+    "W2166000463": {"title": "Optimization of observer trajectories for bearings-only target localization", "year": 1999, "doi": "10.1109/7.784059", "citations": 388, "relevance": "high", "note": "Canonical: maximise det(FIM) over the observer trajectory subject to state constraints, solved by optimal control / differential inclusion."},
+    "W2149154415": {"title": "Bearings-only target localization using total least squares", "year": 2005, "doi": "10.1016/j.sigpro.2005.03.007", "citations": 226, "relevance": "medium"},
+    "W1841709236": {"title": "Maximum likelihood methods for bearings-only target localization", "year": 2001, "doi": "10.1109/ICASSP.2001.940281", "citations": 151, "relevance": "medium"},
+    "W2146065462": {"title": "Relationship Between Geometric Translations and TLS Estimation Bias in Bearings-Only Target Localization", "year": 2008, "doi": "10.1109/TSP.2007.909052", "citations": 37, "relevance": "medium", "note": "Estimator bias depends on where the coordinate origin is placed. B problem fixes the origin at the area centre, so this is a real design caveat."},
+    "W2009454421": {"title": "Bearings-only target localization for an acoustical unattended ground sensor network", "year": 2001, "doi": "10.1117/12.441279", "citations": 30, "relevance": "medium", "note": "Multiple moving targets, multiple DOA estimates per array, bearings association. Multi-source data association."},
+    "W2130160095": {"title": "Target localization from bearings-only observations", "year": 1997, "doi": "10.1109/7.570703", "citations": 52, "relevance": "medium", "note": "Explicitly declines to presume random or systematic error distributions; discusses observability. Conceptually the closest indexed work to a non-probabilistic error model."}
+  }
+}
