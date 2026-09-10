@@ -17,9 +17,10 @@ Date: 2026-09-10 (corrected same day)
 > **Second correction (final pass, no new searches).** The first correction pass
 > *also* judged the 2017 paper A1 to be a **conflation** of the 2014 and 2016 papers.
 > **That judgement was wrong and is now retracted.** A1 exists: it is a
-> Chinese-language journal article that neither OpenAlex nor Crossref returned. This
-> is the same false-negative pattern as above, in its worst form — absence from two
-> indexes was read as absence of the paper. See §2.1 and correction-table row 9.
+> Chinese-language journal article that **this run's OpenAlex and Crossref queries
+> did not return**. This is the same false-negative pattern as above, in its worst
+> form — non-recall by two indexes was read as absence of the paper. See §2.1 and
+> correction-table row 9.
 
 ### Corrections applied in this revision
 
@@ -116,9 +117,9 @@ Liu & Zhao 的 generalization radius），只是**没有人在 B题这一具体�
   同一批数据库，换一组术语就多出十余篇直接相关论文。
 - **A1（2017）的核查本身经历了一次假阴性。** 用标题原文检索 OpenAlex 与 Crossref
   都没有解析出该文，第一轮 correction 据此判定它是两篇论文的 conflation——**该判定
-  错误，已撤回**。论文真实存在，发表在中文期刊《北京航空航天大学学报》上，两个数据库
-  都不索引它。**"数据库未召回"再次被误当成"论文不存在"**，而且这次发生在中文文献上，
-  正是最容易发生这种错误的地方。详见 §2.1。
+  错误，已撤回**。论文真实存在，发表在中文期刊《北京航空航天大学学报》上；**本轮对
+  OpenAlex 与 Crossref 的查询都没有召回它**。**"数据库未召回"再次被误当成"论文不
+  存在"**，而且这次发生在中文文献上，正是最容易发生这种错误的地方。详见 §2.1。
 
 ### 候选论文
 
@@ -135,9 +136,9 @@ Noise model 区分 Gaussian / unknown-but-bounded (UBB) / interval / set-members
 | Localization of Partially Hidden Moving Targets Using a Fleet of UAVs via Bounded-Error Estimation | 2023 | 可见性 | **bounded** | 分布式集员估计集 | 分布式集员估计 + MPC 降低估计不确定性；逐点 detectability set | 问题 3 的高水平实现参考 | MPC + 集合目标；detectability set（与"信号有效覆盖"同构） | 可见性测量；多机；三维 | USEFUL (high) | 10.1109/tro.2023.3303693 |
 | Target search and tracking using a fleet of UAVs in presence of decoys and obstacles | 2020 | 探测 | **bounded** | 有界集 | 不可区分目标 + 诱饵；两个集合驱动分布式控制 | 问题 4 的诱饵/误判类比 | 干扰与真实目标不可区分时的处理 | 同上一行 | USEFUL | 10.1109/cdc42340.2020.9303943 |
 | Ellipsoidal set filter combined set-membership and statistics uncertainties for bearing-only maneuvering target tracking | 2014 | **bearing-only** | **UBB + 统计混合** | 椭球 | 以椭球 **generalization radius** 为最优性准则求紧外包围椭球 | bearing-only 下"以集合尺度为准则"的直接先例 | 集合尺度（radius）作最优性准则；两类不确定性并存的处理 | 机动目标动态跟踪；两个固定平台 | USEFUL (high) | 10.1109/plans.2014.6851441 |
-| Bearing-only target tracking based on ellipsoidal outer-bounding set-membership estimation | 2017 | **bearing-only** | **UBB** | 椭球（外包围） | 椭球外包围集员估计；机动目标下的递推跟踪 | bearing-only + UBB + set-membership 的**直接且完整**工作；本簇"研究线真实存在"的证据 | bearing-only 下的 UBB 处理；outer-bounding 思想 | 动态机动目标跟踪；椭球表示；**不是**本题的静态角扇区精确多边形求交；中文期刊，无数据库 ID | USEFUL (high) | `10.13700/j.bh.1001-5965.2016.0196`（中文期刊；OpenAlex/Crossref 未索引） |
+| Bearing-only target tracking based on ellipsoidal outer-bounding set-membership estimation | 2017 | **bearing-only** | **UBB** | 椭球（外包围） | 椭球外包围集员估计；机动目标下的递推跟踪 | bearing-only + UBB + set-membership 的**直接且完整**工作；本簇"研究线真实存在"的证据 | bearing-only 下的 UBB 处理；outer-bounding 思想 | 动态机动目标跟踪；椭球表示；**不是**本题的静态角扇区精确多边形求交；中文期刊，本轮未取得数据库记录 ID | USEFUL (high) | `10.13700/j.bh.1001-5965.2016.0196`（中文期刊；本轮 OpenAlex / Crossref 查询未召回） |
 | Extended Ellipsoidal Outer-Bounding Set-Membership Estimation for Nonlinear Discrete-Time Systems with UBB Disturbances | 2016 | generic | **UBB** | 椭球 | 一阶线性化 + 区间分析界定线性化误差椭球；可行集含更多真值 | 一般性 UBB 外包围方法 | 区间分析界定线性化误差 | **非 bearing-only**，是通用非线性系统 | BACKGROUND | 10.1155/2016/3918797 |
-| CLOSURE: Fast Quantification of Pose Uncertainty Sets | 2024 | 关键点/位姿（SE(3)） | **UBB** | 位姿不确定集 + 最小外接测地球 | 证明不确定集 = 多个测地球的交；边界采样 + miniball 求最小外接球（= **最小 worst-case 误差界**），并给出与外包近似的紧度证明 | **直接反驳"diameter 不存在"**：worst-case error 界是既有指标 | 最小外接球 ≈ 可行集直径；内/外近似紧度证书 | SE(3) 位姿、关键点测量，非 2D 测向 | USEFUL (high) | 10.1109/rss.2024.xx.072 / arXiv:2403.09990 |
+| CLOSURE: Fast Quantification of Pose Uncertainty Sets | 2024 | 关键点/位姿（SE(3)） | **UBB** | 位姿不确定集 + 最小外接测地球 | 证明不确定集 = 多个测地球的交；边界采样 + miniball 求最小外接球（= **最小 worst-case 误差界**），并给出与外包近似的紧度证明 | **直接反驳"diameter 不存在"**：worst-case error 界是既有指标 | 最小外接球 ≈ 可行集直径；内/外近似紧度证书 | SE(3) 位姿、关键点测量，非 2D 测向 | USEFUL (high) | 10.15607/RSS.2024.XX.072 / arXiv:2403.09990 |
 | Beyond Bounded Noise: Stochastic Set-Membership Estimation for Nonlinear Systems | 2026 | generic | **次高斯（无界支撑，样本协方差有界）** | 有限样本不确定集 | 用样本协方差界构造以高概率包含真值的集合 | 硬界 ↔ 概率假设之间的"中间道路" | 把无界噪声纳入集员框架的严格做法 | 非线性系统参数估计 | BACKGROUND | arXiv:2604.00561 |
 | Exact recursive updating of uncertainty sets | 2016 | generic linear | **bounded** | 不确定集（精确，非近似） | 两个定理完整刻画不确定集的演化；精确递推算法 | 增量更新可行集的精确方法（问题 1/2/3 的在线更新） | 精确（而非椭球近似）递推更新 | 线性系统；无几何语义 | USEFUL | arXiv:1612.04918 |
 | The Invariant Zonotopic Set-Membership Filter for State Estimation on Groups | 2025 | generic | **UBB** | **zonotope（李群上）** | 不变滤波 + zonotope；F-radius 优化增益；以**平均区间面积**为指标 | zonotope 用于 UBB 现代实例；集合面积作为报告指标 | F-radius / 区间面积作为集合尺度指标 | 李群状态空间；动态滤波 | BACKGROUND | arXiv:2506.08530 |
@@ -323,8 +324,8 @@ assumption。因此它们不能直接替代题目给出的 **±1° hard bound mo
 | Title | Year | Core method | Planning objective | Uncertainty metric | Horizon | Direct relevance to B | Grade | DOI / arXiv |
 |---|---|---|---|---|---|---|---|---|
 | Optimization of observer trajectories for bearings-only target localization | 1999 | 最优控制 / 微分包含 | max det(FIM)，带状态约束 | FIM det | 轨迹 | 问题 2→3 的桥梁 | **ANCHOR** | 10.1109/7.784059 |
-| Optimal path planning for DRSSI based localization of an RF source by multiple UAVs | 2014 | EKF + 候选航点上的局部 CRLB | 在下一候选航点上 max det(CRLB⁻¹) | CRLB / 估计不确定区域 | **单步前瞻**（离散候选集） | 决策架构与问题 3 高度相似（**但测量模型不同，见下**） | **ANCHOR** | 10.1109/IROM.2014.6990961 |
-| Path planning for localization of an RF source by multiple UAVs on the Crammer-Rao Lower Bound | 2013 | 局部 CRLB 上的最速下降 + 空间离散 | min CRLB 标准差 | CRLB | 单步 | 上篇的前身，同一课题组 | USEFUL | 10.1109/IROM.2013.6510083 |
+| Optimal path planning for DRSSI based localization of an RF source by multiple UAVs | 2014 | EKF + 候选航点上的局部 CRLB | 在下一候选航点上 max det(CRLB⁻¹) | CRLB / 估计不确定区域 | **单步前瞻**（离散候选集） | 决策架构与问题 3 高度相似（**但测量模型不同，见下**） | **ANCHOR** | 10.1109/ICRoM.2014.6990961 |
+| Path planning for localization of an RF source by multiple UAVs on the Crammer-Rao Lower Bound | 2013 | 局部 CRLB 上的最速下降 + 空间离散 | min CRLB 标准差 | CRLB | 单步 | 上篇的前身，同一课题组 | USEFUL | 10.1109/ICRoM.2013.6510083 |
 | A set-membership approach to find and track multiple targets using a fleet of UAVs | 2018 | 有界集上的集员估计 + 控制量优化 | **最小化下一步估计不确定性** | **集合尺度（非概率）** | 单步（滚动） | **问题 3 的最近架构**：目标数未知 + 搜索 + 跟踪 | **ANCHOR** | 10.1109/cdc.2018.8619672 |
 | Cooperative guidance ... set membership approach | 2019 | 统一不确定性准则驱动轨迹 | 覆盖"已发现 + 未发现"目标的准则 | 集合尺度 | 单步 | 搜索-跟踪权衡的显式准则 | USEFUL (high) | 10.1016/j.ifacol.2019.11.266 |
 | Localization of Partially Hidden Moving Targets ... Bounded-Error Estimation | 2023 | 分布式集员估计 + MPC | 降低估计不确定性 | 集合尺度 | MPC 滚动时域 | 问题 3 高水平参考 | USEFUL (high) | 10.1109/tro.2023.3303693 |
@@ -494,7 +495,7 @@ ANCHOR 必须满足：**直接改变我们对 B题模型、算法、目标函数
 | 3 | **Reynaud et al. 2018** (`10.1109/cdc.2018.8619672`) | 问题 3 的目标数未知 + 搜索 + 定位决策环 | 两个集合（已定位 / 未发现）的递推更新式；控制目标函数的构造；"下一步不确定性"如何度量与优化；算法伪代码与计算复杂度 |
 | 4 | **Zhao, Chen & Lee 2013** (`10.1080/00207179.2013.792606`) | 问题 2 的数学内核全在充要条件与构造算法里 | 最优放置的充要条件；regular / irregular 两类的定义；显式构造算法；梯度控制律；统一 bearing / range / RSS 的 frame 表述 |
 | 5 | **Yang et al. 2013** (`10.1109/TAES.2013.6558009`) | 唯一"已有一次测量/先验，下一次放哪里"的现成形式化 | 更新后 FIM 的表达式；任意高斯先验如何进入准则；多步顺序放置的递推；异构传感器的处理 |
-| 6 | **Dehghan et al. 2014** (`10.1109/IROM.2014.6990961`) | 问题 3 决策环最接近的实现 | 候选航点的生成方式；局部 CRLB 的评价方式；单步前瞻的完整流程；**其 DRSSI 测量模型与 B题的差异点** |
+| 6 | **Dehghan et al. 2014** (`10.1109/ICRoM.2014.6990961`) | 问题 3 决策环最接近的实现 | 候选航点的生成方式；局部 CRLB 的评价方式；单步前瞻的完整流程；**其 DRSSI 测量模型与 B题的差异点** |
 
 **Tier 2 — 有时间再读（4 篇）**
 
@@ -543,9 +544,10 @@ ANCHOR 必须满足：**直接改变我们对 B题模型、算法、目标函数
 6. **GDOP 术语仍未命中 B 簇论文。** 可能是 OpenAlex 对缩写术语的检索弱点，
    不代表文献不存在。
 7. **中文文献仍未检索——而且已被证明是真实缺口。** B 题是中文学科竞赛题，
-   "交会定位""示向度""测向"等术语的文献主要在 CNKI/万方，arXiv 与 OpenAlex 均不索引。
+   "交会定位""示向度""测向"等术语的文献主要在 CNKI / 万方 / 维普，
+   而**本轮检索范围（arXiv、OpenAlex、Crossref）不包含这些中文源**。
    现在有了直接证据而不只是推测：**2017 A1 就是一篇中文期刊论文**，主题与 B题高度相关
-   （bearing-only + UBB + set-membership），而 OpenAlex 与 Crossref **都召回不到它**
+   （bearing-only + UBB + set-membership），而本轮 OpenAlex 与 Crossref 查询**都未召回它**
    （见 §2.1）。此外补检命中的 CCC 2024 群目标 bearing-only 论文
    （`10.23919/ccc63176.2024.10661907`）也是同一方向的弱信号。
    **本轮未检索中文源**——这是本轮最大的覆盖缺口。
@@ -556,7 +558,7 @@ ANCHOR 必须满足：**直接改变我们对 B题模型、算法、目标函数
    与问题 4 的定向源排查可能相关。
 9. **本轮 10 次查询中 1 次零返回（Semantic Scholar），3 次仅部分有效**
    （查询 1 与查询 3 未能解析出 A1 的标题原文——**原因现已查明：该文是中文期刊论文，
-   OpenAlex 与 Crossref 都不索引它**，而不是标题有问题、更不是论文不存在；
+   本轮的 OpenAlex 与 Crossref 查询都未召回它**，而不是标题有问题、更不是论文不存在；
    查询 9 被 cs.DS 的 worst-case-analysis 文献淹没）。这些失败已逐条记录在
    `raw/round1_correction_A.json`，其 `query_totals` 与本表的统计口径严格一致
    （fully 6 / partial 3 / ineffective 1）。
@@ -565,7 +567,10 @@ ANCHOR 必须满足：**直接改变我们对 B题模型、算法、目标函数
 
 ## 8. Next-step Recommendation
 
-**推荐 A：对 Tier 1 的 6 篇获取全文深读**（本轮按要求未下载任何 PDF）。
+**下一步：对 Tier 1 的 6 篇获取全文深读**（本轮按要求未下载任何 PDF）。
+
+**执行方与入口**：Tier 1 的全文获取与深读由 **Codex** 执行。
+交接文件：`literature_search/cumcm-b-emitter-localization_2026-09-10/TIER1_CODEX_HANDOFF.md`。
 
 **理由：** 修正后的图景改变了下一轮的优先级。Round 1 曾建议"深读 9 篇 anchor +
 再做一轮 L2 换词汇重搜"；补检已经用 10 次查询完成了那个"换词汇重搜"，
@@ -577,17 +582,13 @@ ANCHOR 必须满足：**直接改变我们对 B题模型、算法、目标函数
 - 问题 2 的闭式几何在 **Zhao–Chen–Lee 2013** 与 **Yang 2013** 的正文里。
 - 问题 3 的决策环在 **Reynaud 2018** 与 **Dehghan 2014** 的正文里。
 
-**补检同义词族（若仍需扩检）**：`guaranteed / robust / interval / set-inversion /
-worst-case / minimax feasibility`，以及几何描述词
-`intersection of angular sectors` / `angle-only triangulation region` / `bearing polygon`。
-本轮已验证：**不含 "bearing" 的策略性措辞召回最好。**
+### Round 1 literature search is frozen.
 
-**仍不建议 citation snowball。** 本轮 corpus 的强项集中在少数课题组
-（Zhao 组、Kieffer 组、Liu/Zhao 组），snowball 会放大既有偏差。
-
-**中文源（CNKI / 万方）的优先级应当上调。** 2017 A1 是中文期刊论文，两个国际索引
-都不召回它；B题本身是中文命题，"示向度""测向""交会定位"这类术语的中文文献很可能是
-下一个盲区（见 §7 gap 7）。这是本轮唯一一个**已由具体论文证实**的覆盖缺口。
-
-**本轮修正完成，Round 1 文献检索正式冻结。** 不再继续补搜索；下一阶段是
-Tier 1 六篇论文的全文获取与深读。本任务不自动下载 PDF，不进入全文深读。
+- 本报告定稿后**不再扩展 Round 1 的 query corpus**：不再继续补搜索、不做
+  citation snowball、不进入 L2、不重跑 A/B/C、不搜 D/E/F。
+- 后续如发现个别 **metadata 错误**（例如 DOI 拼写、期刊缩写），可以单独修正——
+  那属于**勘误**，不属于检索扩展。
+- **下一阶段：Tier 1 全文深读（由 Codex 执行）。**
+- 唯一的重新开放条件：未来**人工明确发现 Tier 1 无法回答某个关键建模问题**。
+  届时再重新评估是否需要新检索（候选方向记录见 §7 gap 7：中文源 CNKI / 万方 / 维普，
+  以及"不含 bearing 的策略性措辞召回最好"这一已验证经验）——**在冻结状态下不执行**。
