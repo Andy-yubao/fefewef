@@ -32,7 +32,15 @@ def setup() -> None:
             "legend.fontsize": 9,
             "axes.spines.top": False,
             "axes.spines.right": False,
-            "font.family": "DejaVu Sans",
+            "font.family": "sans-serif",
+            "font.sans-serif": [
+                "Microsoft YaHei",
+                "SimHei",
+                "Noto Sans CJK SC",
+                "DejaVu Sans",
+            ],
+            "axes.unicode_minus": False,
+            "pdf.fonttype": 42,
         }
     )
     FIGURE_DIR.mkdir(parents=True, exist_ok=True)
@@ -102,4 +110,3 @@ def save(fig: plt.Figure, stem: str) -> None:
     fig.savefig(FIGURE_DIR / f"{stem}.png", bbox_inches="tight")
     fig.savefig(FIGURE_DIR / f"{stem}.pdf", bbox_inches="tight")
     plt.close(fig)
-

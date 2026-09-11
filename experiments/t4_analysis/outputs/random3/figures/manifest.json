@@ -1,0 +1,14 @@
+{
+  "selection_seed": 2026091103,
+  "case_seeds": [
+    869462,
+    379913,
+    24546
+  ],
+  "strategy": "opportunistic",
+  "figures": [
+    "seed_869462_path.svg",
+    "seed_379913_path.svg",
+    "seed_24546_path.svg"
+  ]
+}
