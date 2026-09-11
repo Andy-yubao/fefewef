@@ -49,6 +49,25 @@ class Scheduler:
         self.planner = planner
         self.last_audit: dict[str, object] | None = None
 
+    def _search_defer_regret(
+        self,
+        position: np.ndarray,
+        coverage_point: np.ndarray,
+        local_actions: list[Action],
+    ) -> float:
+        """Return the largest one-step cost of deferring an available local action."""
+        return max(
+            (
+                max(
+                    0.0,
+                    float(np.linalg.norm(coverage_point - action.position))
+                    - float(np.linalg.norm(position - action.position)),
+                ) / self.physical.speed_mps
+                for action in local_actions
+            ),
+            default=0.0,
+        )
+
     def _audit(
         self,
         actions: list[Action],
@@ -57,6 +76,7 @@ class Scheduler:
         current_channel: int,
         remaining_coverage_count: int,
         found_count: int,
+        original_search_score_s: float | None = None,
     ) -> None:
         """Save a read-only summary of the candidates considered by ``choose``."""
         best = {
@@ -70,6 +90,31 @@ class Scheduler:
         search = best[ActionKind.SEARCH]
         localize = best[ActionKind.LOCALIZE]
         clear = best[ActionKind.CLEAR]
+        local_actions = [action for action in actions if action.kind != ActionKind.SEARCH]
+        best_local = min(
+            local_actions,
+            key=lambda action: (action.score_s, action.kind != ActionKind.CLEAR),
+            default=None,
+        )
+        defer_regret_s = (
+            self._search_defer_regret(position, search.position, local_actions)
+            if search is not None else 0.0
+        )
+        original_search_score_s = (
+            search.score_s
+            if search is not None and original_search_score_s is None
+            else original_search_score_s
+        )
+        shadow_adjusted_search_score_s = (
+            original_search_score_s + defer_regret_s
+            if original_search_score_s is not None else None
+        )
+        would_flip = bool(
+            search is not None
+            and best_local is not None
+            and shadow_adjusted_search_score_s is not None
+            and best_local.score_s < shadow_adjusted_search_score_s
+        )
         audit: dict[str, object] = {
             "type": "scheduler_audit",
             "current_position": np.asarray(position, float).tolist(),
@@ -99,6 +144,13 @@ class Scheduler:
             "chosen_channel": chosen.channel,
             "chosen_score_s": chosen.score_s,
             "chosen_source": chosen.source,
+            "defer_regret_s": defer_regret_s,
+            "original_search_score_s": original_search_score_s,
+            "adjusted_search_score_s": shadow_adjusted_search_score_s,
+            "original_best_local_score_s": best_local.score_s if best_local is not None else None,
+            "would_flip": would_flip,
+            "would_flip_to_kind": best_local.kind.value if would_flip else None,
+            "would_flip_to_channel": best_local.channel if would_flip else None,
         }
         if chosen.kind == ActionKind.SEARCH:
             audit["search_minus_best_localize_s"] = (
@@ -247,8 +299,39 @@ class Scheduler:
 
         if not actions:
             raise RuntimeError("no finite action while task is incomplete")
+        original_search_score_s = None
+        if remaining_coverage and self.planner.search_defer_regret_weight != 0.0:
+            search_index = next(
+                (index for index, action in enumerate(actions)
+                 if action.kind == ActionKind.SEARCH),
+                None,
+            )
+            local_actions = [
+                action for action in actions if action.kind != ActionKind.SEARCH
+            ]
+            if search_index is not None and local_actions:
+                search = actions[search_index]
+                original_search_score_s = search.score_s
+                regret_s = self._search_defer_regret(
+                    position, search.position, local_actions
+                )
+                actions[search_index] = Action(
+                    search.kind,
+                    search.position,
+                    search.channel,
+                    search.score_s
+                    + self.planner.search_defer_regret_weight * regret_s,
+                    search.source,
+                    search.certified,
+                )
         chosen = min(actions, key=lambda a: (a.score_s, a.kind != ActionKind.CLEAR))
         self._audit(
-            actions, chosen, position, current_channel, len(remaining_coverage), len(found)
+            actions,
+            chosen,
+            position,
+            current_channel,
+            len(remaining_coverage),
+            len(found),
+            original_search_score_s,
         )
         return chosen

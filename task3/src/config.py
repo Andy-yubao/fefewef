@@ -31,6 +31,7 @@ class PlannerConfig:
     numeric_angle_tol_deg: float = 1e-6
     clear_margin_m: float = 0.25
     local_action_limit: int = 3
+    search_defer_regret_weight: float = 0.0
     max_bearings_before_fallback: int = 6
     fallback_cell_threshold: int = 0
     local_offset_m: float = 500.0

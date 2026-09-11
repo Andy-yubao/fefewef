@@ -233,6 +233,13 @@ POLICIES: dict[str, PolicySpec] = {
         parent_id="champion_000_geometry_baseline",
         description="Keep at most eight found-channel bearings at each coverage vertex.",
     ),
+    "candidate_036_grid5_center_defer1": PolicySpec(
+        "hybrid", "center_approach",
+        {"grid_step_m": 5.0, "local_channel_limit": 3,
+         "search_defer_regret_weight": 1.0},
+        parent_id="candidate_020_grid5_center_approach",
+        description="Candidate 020 plus one-step proximity regret for deferred local actions.",
+    ),
 }
 
 
