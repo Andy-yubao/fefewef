@@ -5,6 +5,7 @@ __pycache__/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+.mplconfig/
 .ipynb_checkpoints/
 
 # Local environment files and credentials

@@ -49,6 +49,7 @@ def test_candidate_020_registry_resolves_complete_online_configuration() -> None
     assert planner.grid_step_m == 5.0
     assert planner.local_channel_limit == 3
     assert planner.local_action_limit == 3
+    assert spec.controller == "legacy"
 
 
 def test_zero_search_defer_regret_weight_preserves_scheduler_choice() -> None:

@@ -13,6 +13,7 @@ class PolicySpec:
     planner_overrides: dict[str, Any] = field(default_factory=dict)
     parent_id: str | None = None
     description: str = ""
+    controller: str = "legacy"
 
 
 POLICIES: dict[str, PolicySpec] = {
@@ -239,6 +240,26 @@ POLICIES: dict[str, PolicySpec] = {
          "search_defer_regret_weight": 1.0},
         parent_id="candidate_020_grid5_center_approach",
         description="Candidate 020 plus one-step proximity regret for deferred local actions.",
+    ),
+    "candidate_037_route_embedded_sweep": PolicySpec(
+        "route_embedded", "center_approach",
+        {"grid_step_m": 5.0, "local_channel_limit": 3},
+        parent_id="candidate_020_grid5_center_approach",
+        description=(
+            "Monotonic seven-point sweep with strictly on-route guaranteed "
+            "measurements and certified clears, followed by reliable cleanup."
+        ),
+        controller="route_embedded",
+    ),
+    "candidate_038_task_queue_sweep": PolicySpec(
+        "task_queue", "center_approach",
+        {"grid_step_m": 5.0, "local_channel_limit": 3},
+        parent_id="candidate_020_grid5_center_approach",
+        description=(
+            "Committed ResolveSource/AdvanceCoverage task queue with a fixed "
+            "directional sweep and zero-detour opportunistic observations."
+        ),
+        controller="task_queue",
     ),
 }
 

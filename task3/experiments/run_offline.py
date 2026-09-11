@@ -15,6 +15,8 @@ from task3.src.config import PhysicalConfig, PlannerConfig, config_dict
 from task3.src.controller import SearchController
 from task3.src.mock_simulator import MockSimulator, random_scenario
 from task3.src.policies import POLICIES, select_policy_ids
+from task3.src.route_embedded_controller import RouteEmbeddedController
+from task3.src.task_driven_controller import TaskDrivenController
 
 
 def repository_version() -> dict[str, str | bool]:
@@ -39,15 +41,25 @@ def run_case(args: tuple[int, int, float, bool, int | None, list[str]]) -> list[
         planner_values.update(spec.planner_overrides)
         planner = PlannerConfig(**planner_values)
         mock = MockSimulator(scenario, physical)
-        result = SearchController(
-            mock, spec.mode, spec.local_family, physical, planner, scenario.total
-        ).run()
+        if spec.controller == "route_embedded":
+            result = RouteEmbeddedController(
+                mock, physical, planner, scenario.total
+            ).run()
+        elif spec.controller == "task_queue":
+            result = TaskDrivenController(
+                mock, physical, planner, scenario.total
+            ).run()
+        else:
+            result = SearchController(
+                mock, spec.mode, spec.local_family, physical, planner, scenario.total
+            ).run()
         row = {
             "scenario_id": scenario.scenario_id,
             "scenario_seed": seed,
             "policy": policy,
             "mode": spec.mode,
             "local_family": spec.local_family,
+            "controller": spec.controller,
             "planner": asdict(planner),
             "source_count": scenario.total,
             "sources": [asdict(s) for s in scenario.sources],

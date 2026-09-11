@@ -12,6 +12,8 @@ from .client import SimulatorClient
 from .config import ClientConfig, PhysicalConfig, PlannerConfig, config_dict
 from .controller import SearchController
 from .policies import POLICIES
+from .route_embedded_controller import RouteEmbeddedController
+from .task_driven_controller import TaskDrivenController
 from .scheduler import Scheduler
 
 
@@ -56,21 +58,35 @@ def main(argv: list[str] | None = None) -> int:
         if args.local_action_limit is not None:
             planner_values["local_action_limit"] = args.local_action_limit
         mode, local_family = spec.mode, spec.local_family
+        controller_kind = spec.controller
     else:
         planner_values = {
             "local_action_limit": 3 if args.local_action_limit is None else args.local_action_limit,
             "seed": args.seed,
         }
         mode, local_family = args.mode, args.local_family
+        controller_kind = "legacy"
     planner = PlannerConfig(**planner_values)
     strategy = {
         "policy_id": args.policy,
         "mode": mode,
         "local_family": local_family,
+        "controller": controller_kind,
         "planner_overrides": planner_values,
     }
     client = SimulatorClient(client_cfg, args.log)
-    controller = SearchController(client, mode, local_family, PhysicalConfig(), planner, args.known_total)
+    if controller_kind == "route_embedded":
+        controller = RouteEmbeddedController(
+            client, PhysicalConfig(), planner, args.known_total
+        )
+    elif controller_kind == "task_queue":
+        controller = TaskDrivenController(
+            client, PhysicalConfig(), planner, args.known_total
+        )
+    else:
+        controller = SearchController(
+            client, mode, local_family, PhysicalConfig(), planner, args.known_total
+        )
     try:
         result = controller.run()
     except Exception as exc:

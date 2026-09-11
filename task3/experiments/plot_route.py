@@ -12,6 +12,7 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
 from matplotlib.patches import Circle
 import numpy as np
 
@@ -104,6 +105,12 @@ def source_points(sources: Iterable[dict[str, Any]]) -> tuple[np.ndarray, list[A
     return np.asarray(points, dtype=float).reshape((-1, 2)), channels
 
 
+def task_actions(diagnostics: Any) -> list[dict[str, Any]]:
+    if not isinstance(diagnostics, list):
+        return []
+    return [item for item in diagnostics if item.get("type") == "task_action"]
+
+
 def plot_record(row: dict[str, Any], output: Path) -> None:
     actions = row.get("actions")
     if not isinstance(actions, list) or not actions:
@@ -114,6 +121,8 @@ def plot_record(row: dict[str, Any], output: Path) -> None:
     route = extract_route(actions)
     clears = successful_clear_points(actions)
     sources, channels = source_points(row.get("sources", []))
+    diagnostics = row.get("result", {}).get("diagnostics", [])
+    semantic_actions = task_actions(diagnostics)
 
     physical = PhysicalConfig()
     planner_values = row.get("planner") if isinstance(row.get("planner"), dict) else {}
@@ -133,8 +142,45 @@ def plot_record(row: dict[str, Any], output: Path) -> None:
         zorder=0,
     )
     ax.add_patch(boundary)
-    ax.plot(route[:, 0], route[:, 1], color="#1769aa", linewidth=1.5, label="Robot route", zorder=2)
-    ax.scatter(route[:, 0], route[:, 1], s=8, color="#1769aa", alpha=0.45, zorder=2)
+    if semantic_actions:
+        for item in semantic_actions:
+            start = _position(item.get("start"))
+            end = _position(item.get("end"))
+            if start is None or end is None or start == end:
+                continue
+            if item.get("opportunistic"):
+                color, style, width = "#d97706", ":", 1.8
+            elif item.get("active_task_type") == "ResolveSource":
+                color, style, width = "#c2415d", "-", 1.8
+            else:
+                color, style, width = "#1769aa", "--", 1.6
+            ax.plot(
+                [start[0], end[0]], [start[1], end[1]],
+                color=color, linestyle=style, linewidth=width, zorder=2,
+            )
+        starts = [
+            _position(item.get("task_start_position")) for item in diagnostics
+            if item.get("type") == "task_started"
+        ]
+        starts = [point for point in starts if point is not None]
+        if starts:
+            start_array = np.asarray(starts, float)
+            ax.scatter(start_array[:, 0], start_array[:, 1], marker="D", s=22,
+                       facecolors="white", edgecolors="#333333", linewidth=0.7,
+                       zorder=5)
+        for item in semantic_actions:
+            if not item.get("opportunistic"):
+                continue
+            point = _position(item.get("end"))
+            if point is None:
+                continue
+            marker = "*" if item.get("action_kind") == "CLEAR" else "^"
+            ax.scatter([point[0]], [point[1]], marker=marker, s=38,
+                       color="#d97706", zorder=6)
+    else:
+        ax.plot(route[:, 0], route[:, 1], color="#1769aa", linewidth=1.5,
+                label="Robot route", zorder=2)
+        ax.scatter(route[:, 0], route[:, 1], s=8, color="#1769aa", alpha=0.45, zorder=2)
     ax.scatter([0.0], [0.0], marker="s", s=70, color="#222222", label="Start", zorder=5)
 
     if len(sources):
@@ -183,6 +229,45 @@ def plot_record(row: dict[str, Any], output: Path) -> None:
         zorder=1,
     )
 
+    if semantic_actions:
+        milestone_items = [
+            item for item in diagnostics if item.get("type") == "coverage_unknown_scan"
+            and item.get("coverage_index", 0) > 0
+        ]
+        milestone_points = [
+            _position(item.get("position")) for item in milestone_items
+        ]
+        milestone_points = [point for point in milestone_points if point is not None]
+        if milestone_points:
+            values = np.asarray(milestone_points, float)
+            ax.scatter(values[:, 0], values[:, 1], marker="o", s=65,
+                       facecolors="none", edgecolors="#8056a5", linewidth=1.5,
+                       zorder=5)
+            for item, point in zip(milestone_items, milestone_points):
+                ax.annotate(f"V{item['coverage_index']}", point, xytext=(5, -12),
+                            textcoords="offset points", fontsize=8, color="#603b82")
+        selection = next(
+            (item for item in diagnostics if item.get("type") == "sweep_selected"), {}
+        )
+        direction = selection.get("sweep_direction", "?")
+        ax.text(0.02, 0.98, f"Sweep: {direction}", transform=ax.transAxes,
+                ha="left", va="top", fontsize=9,
+                bbox={"facecolor": "white", "edgecolor": "#777777", "alpha": 0.85})
+        semantic_legend = [
+            Line2D([0], [0], color="#c2415d", lw=1.8, label="Resolve source"),
+            Line2D([0], [0], color="#1769aa", lw=1.6, ls="--", label="Advance coverage"),
+            Line2D([0], [0], color="#d97706", lw=1.8, ls=":", label="Opportunistic movement"),
+            Line2D([0], [0], marker="^", color="none", markerfacecolor="#d97706",
+                   markeredgecolor="#d97706", label="Opportunistic measure"),
+            Line2D([0], [0], marker="*", color="none", markerfacecolor="#d97706",
+                   markeredgecolor="#d97706", label="Opportunistic clear"),
+            Line2D([0], [0], marker="D", color="none", markerfacecolor="white",
+                   markeredgecolor="#333333", label="Task switch"),
+        ]
+        handles, labels = ax.get_legend_handles_labels()
+        ax.legend(handles + semantic_legend, labels + [item.get_label() for item in semantic_legend],
+                  loc="upper right", fontsize=7)
+
     scenario = row.get("scenario_id", "unknown scenario")
     policy = row.get("policy", "unknown policy")
     ax.set_title(f"Q3 route: {scenario} | {policy}")
@@ -198,7 +283,8 @@ def plot_record(row: dict[str, Any], output: Path) -> None:
     ax.set_xlim(-limit, limit)
     ax.set_ylim(-limit, limit)
     ax.grid(True, linewidth=0.5, alpha=0.3)
-    ax.legend(loc="upper right", fontsize=8)
+    if not semantic_actions:
+        ax.legend(loc="upper right", fontsize=8)
 
     output.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(output, dpi=180)

@@ -57,6 +57,7 @@ def main() -> int:
                     "policy_id": args.policy,
                     "mode": spec.mode,
                     "local_family": spec.local_family,
+                    "controller": spec.controller,
                     "planner_overrides": spec.planner_overrides,
                 }
             else:
