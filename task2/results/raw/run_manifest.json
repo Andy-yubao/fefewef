@@ -1,0 +1,28 @@
+{
+  "seed": 20260911,
+  "base_scenarios": 400,
+  "replicates": 25,
+  "effective_scenarios": 10000,
+  "strategy_evaluations": 100000,
+  "elapsed_s": 320.18659798700173,
+  "physical_config": {
+    "target_radius": 1800.0,
+    "bearing_error_deg": 1.0,
+    "reception_min": 1000.0,
+    "reception_max": 1500.0,
+    "near_radius": 5.0,
+    "clear_radius": 20.0,
+    "speed": 5.0
+  },
+  "search_config": {
+    "grid_step": 250.0,
+    "polygon_resolution": 64,
+    "posterior_grid_step": 80.0,
+    "min_detection_probability": 0.25,
+    "min_median_abs_sin_angle": 0.12,
+    "shortlist_size": 6,
+    "objective_target_samples": 10,
+    "objective_error_samples": 3,
+    "eig_bearing_bin_deg": 2.0
+  }
+}
