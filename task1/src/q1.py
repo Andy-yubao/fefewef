@@ -94,6 +94,13 @@ class DiameterResult:
     second: Point
 
 
+@dataclass(frozen=True)
+class CircleResult:
+    center: Point
+    radius: float
+    support_vertex_indices: tuple[int, ...]
+
+
 def cross(first: Point, second: Point) -> float:
     return first.x * second.y - first.y * second.x
 
@@ -330,6 +337,96 @@ def polygon_diameter(polygon: Sequence[Point]) -> DiameterResult:
     return best
 
 
+def minimum_enclosing_circle_polygon(
+    polygon: Sequence[Point],
+    tol: GeometryTolerance = TOL,
+) -> CircleResult:
+    """Return the deterministic minimum enclosing circle of polygon vertices.
+
+    A finite planar point set has a minimum enclosing circle supported by one
+    point, two diametrically opposite points, or three non-collinear points.
+    Convexity ensures that covering all vertices also covers the whole polygon.
+    """
+
+    points = list(polygon)
+    if not points:
+        raise ValueError("minimum enclosing circle requires at least one point")
+    if len(points) == 1:
+        return CircleResult(points[0], 0.0, (0,))
+
+    candidates: list[CircleResult] = []
+
+    def covers_all(center: Point, radius: float) -> bool:
+        allowance = tol.feasibility * max(1.0, radius)
+        return all(distance(center, point) <= radius + allowance for point in points)
+
+    for first_index, first in enumerate(points):
+        for second_index in range(first_index + 1, len(points)):
+            second = points[second_index]
+            center = (first + second) * 0.5
+            radius = 0.5 * distance(first, second)
+            if covers_all(center, radius):
+                candidates.append(
+                    CircleResult(center, radius, (first_index, second_index))
+                )
+
+    for first_index, first in enumerate(points):
+        for second_index in range(first_index + 1, len(points)):
+            second = points[second_index]
+            for third_index in range(second_index + 1, len(points)):
+                third = points[third_index]
+                determinant = 2.0 * cross(second - first, third - first)
+                scale = max(
+                    1.0,
+                    distance(first, second) * distance(first, third),
+                )
+                if abs(determinant) <= tol.absolute * scale:
+                    continue
+
+                first_sq = dot(first, first)
+                second_sq = dot(second, second)
+                third_sq = dot(third, third)
+                center = Point(
+                    (
+                        first_sq * (second.y - third.y)
+                        + second_sq * (third.y - first.y)
+                        + third_sq * (first.y - second.y)
+                    )
+                    / determinant,
+                    (
+                        first_sq * (third.x - second.x)
+                        + second_sq * (first.x - third.x)
+                        + third_sq * (second.x - first.x)
+                    )
+                    / determinant,
+                )
+                radius = distance(center, first)
+                if covers_all(center, radius):
+                    candidates.append(
+                        CircleResult(
+                            center,
+                            radius,
+                            (first_index, second_index, third_index),
+                        )
+                    )
+
+    if not candidates:
+        # This is reachable only for repeated coincident inputs; a valid convex
+        # polygon normally contains distinct vertices.
+        return CircleResult(points[0], 0.0, (0,))
+
+    radius_tolerance = tol.feasibility * max(
+        1.0, min(candidate.radius for candidate in candidates)
+    )
+    minimum_radius = min(candidate.radius for candidate in candidates)
+    near_minimum = [
+        candidate
+        for candidate in candidates
+        if candidate.radius <= minimum_radius + radius_tolerance
+    ]
+    return min(near_minimum, key=lambda candidate: candidate.support_vertex_indices)
+
+
 def _angle_on_arc(angle: float, arc: Arc) -> bool:
     if arc.full_circle:
         return True
@@ -406,4 +503,3 @@ def solve_q1(
     polygon = locate_polygon(observations)
     region = clip_polygon_with_disk(polygon, radius)
     return polygon, region, clipped_region_diameter(region)
-

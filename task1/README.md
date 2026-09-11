@@ -23,8 +23,7 @@ pytest task1/tests/test_q1.py -q
 python task1/demo/demo_single_wedge.py
 python task1/demo/demo_multi_intersection.py
 python task1/demo/demo_circle_clipping.py
-python task1/demo/demo_jung_counterexample.py
+python task1/demo/demo_hexagon_counterexample.py
 ```
 
 核心模块仅使用 Python 标准库；demo 使用仓库已有的 Matplotlib，不新增依赖。
-
