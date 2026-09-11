@@ -28,8 +28,24 @@ nobody has read yet, and no execution instructions.
   article that Round 1's OpenAlex and Crossref queries did not return. Treat every
   statement about Chinese-language literature as a search observation, never as
   non-existence.
-- **Tier 1 is fixed at six papers** (below). The next unit of work is obtaining and
-  reading their full text.
+- **Round 1 Tier 1 was frozen at six papers** (below). The core reading set was
+  expanded post-freeze with Song, Kim & Yi (2012), preserving its teammate-supplied
+  provenance. Wave 1 and the obtainable Wave 2 full texts have now been read; Yang
+  et al. (2013) remains blocked for lack of lawful full-text access.
+
+### Deep-reading status (2026-09-11)
+
+- **Wave 1 complete:** Isler & Bajcsy (2006), Zhao, Chen & Lee (2013), Reynaud et
+  al. (2018). See `deep_reading/wave1_synthesis.md`.
+- **Original Wave 2:** Calafiore (2026) and Dehghan et al. (2014) complete;
+  Yang et al. (2013) metadata verified but full-text reading **BLOCKED**. IEEE,
+  OpenAlex, ResearchGate, SciSpace, DTIC/CiteSeerX and the available browser session
+  yielded no lawful 2013 journal full text. Do not treat the 2011 Fusion precursor as
+  the journal paper. See `deep_reading/yang_et_al_2013.md`.
+- **Supplement complete:** Song, Kim & Yi (2012), a **post-Round-1
+  teammate-supplied supplemental anchor**. This is a Tier 1 core reading set
+  expansion after the freeze, not a Round 1 retrieval hit.
+- **Integrated result:** `deep_reading/wave2_plus_song_synthesis.md`.
 
 ### The four questions being modelled
 
@@ -127,9 +143,9 @@ Grades are as assigned in `summary.md` §6; all six are **ANCHOR**.
 
 ### 5. Yang et al. 2013 — *Optimal Placement of Heterogeneous Sensors for Targets with Gaussian Priors*
 
-- **Authors**: Yang et al. — **full author list was not captured in this round's raw
-  records**; take it from the paper itself rather than from this file.
-- **Venue / year**: IEEE Transactions on Aerospace and Electronic Systems, 2013
+- **Authors**: Chun Yang; Lance M. Kaplan; Erik Blasch; Michael Bakich
+- **Venue / year**: IEEE Transactions on Aerospace and Electronic Systems, vol. 49,
+  no. 3, pp. 1637-1653, July 2013
 - **DOI**: `10.1109/TAES.2013.6558009`
 - **Maps to**: 问题 2 (*the* prior-aware form of it)
 - **Why Tier 1**: it is the one indexed work whose shape is exactly "a measurement has
@@ -138,13 +154,16 @@ Grades are as assigned in `summary.md` §6; all six are **ANCHOR**.
   maximizes the **updated** FIM, with multi-step sequential placement. Note that the
   Gaussian-prior assumption is precisely the thing B题's hard ±1° bound does *not*
   provide (see the caveat in `summary.md` §3).
+- **Reading status**: **BLOCKED**. The preceding description is the frozen Round 1
+  metadata/abstract assessment, not a full-text conclusion. The 2013 criterion,
+  equations, theorem conditions and experiments must be rechecked if lawful full
+  text becomes available.
 
 ### 6. Dehghan et al. 2014 — *Optimal path planning for DRSSI based localization of an RF source by multiple UAVs*
 
-- **Authors**: Dehghan; Moradi; Shahidian — given names were not captured in this
-  round's raw records; confirm from the paper.
+- **Authors**: Seyyed M. Mehdi Dehghan; Seyyed A. Asghar Shahidian; Hadi Moradi
 - **Venue / year**: 2nd RSI/ISM International Conference on Robotics and Mechatronics
-  (ICRoM), 2014
+  (ICRoM), 2014, pp. 558-563
 - **DOI**: `10.1109/ICRoM.2014.6990961`
   (an earlier transcription in this repository mistyped the venue token as "IROM";
   corrected 2026-09-11 — see `raw/round1_correction_A.json` §`revisions`.)
@@ -158,6 +177,20 @@ Grades are as assigned in `summary.md` §6; all six are **ANCHOR**.
   *sequential decision architecture* transfers. Its measurement model is DRSSI/RSSI;
   B题's is bearing/AOA with a hard ±1° bound. Do not carry the measurement equations
   across.
+
+### 7. Song, Kim & Yi 2012 — *Simultaneous Localization of Multiple Unknown and Transient Radio Sources Using a Mobile Robot*
+
+- **Provenance**: **post-Round-1 teammate-supplied supplemental anchor**; not a
+  Round 1 search result.
+- **Authors**: Dezhen Song; Chang-Young Kim; Jingang Yi
+- **Venue / year**: IEEE Transactions on Robotics, vol. 28, no. 3, pp. 668-680,
+  June 2012
+- **DOI**: `10.1109/TRO.2012.2183069`
+- **Maps to**: 问题 3 directly; 问题 4 as a belief-update/negative-evidence bridge
+- **Deep-reading correction**: SPOG means spatiotemporal probability occupancy grid.
+  It updates when a transmission is detected; the paper does **not** supply an
+  explicit spatial no-signal update. Its transient source is time-intermittent and
+  omnidirectional; it does not solve B题's directional emitter physics.
 
 ---
 

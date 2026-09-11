@@ -569,6 +569,11 @@ ANCHOR 必须满足：**直接改变我们对 B题模型、算法、目标函数
 
 **下一步：对 Tier 1 的 6 篇获取全文深读**（本轮按要求未下载任何 PDF）。
 
+**Post-freeze supplemental paper (2026-09-11):** Song, Kim & Yi (2012) was supplied
+by a teammate after Round 1 and has now been fully read as a supplemental Tier 1
+anchor. It is not a Round 1 retrieval hit; see
+`deep_reading/song_kim_yi_2012.md` and `deep_reading/wave2_plus_song_synthesis.md`.
+
 **执行方与入口**：Tier 1 的全文获取与深读由 **Codex** 执行。
 交接文件：`literature_search/cumcm-b-emitter-localization_2026-09-10/TIER1_CODEX_HANDOFF.md`。
 
