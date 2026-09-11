@@ -65,3 +65,20 @@ def test_random_scenario_can_fix_source_count_without_changing_default() -> None
     assert 10 <= default.total <= 16
     with pytest.raises(ValueError, match="source_count"):
         random_scenario(20260911, source_count=17)
+
+
+def test_scheduler_audit_matches_every_recorded_decision() -> None:
+    scenario = random_scenario(20260916, source_count=10)
+    mock = MockSimulator(scenario)
+    result = SearchController(
+        mock, planner=PlannerConfig(grid_step_m=25.0, particle_count=32),
+        known_total=scenario.total,
+    ).run()
+    audits = [item for item in result.diagnostics if item["type"] == "scheduler_audit"]
+    decisions = [item for item in result.diagnostics if item["type"] == "decision"]
+    assert len(audits) == len(decisions) > 0
+    for audit, decision in zip(audits, decisions):
+        assert audit["chosen_kind"] == decision["kind"]
+        assert audit["chosen_channel"] == decision["channel"]
+        assert audit["chosen_score_s"] == decision["score_s"]
+        assert audit["chosen_source"] == decision["source"]

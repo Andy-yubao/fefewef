@@ -47,6 +47,67 @@ class Scheduler:
         self.local_family = local_family
         self.physical = physical
         self.planner = planner
+        self.last_audit: dict[str, object] | None = None
+
+    def _audit(
+        self,
+        actions: list[Action],
+        chosen: Action,
+        position: np.ndarray,
+        current_channel: int,
+        remaining_coverage_count: int,
+        found_count: int,
+    ) -> None:
+        """Save a read-only summary of the candidates considered by ``choose``."""
+        best = {
+            kind: min(
+                (action for action in actions if action.kind == kind),
+                key=lambda action: action.score_s,
+                default=None,
+            )
+            for kind in ActionKind
+        }
+        search = best[ActionKind.SEARCH]
+        localize = best[ActionKind.LOCALIZE]
+        clear = best[ActionKind.CLEAR]
+        audit: dict[str, object] = {
+            "type": "scheduler_audit",
+            "current_position": np.asarray(position, float).tolist(),
+            "current_channel": current_channel,
+            "remaining_coverage_count": remaining_coverage_count,
+            "found_count": found_count,
+            "coverage_next_position": search.position.tolist() if search is not None else None,
+            "coverage_next_distance_m": (
+                float(np.linalg.norm(search.position - position)) if search is not None else None
+            ),
+            "coverage_next_score_s": search.score_s if search is not None else None,
+            "best_localize_channel": localize.channel if localize is not None else None,
+            "best_localize_position": localize.position.tolist() if localize is not None else None,
+            "best_localize_distance_m": (
+                float(np.linalg.norm(localize.position - position)) if localize is not None else None
+            ),
+            "best_localize_score_s": localize.score_s if localize is not None else None,
+            "best_localize_source": localize.source if localize is not None else None,
+            "best_clear_channel": clear.channel if clear is not None else None,
+            "best_clear_position": clear.position.tolist() if clear is not None else None,
+            "best_clear_distance_m": (
+                float(np.linalg.norm(clear.position - position)) if clear is not None else None
+            ),
+            "best_clear_score_s": clear.score_s if clear is not None else None,
+            "best_clear_source": clear.source if clear is not None else None,
+            "chosen_kind": chosen.kind.value,
+            "chosen_channel": chosen.channel,
+            "chosen_score_s": chosen.score_s,
+            "chosen_source": chosen.source,
+        }
+        if chosen.kind == ActionKind.SEARCH:
+            audit["search_minus_best_localize_s"] = (
+                chosen.score_s - localize.score_s if localize is not None else None
+            )
+            audit["search_minus_best_clear_s"] = (
+                chosen.score_s - clear.score_s if clear is not None else None
+            )
+        self.last_audit = audit
 
     def _remaining_search_cost(self, position: np.ndarray, coverage: np.ndarray,
                                remaining: list[int], unknown_count: int) -> float:
@@ -105,7 +166,11 @@ class Scheduler:
         if remaining_coverage and (self.mode == "two_stage" or consecutive_local >= self.planner.local_action_limit):
             p = coverage[remaining_coverage[0]]
             score = self._remaining_search_cost(position, coverage, remaining_coverage, unknown_count)
-            return Action(ActionKind.SEARCH, p, None, score, "coverage_forced")
+            chosen = Action(ActionKind.SEARCH, p, None, score, "coverage_forced")
+            self._audit(
+                [chosen], chosen, position, current_channel, len(remaining_coverage), len(found)
+            )
+            return chosen
 
         actions: list[Action] = []
         found_tail = self._found_cost(found)
@@ -182,4 +247,8 @@ class Scheduler:
 
         if not actions:
             raise RuntimeError("no finite action while task is incomplete")
-        return min(actions, key=lambda a: (a.score_s, a.kind != ActionKind.CLEAR))
+        chosen = min(actions, key=lambda a: (a.score_s, a.kind != ActionKind.CLEAR))
+        self._audit(
+            actions, chosen, position, current_channel, len(remaining_coverage), len(found)
+        )
+        return chosen

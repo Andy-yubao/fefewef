@@ -274,6 +274,8 @@ class SearchController:
                 remaining,
                 self.consecutive_local,
             )
+            if self.scheduler.last_audit is not None:
+                self.diagnostics.append(self.scheduler.last_audit)
             self.diagnostics.append({
                 "type": "decision", "kind": action.kind.value,
                 "position": action.position.tolist(), "channel": action.channel,

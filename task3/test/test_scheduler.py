@@ -23,6 +23,13 @@ def test_local_action_limit_forces_next_coverage_point() -> None:
     action = scheduler.choose(channels, np.zeros(2), 1, points, [1, 2, 3, 4, 5, 6], 3)
     assert action.kind == ActionKind.SEARCH
     assert np.allclose(action.position, points[1])
+    assert scheduler.last_audit is not None
+    assert scheduler.last_audit["type"] == "scheduler_audit"
+    assert scheduler.last_audit["chosen_kind"] == "SEARCH"
+    assert scheduler.last_audit["chosen_source"] == "coverage_forced"
+    assert scheduler.last_audit["coverage_next_distance_m"] == float(np.linalg.norm(points[1]))
+    assert scheduler.last_audit["best_localize_channel"] is None
+    assert scheduler.last_audit["best_clear_channel"] is None
 
 
 def test_channel_switch_cost_is_constant_not_channel_distance() -> None:
