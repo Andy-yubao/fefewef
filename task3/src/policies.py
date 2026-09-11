@@ -241,16 +241,6 @@ POLICIES: dict[str, PolicySpec] = {
         parent_id="candidate_020_grid5_center_approach",
         description="Candidate 020 plus one-step proximity regret for deferred local actions.",
     ),
-    "candidate_037_route_embedded_sweep": PolicySpec(
-        "route_embedded", "center_approach",
-        {"grid_step_m": 5.0, "local_channel_limit": 3},
-        parent_id="candidate_020_grid5_center_approach",
-        description=(
-            "Monotonic seven-point sweep with strictly on-route guaranteed "
-            "measurements and certified clears, followed by reliable cleanup."
-        ),
-        controller="route_embedded",
-    ),
     "candidate_038_task_queue_sweep": PolicySpec(
         "task_queue", "center_approach",
         {"grid_step_m": 5.0, "local_channel_limit": 3},

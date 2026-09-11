@@ -15,7 +15,6 @@ from task3.src.config import PhysicalConfig, PlannerConfig, config_dict
 from task3.src.controller import SearchController
 from task3.src.mock_simulator import MockSimulator, random_scenario
 from task3.src.policies import POLICIES, select_policy_ids
-from task3.src.route_embedded_controller import RouteEmbeddedController
 from task3.src.task_driven_controller import TaskDrivenController
 
 
@@ -41,11 +40,7 @@ def run_case(args: tuple[int, int, float, bool, int | None, list[str]]) -> list[
         planner_values.update(spec.planner_overrides)
         planner = PlannerConfig(**planner_values)
         mock = MockSimulator(scenario, physical)
-        if spec.controller == "route_embedded":
-            result = RouteEmbeddedController(
-                mock, physical, planner, scenario.total
-            ).run()
-        elif spec.controller == "task_queue":
+        if spec.controller == "task_queue":
             result = TaskDrivenController(
                 mock, physical, planner, scenario.total
             ).run()

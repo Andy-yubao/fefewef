@@ -12,7 +12,6 @@ from .client import SimulatorClient
 from .config import ClientConfig, PhysicalConfig, PlannerConfig, config_dict
 from .controller import SearchController
 from .policies import POLICIES
-from .route_embedded_controller import RouteEmbeddedController
 from .task_driven_controller import TaskDrivenController
 from .scheduler import Scheduler
 
@@ -75,11 +74,7 @@ def main(argv: list[str] | None = None) -> int:
         "planner_overrides": planner_values,
     }
     client = SimulatorClient(client_cfg, args.log)
-    if controller_kind == "route_embedded":
-        controller = RouteEmbeddedController(
-            client, PhysicalConfig(), planner, args.known_total
-        )
-    elif controller_kind == "task_queue":
+    if controller_kind == "task_queue":
         controller = TaskDrivenController(
             client, PhysicalConfig(), planner, args.known_total
         )
