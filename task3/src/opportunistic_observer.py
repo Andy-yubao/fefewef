@@ -31,7 +31,7 @@ class OpportunisticObserver:
         eligible = {
             channel: state for channel, state in channels.items()
             if channel != active_channel
-            and len(state.history) < self.planner.max_bearings_before_fallback
+            and state.bearing_count < self.planner.max_bearings_before_fallback
         }
         leg = RouteLeg(np.asarray(start, float), np.asarray(end, float), "active_task", -1)
         return self._planner.events(leg, eligible, attempted)

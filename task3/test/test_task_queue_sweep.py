@@ -3,13 +3,14 @@
 from __future__ import annotations
 
 import numpy as np
+from types import SimpleNamespace
 
-from task3.src.channel_state import ChannelStatus, Observation
+from task3.src.channel_state import ChannelStatus
 from task3.src.config import PlannerConfig
 from task3.src.controller import SearchController
+from task3.src.coverage import ordered_points
 from task3.src.mock_simulator import MockSimulator, Scenario, Source
 from task3.src.policies import POLICIES
-from task3.src.route_embedded_controller import RouteEmbeddedController
 from task3.src.route_planner import RoutePlanner
 from task3.src.task_driven_controller import TaskDrivenController
 from task3.src.task_queue import Task, TaskKind, TaskQueue
@@ -24,15 +25,14 @@ def fixed_scenario() -> Scenario:
     return Scenario("task-queue-fixed", 17, sources)
 
 
-def test_020_and_037_remain_separate_and_instantiable() -> None:
+def test_020_and_038_remain_separate_and_instantiable() -> None:
     scenario = fixed_scenario()
     planner = PlannerConfig(grid_step_m=25.0)
     legacy = SearchController(MockSimulator(scenario), planner=planner)
-    embedded = RouteEmbeddedController(MockSimulator(scenario), planner=planner)
+    task_queue = TaskDrivenController(MockSimulator(scenario), planner=planner)
     assert type(legacy) is SearchController
-    assert type(embedded) is RouteEmbeddedController
+    assert type(task_queue) is TaskDrivenController
     assert POLICIES["candidate_020_grid5_center_approach"].controller == "legacy"
-    assert POLICIES["candidate_037_route_embedded_sweep"].controller == "route_embedded"
     assert POLICIES["candidate_038_task_queue_sweep"].controller == "task_queue"
 
 
@@ -123,9 +123,97 @@ def test_resolve_source_closes_a_fixed_case() -> None:
     )
 
 
-def test_completed_sector_is_rejected_as_normal_resolve_candidate() -> None:
+def _found_controller() -> TaskDrivenController:
+    scenario = fixed_scenario()
+    mock = MockSimulator(scenario)
+    controller = TaskDrivenController(mock, planner=PlannerConfig(grid_step_m=25.0))
+    mock.enter()
+    controller._measure(np.zeros(2), 1, 0)
+    route = RoutePlanner(controller.planner).plan([])
+    controller.coverage = route.coverage
+    controller.sweep_direction = route.sweep_direction
+    controller.sweep_planner = TaskSweepPlanner(
+        route.coverage, route.sweep_direction, controller.physical, controller.planner
+    )
+    return controller
+
+
+def test_not_ready_resolve_stays_waiting_behind_advance(monkeypatch) -> None:
+    controller = _found_controller()
+    monkeypatch.setattr(controller, "_normal_resolve_action", lambda channel: None)
+    tasks = controller._available_tasks()
+    resolve = next(task for task in tasks if task.kind == TaskKind.RESOLVE_SOURCE)
+    assert not resolve.ready
+    controller.task_queue.rebuild(tasks)
+    active = controller.task_queue.select_active()
+    assert active is not None and active.kind == TaskKind.ADVANCE_COVERAGE
+    assert any(task.identity == resolve.identity for task in controller.task_queue.waiting)
+
+
+def test_ready_resolve_can_become_active(monkeypatch) -> None:
+    controller = _found_controller()
+    source_rank = controller.sweep_planner.service_window(
+        controller.channels[1], frontier_rank=-1
+    ).source_rank
+    controller.coverage_completed.update(range(1, source_rank + 2))
+    point = np.asarray(controller.client.position, float)
+    monkeypatch.setattr(
+        controller,
+        "_normal_resolve_action",
+        lambda channel: ("CLEAR", point, "certified_clear_point", True),
+    )
+    controller.task_queue.rebuild(controller._available_tasks())
+    active = controller.task_queue.select_active()
+    assert active is not None and active.kind == TaskKind.RESOLVE_SOURCE
+    assert active.activation_reason == "certified_clear_point"
+
+
+def test_fallback_is_gated_below_bearing_limit() -> None:
+    controller = _found_controller()
+    state = controller.channels[1]
+    state.fallback_queue = [tuple(controller.coverage[1])]
+    assert state.bearing_count < controller.planner.max_bearings_before_fallback
+    assert controller._fallback_clear_point(1) is None
+
+
+def test_fallback_cannot_escape_behind_frontier() -> None:
+    controller = _found_controller()
+    controller.coverage_completed.update({1, 2})
+    state = controller.channels[1]
+    state.bearing_count = controller.planner.max_bearings_before_fallback
+    state.fallback_queue = [tuple(controller.coverage[1])]
+    assert controller._fallback_clear_point(1) is None
+    assert state.fallback_queue == [tuple(controller.coverage[1])]
+
+
+def test_cw_and_ccw_sector_ranks_follow_traversal_order() -> None:
+    ccw_points = ordered_points(0.0, False)
+    cw_points = ordered_points(0.0, True)
+    ccw = TaskSweepPlanner(ccw_points, "CCW")
+    cw = TaskSweepPlanner(cw_points, "CW")
+    east = np.array([1200.0, 0.0])
+    assert ccw.rank_for_point(east) == 0
+    assert cw.rank_for_point(east) == 5
+    assert cw.rank_for_point(cw_points[1]) == 0
+    assert ccw.is_forward_compatible(east, frontier_rank=5)
+
+
+def test_service_deadline_uses_certificate_center_not_radius() -> None:
     route = RoutePlanner().plan([])
     sweep = TaskSweepPlanner(route.coverage, route.sweep_direction)
-    completed = {1}
-    assert not sweep.is_forward_compatible(route.coverage[1], completed)
-    assert sweep.is_forward_compatible(route.coverage[2], completed)
+    state = SimpleNamespace(certificate=lambda: SimpleNamespace(
+        center=route.coverage[3], radius_m=5000.0
+    ))
+    future = sweep.service_window(state, frontier_rank=0)
+    current = sweep.service_window(state, frontier_rank=2)
+    assert future.source_rank == 2 and not future.deadline
+    assert current.source_rank == 2 and current.deadline
+
+
+def test_completed_rank_is_rejected_as_normal_resolve_candidate() -> None:
+    route = RoutePlanner().plan([])
+    sweep = TaskSweepPlanner(route.coverage, route.sweep_direction)
+    frontier_rank = 1
+    assert not sweep.is_forward_compatible(route.coverage[1], frontier_rank)
+    assert sweep.is_forward_compatible(route.coverage[2], frontier_rank)
+    assert sweep.is_forward_compatible(route.coverage[3], frontier_rank)

@@ -18,6 +18,9 @@ class Task:
     channel: int | None = None
     vertex: int | None = None
     order_key: tuple = field(default_factory=tuple, compare=False, repr=False)
+    ready: bool = field(default=True, compare=False)
+    activation_reason: str | None = field(default=None, compare=False)
+    source_sector_rank: int | None = field(default=None, compare=False)
 
     def __post_init__(self) -> None:
         if self.kind == TaskKind.RESOLVE_SOURCE and self.channel is None:
@@ -53,8 +56,11 @@ class TaskQueue:
         self.waiting = sorted(unique.values(), key=lambda task: task.order_key)
 
     def select_active(self) -> Task | None:
-        if self.active is None and self.waiting:
-            self.active = self.waiting.pop(0)
+        if self.active is None:
+            for index, task in enumerate(self.waiting):
+                if task.ready:
+                    self.active = self.waiting.pop(index)
+                    break
         return self.active
 
     def complete_active(self) -> Task | None:

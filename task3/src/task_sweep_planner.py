@@ -14,7 +14,8 @@ from .config import PhysicalConfig, PlannerConfig
 @dataclass(frozen=True)
 class ServiceWindow:
     sector: int
-    relative_sector: int
+    source_rank: int
+    relative_rank: int
     deadline: bool
     current_sector: bool
 
@@ -37,41 +38,51 @@ class TaskSweepPlanner:
         return len(self.coverage) - 1
 
     def sector_for_point(self, point: np.ndarray) -> int:
+        """Return the geometric sector label in canonical CCW order."""
         point = np.asarray(point, float)
         if float(np.linalg.norm(point)) <= self.planner.numeric_distance_tol_m:
             return 1
         angle = math.atan2(float(point[1]), float(point[0]))
-        vertex_angles = np.arctan2(self.coverage[1:, 1], self.coverage[1:, 0])
+        vertices = self.coverage[1:]
+        if self.sweep_direction == "CW":
+            vertices = vertices[::-1]
+        vertex_angles = np.arctan2(vertices[:, 1], vertices[:, 0])
         delta = np.abs((vertex_angles - angle + math.pi) % (2.0 * math.pi) - math.pi)
         return int(np.argmin(delta)) + 1
 
-    def service_window(self, state: ChannelState, next_vertex: int | None) -> ServiceWindow:
+    def sector_rank(self, sector: int) -> int:
+        if not 1 <= sector <= self.sector_count:
+            raise ValueError(f"sector must be in 1..{self.sector_count}")
+        if self.sweep_direction == "CCW":
+            return sector - 1
+        return self.sector_count - sector
+
+    def rank_for_point(self, point: np.ndarray) -> int:
+        return self.sector_rank(self.sector_for_point(point))
+
+    def service_window(self, state: ChannelState, frontier_rank: int) -> ServiceWindow:
         certificate = state.certificate()
         sector = self.sector_for_point(certificate.center)
-        if next_vertex is None:
-            return ServiceWindow(sector, 0, True, True)
-        # Conservatively include sectors touched by the certificate disk.  A
-        # small fixed angular stencil is sufficient for the six broad wedges
-        # and avoids treating a boundary-straddling source as safely future.
-        angles = np.linspace(0.0, 2.0 * math.pi, 24, endpoint=False)
-        boundary = certificate.center + certificate.radius_m * np.column_stack(
-            (np.cos(angles), np.sin(angles))
-        )
-        sectors = {sector, *(self.sector_for_point(point) for point in boundary)}
-        relative_values = [value - next_vertex for value in sectors]
-        relative = min(relative_values)
+        source_rank = self.sector_rank(sector)
+        relative = source_rank - frontier_rank
+        current = source_rank == frontier_rank
         return ServiceWindow(
             sector=sector,
-            relative_sector=relative,
-            deadline=relative <= 0,
-            current_sector=next_vertex in sectors,
+            source_rank=source_rank,
+            relative_rank=relative,
+            deadline=current,
+            current_sector=current,
         )
 
-    def is_forward_compatible(self, point: np.ndarray, completed_sectors: set[int]) -> bool:
+    def is_forward_compatible(self, point: np.ndarray, frontier_rank: int) -> bool:
         point = np.asarray(point, float)
         if float(np.linalg.norm(point)) <= self.planner.numeric_distance_tol_m:
-            return True
-        return self.sector_for_point(point) not in completed_sectors
+            return frontier_rank < 0
+        rank = self.rank_for_point(point)
+        if frontier_rank < 0:
+            return rank == 0
+        forward_delta = (rank - frontier_rank) % self.sector_count
+        return forward_delta in {0, 1}
 
     def completion_stage(self, state: ChannelState) -> int:
         if state.safe_clear_point() is not None:
@@ -103,32 +114,27 @@ class TaskSweepPlanner:
         if norm <= self.planner.numeric_distance_tol_m:
             return ()
         normal = np.array([-direction[1], direction[0]], dtype=float) / norm
-        return (
-            self.clip_to_arena(certificate.center + rho * normal),
-            self.clip_to_arena(certificate.center - rho * normal),
+        # The full guaranteed transverse radius can cross into an adjacent
+        # sector even though nearer points on the same transverse ray remain
+        # both informative and forward-compatible.  Check a tiny fixed set
+        # from near to far; this is a feasibility test, not a global score.
+        return tuple(
+            self.clip_to_arena(certificate.center + sign * fraction * rho * normal)
+            for fraction in (0.05, 0.25, 0.5, 0.75, 1.0)
+            for sign in (1.0, -1.0)
         )
 
     def choose_forward_transverse(
         self,
         state: ChannelState,
         current_position: np.ndarray,
-        next_vertex: int | None,
-        completed_sectors: set[int],
+        frontier_rank: int,
     ) -> np.ndarray | None:
         candidates = [
             point for point in self.forward_transverse_points(state)
-            if self.is_forward_compatible(point, completed_sectors)
+            if self.is_forward_compatible(point, frontier_rank)
             and not state.already_measured(point)
         ]
         if not candidates:
             return None
-        expected = next_vertex if next_vertex is not None else self.sector_count
-        return min(
-            candidates,
-            key=lambda point: (
-                abs(self.sector_for_point(point) - expected),
-                float(np.linalg.norm(point - np.asarray(current_position, float))),
-                float(point[0]),
-                float(point[1]),
-            ),
-        ).copy()
+        return candidates[0].copy()

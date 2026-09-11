@@ -11,8 +11,8 @@ from .channel_state import ChannelStatus, termination_status
 from .config import PhysicalConfig, PlannerConfig
 from .controller import ActionClient, RunResult, SearchController
 from .opportunistic_observer import OpportunisticObserver
-from .opportunity_planner import EmbeddedEventKind, OpportunityPlanner
-from .route_planner import RouteLeg, RoutePlanner
+from .opportunity_planner import EmbeddedEventKind
+from .route_planner import RoutePlanner
 from .task_queue import Task, TaskKind, TaskQueue
 from .task_sweep_planner import TaskSweepPlanner
 
@@ -38,7 +38,6 @@ class TaskDrivenController(SearchController):
         self.task_queue = TaskQueue()
         self.sweep_planner: TaskSweepPlanner | None = None
         self.opportunistic_observer = OpportunisticObserver(physical, planner)
-        self.opportunity_planner = OpportunityPlanner(physical, planner)
         self.sweep_direction = "CCW"
         self.phase = "bootstrap"
         self.completed_sectors: set[int] = set()
@@ -51,6 +50,14 @@ class TaskDrivenController(SearchController):
         self.cleanup_movement_m = 0.0
         self.angular_backward_movement_count = 0
         self.completed_sector_return_count = 0
+        self.macro_backward_move_count = 0
+        self.fallback_action_count = 0
+        self.fallback_movement_m = 0.0
+        self.resolve_ready_count = 0
+        self.resolve_waiting_not_ready_count = 0
+        self._progress_frontier_rank = -1
+        self._leg_progress_fraction = 0.0
+        self._final_transverse_attempted: set[int] = set()
         self._active_start: np.ndarray | None = None
 
     def _next_vertex(self) -> int | None:
@@ -65,8 +72,21 @@ class TaskDrivenController(SearchController):
             for state in self.channels.values()
         )
 
+    def _frontier_rank(self) -> int:
+        ring_indices = [index for index in self.coverage_completed if index > 0]
+        return max((index - 1 for index in ring_indices), default=-1)
+
+    def _sync_leg_progress(self) -> None:
+        frontier_rank = self._frontier_rank()
+        if self._progress_frontier_rank != frontier_rank:
+            self._progress_frontier_rank = frontier_rank
+            self._leg_progress_fraction = 0.0
+
     def _task_snapshot(self) -> dict[str, Any]:
         active = self.task_queue.active
+        active_source_rank = None
+        if active is not None and active.kind == TaskKind.RESOLVE_SOURCE:
+            active_source_rank = active.source_sector_rank
         return {
             "phase": self.phase,
             "active_task_type": active.kind.value if active else None,
@@ -76,6 +96,11 @@ class TaskDrivenController(SearchController):
             "sweep_sector": self._next_vertex(),
             "sweep_direction": self.sweep_direction,
             "completed_sectors": sorted(self.completed_sectors),
+            "frontier_rank": self._frontier_rank(),
+            "active_source_sector_rank": active_source_rank,
+            "active_activation_reason": active.activation_reason if active else None,
+            "resolve_ready_count": self.resolve_ready_count,
+            "resolve_waiting_not_ready_count": self.resolve_waiting_not_ready_count,
         }
 
     def _next_action_distance(self, channel: int, current: np.ndarray) -> float:
@@ -87,35 +112,57 @@ class TaskDrivenController(SearchController):
             return 0.0
         return float(np.linalg.norm(state.certificate().center - current))
 
+    def _service_order_fraction(self, channel: int) -> float:
+        state = self.channels[channel]
+        target = state.safe_clear_point()
+        if target is None:
+            target = state.certificate().center
+        progress = self._route_progress(target)
+        return progress[1] if progress is not None else 0.0
+
     def _available_tasks(self) -> list[Task]:
         assert self.sweep_planner is not None
         current = np.asarray(self.client.position, float)
         next_vertex = self._next_vertex()
+        frontier_rank = self._frontier_rank()
         tasks: list[Task] = []
+        ready_count = 0
+        not_ready_count = 0
         for channel, state in self.channels.items():
             if state.status != ChannelStatus.FOUND:
                 continue
-            window = self.sweep_planner.service_window(state, next_vertex)
-            # Deadline/current-sector work precedes Advance; future-sector work follows it.
-            group = 0 if window.deadline or window.current_sector else 2
+            window = self.sweep_planner.service_window(state, frontier_rank)
+            activation_reason = self._resolve_activation_reason(channel)
+            ready = activation_reason is not None
+            ready_count += int(ready)
+            not_ready_count += int(not ready)
+            # Only READY work in the current/deadline sector precedes Advance.
+            group = 0 if window.current_sector else 2
             tasks.append(Task(
                 TaskKind.RESOLVE_SOURCE,
                 channel=channel,
                 order_key=(
                     group,
                     0 if window.deadline else 1,
-                    max(0, window.relative_sector),
-                    self.sweep_planner.completion_stage(state),
+                    max(0, window.relative_rank),
+                    self._service_order_fraction(channel) if window.current_sector else 0.0,
                     self._next_action_distance(channel, current),
+                    self.sweep_planner.completion_stage(state),
                     channel,
                 ),
+                ready=ready,
+                activation_reason=activation_reason,
+                source_sector_rank=window.source_rank,
             ))
         if next_vertex is not None:
             tasks.append(Task(
                 TaskKind.ADVANCE_COVERAGE,
                 vertex=next_vertex,
                 order_key=(1, next_vertex),
+                activation_reason="next_coverage_milestone",
             ))
+        self.resolve_ready_count = ready_count
+        self.resolve_waiting_not_ready_count = not_ready_count
         return tasks
 
     def _refresh_waiting(self, event: str) -> None:
@@ -142,6 +189,19 @@ class TaskDrivenController(SearchController):
             **self._task_snapshot(),
         })
         return task
+
+    def _pause_active(self, reason: str) -> None:
+        task = self.task_queue.active
+        if task is None:
+            return
+        self.diagnostics.append({
+            "type": "task_paused",
+            "pause_reason": reason,
+            **self._task_snapshot(),
+        })
+        self.task_queue.complete_active()
+        self._active_start = None
+        self._refresh_waiting("active_not_ready")
 
     def _complete_active(self, reason: str) -> None:
         task = self.task_queue.active
@@ -175,10 +235,17 @@ class TaskDrivenController(SearchController):
     ) -> None:
         active = self.task_queue.active
         movement_m = float(np.linalg.norm(end - start))
-        if len(self.coverage_completed) == len(self.coverage):
+        if (
+            len(self.coverage_completed) == len(self.coverage)
+            and active is not None
+            and active.kind == TaskKind.RESOLVE_SOURCE
+            and active.source_sector_rank is not None
+            and active.source_sector_rank < self._frontier_rank()
+        ):
             self.cleanup_movement_m += movement_m
         completed_return = False
         angular_backward = False
+        macro_backward = False
         if self.sweep_planner is not None and movement_m > self.planner.numeric_distance_tol_m:
             completed_return = (
                 self.sweep_planner.sector_for_point(end) in self.completed_sectors
@@ -191,12 +258,18 @@ class TaskDrivenController(SearchController):
             )
             if completed_return:
                 self.completed_sector_return_count += 1
-            # Sector-local radial/transverse service may change polar angle in
-            # either sign.  Only entry into a completed sector is a macro
-            # sweep reversal.
-            angular_backward = completed_return
+            active_is_resolve = active is not None and active.kind == TaskKind.RESOLVE_SOURCE
+            if active_is_resolve and not opportunistic:
+                macro_backward = not self.sweep_planner.is_forward_compatible(
+                    end, self._frontier_rank()
+                )
+            angular_backward = macro_backward
             if angular_backward:
                 self.angular_backward_movement_count += 1
+                self.macro_backward_move_count += 1
+        if reason.startswith("conservative_fallback"):
+            self.fallback_action_count += 1
+            self.fallback_movement_m += movement_m
         self.diagnostics.append({
             "type": "task_action",
             "action_kind": action_kind,
@@ -208,6 +281,7 @@ class TaskDrivenController(SearchController):
             "opportunistic": opportunistic,
             "completed_sector_return": completed_return,
             "angular_backward_movement": angular_backward,
+            "macro_backward_movement": macro_backward,
             "active_task_type": active.kind.value if active else None,
             "active_channel": active.channel if active else None,
             "active_vertex": active.vertex if active else None,
@@ -215,6 +289,7 @@ class TaskDrivenController(SearchController):
             "sweep_sector": self._next_vertex(),
             "sweep_direction": self.sweep_direction,
             "completed_sectors": sorted(self.completed_sectors),
+            "frontier_rank": self._frontier_rank(),
         })
 
     def _do_measure(self, point: np.ndarray, channel: int, reason: str, opportunistic: bool = False,
@@ -304,16 +379,16 @@ class TaskDrivenController(SearchController):
         self._scan_unknown_coverage(task.vertex)
         self._complete_active("coverage_milestone_scanned")
 
-    def _current_measurement_useful(self, channel: int) -> bool:
+    def _measurement_useful_at(self, channel: int, point: np.ndarray) -> bool:
         state = self.channels[channel]
-        current = np.asarray(self.client.position, float)
-        if state.already_measured(current):
+        point = np.asarray(point, float)
+        if state.already_measured(point):
             return False
         bearings = [obs for obs in state.history if obs.result == "direction"]
         if not bearings:
             return True
         center = state.certificate().center
-        candidate = current - center
+        candidate = point - center
         candidate_norm = float(np.linalg.norm(candidate))
         if candidate_norm <= self.planner.numeric_distance_tol_m:
             return False
@@ -327,30 +402,140 @@ class TaskDrivenController(SearchController):
             best_sine = max(best_sine, abs(cross) / denominator)
         return best_sine >= self.planner.shared_min_sin_angle
 
-    def _forward_route_measurement(self, channel: int) -> np.ndarray | None:
+    def _current_measurement_useful(self, channel: int) -> bool:
+        return self._measurement_useful_at(channel, np.asarray(self.client.position, float))
+
+    def _route_progress(self, point: np.ndarray) -> tuple[float, float] | None:
         next_vertex = self._next_vertex()
         if next_vertex is None:
             return None
-        start = np.asarray(self.client.position, float)
+        self._sync_leg_progress()
+        frontier_rank = self._frontier_rank()
+        start_index = max(0, frontier_rank + 1)
+        start = self.coverage[start_index]
         end = self.coverage[next_vertex]
-        leg = RouteLeg(start, end, "forward_anchor", next_vertex)
-        events = self.opportunity_planner.events(leg, {channel: self.channels[channel]})
-        state = self.channels[channel]
-        minimum_separation = max(self.planner.grid_step_m, self.physical.clear_radius_m)
-        for event in events:
-            if event.kind != EmbeddedEventKind.MEASURE:
+        assert self.sweep_planner is not None
+        delta = end - start
+        length2 = float(np.dot(delta, delta))
+        if length2 <= self.planner.numeric_distance_tol_m ** 2:
+            return None
+        point_fraction = float(np.dot(np.asarray(point, float) - start, delta) / length2)
+        return self._leg_progress_fraction, min(1.0, max(0.0, point_fraction))
+
+    def _service_target_is_ahead(self, point: np.ndarray) -> bool:
+        progress = self._route_progress(point)
+        if progress is None:
+            return True
+        current_fraction, target_fraction = progress
+        return target_fraction + 0.125 >= current_fraction
+
+    def _forward_route_measurement(
+        self, channel: int, stop_before: np.ndarray | None = None
+    ) -> np.ndarray | None:
+        next_vertex = self._next_vertex()
+        if next_vertex is None:
+            return None
+        self._sync_leg_progress()
+        frontier_rank = self._frontier_rank()
+        start = self.coverage[max(0, frontier_rank + 1)]
+        end = self.coverage[next_vertex]
+        delta = end - start
+        length2 = float(np.dot(delta, delta))
+        if length2 <= self.planner.numeric_distance_tol_m ** 2:
+            return None
+        current_fraction = self._leg_progress_fraction
+        stop_fraction = 1.0
+        if stop_before is not None:
+            stop_fraction = min(1.0, max(
+                0.0,
+                float(np.dot(np.asarray(stop_before, float) - start, delta) / length2),
+            ))
+        for fraction in np.linspace(0.0, 1.0, 9):
+            if fraction + self.planner.numeric_distance_tol_m < current_fraction:
                 continue
-            if any(
-                float(np.linalg.norm(event.position - np.asarray(obs.position, float)))
-                < minimum_separation
-                for obs in state.history
-            ):
+            if fraction > stop_fraction + self.planner.numeric_distance_tol_m:
+                break
+            point = start + float(fraction) * delta
+            if not self.sweep_planner.is_forward_compatible(point, self._frontier_rank()):
                 continue
-            return event.position
+            if self._measurement_useful_at(channel, point):
+                return point.copy()
         return None
+
+    def _forward_dedicated_measurement(self, channel: int) -> np.ndarray | None:
+        assert self.sweep_planner is not None
+        state = self.channels[channel]
+        point = state.certificate().center.copy()
+        if (
+            not self.sweep_planner.is_forward_compatible(point, self._frontier_rank())
+            or not self._service_target_is_ahead(point)
+            or state.already_measured(point)
+        ):
+            return None
+        return point
+
+    def _normal_resolve_action(
+        self, channel: int
+    ) -> tuple[str, np.ndarray, str, bool] | None:
+        assert self.sweep_planner is not None
+        state = self.channels[channel]
+        frontier_rank = self._frontier_rank()
+        safe = state.safe_clear_point()
+        if (
+            safe is not None
+            and self.sweep_planner.is_forward_compatible(safe, frontier_rank)
+            and self._service_target_is_ahead(safe)
+        ):
+            approach = self._forward_route_measurement(channel, stop_before=safe)
+            if approach is not None:
+                return "MEASURE", approach, "forward_service_approach", False
+            return "CLEAR", safe, "certified_clear_point", True
+        current = np.asarray(self.client.position, float)
+        if self._current_measurement_useful(channel):
+            return "MEASURE", current, "current_position_information", False
+        dedicated = self._forward_dedicated_measurement(channel)
+        point = self._forward_route_measurement(channel, stop_before=dedicated)
+        if point is not None:
+            return "MEASURE", point, "forward_route_measurement", False
+        if dedicated is not None:
+            return "MEASURE", dedicated, "forward_center_measurement", False
+        if self._next_vertex() is None and channel not in self._final_transverse_attempted:
+            transverse = self.sweep_planner.choose_forward_transverse(
+                state, current, frontier_rank
+            )
+            if transverse is not None:
+                return "MEASURE", transverse, "final_transverse_measurement", False
+        return None
+
+    def _has_forward_fallback(self, channel: int) -> bool:
+        state = self.channels[channel]
+        state.activate_fallback(np.asarray(self.client.position, float))
+        assert self.sweep_planner is not None
+        return any(
+            self.sweep_planner.is_forward_compatible(np.asarray(point, float), self._frontier_rank())
+            and self._service_target_is_ahead(np.asarray(point, float))
+            for point in state.fallback_queue
+        )
+
+    def _resolve_activation_reason(self, channel: int) -> str | None:
+        action = self._normal_resolve_action(channel)
+        if action is not None:
+            return action[2]
+        state = self.channels[channel]
+        if (
+            state.bearing_count >= self.planner.max_bearings_before_fallback
+            and self._has_forward_fallback(channel)
+        ):
+            return "fallback_after_observation_limit"
+        return None
+
+    def is_resolve_ready(self, channel: int) -> bool:
+        return self._resolve_activation_reason(channel) is not None
 
     def _fallback_clear_point(self, channel: int) -> np.ndarray | None:
         state = self.channels[channel]
+        if state.bearing_count < self.planner.max_bearings_before_fallback:
+            return None
         current = np.asarray(self.client.position, float)
         state.activate_fallback(current)
         if not state.fallback_queue:
@@ -359,10 +544,12 @@ class TaskDrivenController(SearchController):
         points = [np.asarray(point, float) for point in state.fallback_queue]
         forward = [
             (index, point) for index, point in enumerate(points)
-            if self.sweep_planner.is_forward_compatible(point, self.completed_sectors)
+            if self.sweep_planner.is_forward_compatible(point, self._frontier_rank())
+            and self._service_target_is_ahead(point)
         ]
-        pool = forward if forward else list(enumerate(points))
-        index, point = min(pool, key=lambda item: float(np.linalg.norm(item[1] - current)))
+        if not forward:
+            return None
+        index, point = min(forward, key=lambda item: float(np.linalg.norm(item[1] - current)))
         state.fallback_queue.pop(index)
         return point
 
@@ -373,45 +560,34 @@ class TaskDrivenController(SearchController):
         if state.status == ChannelStatus.CLEARED:
             self._complete_active("channel_cleared_opportunistically")
             return
-        safe = state.safe_clear_point()
-        if safe is not None and self.sweep_planner.is_forward_compatible(safe, self.completed_sectors):
-            self._travel_opportunities(safe, channel)
-            self._do_clear(safe, channel, "certified_clear_point", True)
-        elif (
-            len(state.history) < self.planner.max_bearings_before_fallback
-            and self._current_measurement_useful(channel)
-        ):
-            self._do_measure(np.asarray(self.client.position, float), channel,
-                             "current_position_information")
-        elif len(state.history) < self.planner.max_bearings_before_fallback:
-            point = self._forward_route_measurement(channel)
-            reason = "forward_route_measurement"
-            if point is None:
-                point = self.sweep_planner.choose_forward_transverse(
-                    state,
-                    np.asarray(self.client.position, float),
-                    self._next_vertex(),
-                    self.completed_sectors,
-                )
-                reason = "forward_transverse_measurement"
-            if point is not None:
-                self._travel_opportunities(point, channel)
-                self._do_measure(point, channel, reason)
+        action = self._normal_resolve_action(channel)
+        if action is not None:
+            kind, point, reason, certified = action
+            self._travel_opportunities(point, channel)
+            if kind == "CLEAR":
+                self._do_clear(point, channel, reason, certified)
             else:
-                point = self._fallback_clear_point(channel)
-                if point is None:
-                    raise RuntimeError(f"no conservative fallback remains for channel {channel}")
-                self._travel_opportunities(point, channel)
-                self._do_clear(point, channel, "conservative_fallback", False)
+                self._do_measure(point, channel, reason)
+                if reason in {"forward_route_measurement", "forward_service_approach"}:
+                    progress = self._route_progress(point)
+                    if progress is not None:
+                        self._leg_progress_fraction = max(
+                            self._leg_progress_fraction, progress[1]
+                        )
+                elif reason == "final_transverse_measurement":
+                    self._final_transverse_attempted.add(channel)
         else:
             point = self._fallback_clear_point(channel)
             if point is None:
-                raise RuntimeError(f"no conservative fallback remains for channel {channel}")
+                self._pause_active("no_ready_resolve_action")
+                return
             self._travel_opportunities(point, channel)
             self._do_clear(point, channel, "conservative_fallback_after_observation_limit", False)
         self._refresh_waiting("belief_updated")
         if self.channels[channel].status == ChannelStatus.CLEARED:
             self._complete_active("channel_cleared")
+        elif not self.is_resolve_ready(channel):
+            self._pause_active("resolve_became_not_ready")
 
     def _append_statistics(self, reason: str) -> None:
         movement_m = self.breakdown.movement_s * self.physical.speed_mps
@@ -426,6 +602,12 @@ class TaskDrivenController(SearchController):
             "active_task_switch_count": self.task_switch_count,
             "angular_backward_movement_count": self.angular_backward_movement_count,
             "completed_sector_return_count": self.completed_sector_return_count,
+            "macro_backward_move_count": self.macro_backward_move_count,
+            "fallback_action_count": self.fallback_action_count,
+            "fallback_movement_m": self.fallback_movement_m,
+            "resolve_ready_count": self.resolve_ready_count,
+            "resolve_waiting_not_ready_count": self.resolve_waiting_not_ready_count,
+            "frontier_rank": self._frontier_rank(),
             "opportunistic_measure_count": self.opportunistic_measure_count,
             "opportunistic_clear_count": self.opportunistic_clear_count,
             "advance_coverage_count": self.advance_task_count,
