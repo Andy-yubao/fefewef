@@ -236,6 +236,10 @@ def main() -> None:
         figure_dir / "fig4_hexagon_counterexample.pdf",
         bbox_inches="tight",
     )
+    fig.savefig(
+        figure_dir / "fig4_hexagon_counterexample.svg",
+        bbox_inches="tight",
+    )
     plt.close(fig)
     maximum_excess = max(
         distance(vertex, diameter_center) - diameter_radius for vertex in polygon
