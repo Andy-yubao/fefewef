@@ -55,3 +55,13 @@ def test_fixed_location_measurement_error_is_not_resampled() -> None:
     a = mock.measure((0.0, 0.0), 1)
     b = mock.measure((0.0, 0.0), 1)
     assert a["svd_deg"] == b["svd_deg"]
+
+
+def test_random_scenario_can_fix_source_count_without_changing_default() -> None:
+    fixed = random_scenario(20260911, source_count=16)
+    assert fixed.total == 16
+    assert len({source.channel for source in fixed.sources}) == 16
+    default = random_scenario(20260911)
+    assert 10 <= default.total <= 16
+    with pytest.raises(ValueError, match="source_count"):
+        random_scenario(20260911, source_count=17)

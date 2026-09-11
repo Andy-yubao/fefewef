@@ -1,0 +1,3 @@
+baseline,policy,n,mean_time_saved_s,median_time_saved_s,win_rate,mean_ci_low_s,mean_ci_high_s
+candidate_006_grid10_offset750,candidate_019_grid10_center_approach,5,154.34050056217802,84.41599554461209,0.8,-23.904735703862208,382.10897944982554
+candidate_006_grid10_offset750,candidate_020_grid5_center_approach,5,167.19648364557943,115.81306203258464,0.6,-89.96072827109128,496.0888657232197

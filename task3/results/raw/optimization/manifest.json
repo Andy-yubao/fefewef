@@ -1,0 +1,282 @@
+{
+  "task3\\src\\__init__.py": {
+    "sha256": "4628aae2b4c7179b74493f101f396b4366106a211d53fb8df7d5cbe307c972c7",
+    "bytes": 80
+  },
+  "task3\\src\\channel_state.py": {
+    "sha256": "7c4d370da0799efb00988e1410b9aa4c4b95e822523c439ec9aafe5e747ba115",
+    "bytes": 8389
+  },
+  "task3\\src\\client.py": {
+    "sha256": "276aca1cfdfbc8210b7591e2311587491569f392df233c97ff8d63f20b74845c",
+    "bytes": 7014
+  },
+  "task3\\src\\config.py": {
+    "sha256": "834e1a1bf22923c03191cb0d1b0d330b1224a4e54c41030624e7db44c36a88b1",
+    "bytes": 2002
+  },
+  "task3\\src\\controller.py": {
+    "sha256": "64967007fc004f59035b229f8eef3fd3a784a7b41541685c73e6f4e81f8eaf9f",
+    "bytes": 14533
+  },
+  "task3\\src\\coverage.py": {
+    "sha256": "66b106ff3d3793b258ebdb86cbbd0aa226998bd70fbc045b9703f771f2d757d2",
+    "bytes": 3961
+  },
+  "task3\\src\\geometry.py": {
+    "sha256": "612cc479cddff7e0aad9868ac690988e73b223edb191631ea867a192c045f5a2",
+    "bytes": 9039
+  },
+  "task3\\src\\local_planner.py": {
+    "sha256": "5b47e16e49743ae0e994dbd027ed6928ac8c870d0554e604e62d4dfced2d24cb",
+    "bytes": 14395
+  },
+  "task3\\src\\main.py": {
+    "sha256": "82046adb17d73d15e082f41f5bbb894fff320873402afd62ce553baac3cae3b2",
+    "bytes": 3894
+  },
+  "task3\\src\\mock_simulator.py": {
+    "sha256": "4cfa216bc83e5f791ab9bffbcad87a248c570c70a6a43e1408a32fb40ba1a4b0",
+    "bytes": 6461
+  },
+  "task3\\src\\policies.py": {
+    "sha256": "f9c343680c9348199b592cf8c2d33d84a8d30472eeac4bbabb5cb657fac828b3",
+    "bytes": 12554
+  },
+  "task3\\src\\scheduler.py": {
+    "sha256": "9ff6dd5e182e7cc1fdcc31a079ee4e24885d61ac366b269fc3ca31c563a7523d",
+    "bytes": 9068
+  },
+  "task3\\experiments\\run_offline.py": {
+    "sha256": "763696ae22c5fc9b4062f36f019a1336476829e5e06fe87b3b73df55b0953f4c",
+    "bytes": 5829
+  },
+  "task3\\experiments\\analyze_results.py": {
+    "sha256": "f4773a84e03be442d29d74d1f527d91cff376b2e9cd61e6617ccd553e8c42537",
+    "bytes": 7431
+  },
+  "task3\\requirements.txt": {
+    "sha256": "2ce5e425e22e7ee2acacbfb35f512c340c452f0544a5133756c352e1e8f3ef6e",
+    "bytes": 65
+  },
+  "task3\\results\\raw\\offline_runs.jsonl.gz": {
+    "sha256": "98acb8dcc830e63c93786de9c1990b9750c397c8d175a65ff27bf2458a9187de",
+    "bytes": 6391498
+  },
+  "task3\\results\\tables\\offline_paired_vs_two_stage.csv": {
+    "sha256": "af4a01bdf06356d3b41814dea6b58ec01ad3884c5c4403f705753185d61de4a2",
+    "bytes": 968
+  },
+  "task3\\results\\tables\\offline_strategy_summary.csv": {
+    "sha256": "57b88dc7d099a302d4828c45fca91f254ddde7e361b142e63f0610979b378001",
+    "bytes": 4265
+  },
+  "task3\\results\\figures\\offline_virtual_time_boxplot.png": {
+    "sha256": "5e2769e747d27f8ef0cd56d4b6aa8f8452e551c795d03c4d015d239989b8b550",
+    "bytes": 82333
+  },
+  "task3\\results\\figures\\offline_virtual_time_ecdf.png": {
+    "sha256": "d995ef9ffcbeef096d88e6524f6df81e34b07a2334bd78aebd6faf52d1819463",
+    "bytes": 153940
+  },
+  "task3\\results\\raw\\optimization\\adaptive_fallback_probe_028_031.jsonl.gz": {
+    "sha256": "1a9921b9e4bd3f60c9cd6535f7a632a120ec27f57b19d0a801fb4480d629430f",
+    "bytes": 63918
+  },
+  "task3\\results\\raw\\optimization\\baseline_smoke.jsonl.gz": {
+    "sha256": "5b4dac09f993990d2651d9afd9af06a82e4bd847ce566c76dfbcd196c95353f1",
+    "bytes": 432153
+  },
+  "task3\\results\\raw\\optimization\\candidate_001_smoke.jsonl.gz": {
+    "sha256": "4b51d152651859a3af32c62214a108e49f934faf6da2b6386f9085d940c15d6b",
+    "bytes": 70418
+  },
+  "task3\\results\\raw\\optimization\\center_approach_probe_019_020.jsonl.gz": {
+    "sha256": "aa222d1a658642ff05fc8567151001bae17fd7924e6a4fd4bad833765e5347c3",
+    "bytes": 29133
+  },
+  "task3\\results\\raw\\optimization\\center_variants_probe_021_024.jsonl.gz": {
+    "sha256": "137f7ad227eb34212938f8d1404c6d1c5b515e2dc8ff601252d629179bf81d82",
+    "bytes": 46510
+  },
+  "task3\\results\\raw\\optimization\\coverage_gate_probe_032_035.jsonl.gz": {
+    "sha256": "76ae3148ba4d72d74b46e4d9a3856c2bb9fa7d6d2d4aa9785b6f9fec7ecc4381",
+    "bytes": 44610
+  },
+  "task3\\results\\raw\\optimization\\diagnostic_seed_316000.jsonl.gz": {
+    "sha256": "6b096272f456a1af242a8ab247673297539623878d06791ea7aecc145468c4c2",
+    "bytes": 16680
+  },
+  "task3\\results\\raw\\optimization\\grid10_probe.jsonl.gz": {
+    "sha256": "7ba998d7d077545a5c43c46bdc6501b6a2c896af66aeb87906890f4952993290",
+    "bytes": 13399
+  },
+  "task3\\results\\raw\\optimization\\grid15_probe.jsonl.gz": {
+    "sha256": "e9638436dff51ead46f305c6a5416f89219b6ca0add4caeaebe6a0b8cc83c382",
+    "bytes": 13556
+  },
+  "task3\\results\\raw\\optimization\\grid5_probe.jsonl.gz": {
+    "sha256": "b93181680dc230308eedda5c742c8b0f80fcf9cd680cbe0fd4c8207ec4a00f08",
+    "bytes": 8139
+  },
+  "task3\\results\\raw\\optimization\\multi_geometry_probe_015_018.jsonl.gz": {
+    "sha256": "a042644eed4f4e154b414a449c69ac6cf8ac5d8c98c80dd5a512bdeab1072495",
+    "bytes": 53481
+  },
+  "task3\\results\\raw\\optimization\\parameter_probe_002_008.jsonl.gz": {
+    "sha256": "bf981044fb14f77a9a3325af55cbadba24d864af405c580c4f16dc43eb2a8885",
+    "bytes": 73912
+  },
+  "task3\\results\\raw\\optimization\\route_probe_009_013.jsonl.gz": {
+    "sha256": "8305aec704f81253a320d999282cd0a8d79bd15cec84d7aeddbff17a43bb1200",
+    "bytes": 43137
+  },
+  "task3\\results\\raw\\optimization\\seed_sets.json": {
+    "sha256": "6c370c8b71202e4f7801843306c8a1ad7943ea14c5502d195110c65b6ccb5306",
+    "bytes": 445
+  },
+  "task3\\results\\raw\\optimization\\shared_measure_probe_025_027.jsonl.gz": {
+    "sha256": "d021608445f7c041f3dfdb3626b791d7faa6fa92200abb6f1856a205bdef2d6d",
+    "bytes": 32476
+  },
+  "task3\\results\\tables\\adaptive_fallback_probe_028_031\\offline_paired_vs_two_stage.csv": {
+    "sha256": "f4ab9685b2bcfa13c24a4faca6ab324245269e00ebc775176c40fdabe7d77b67",
+    "bytes": 739
+  },
+  "task3\\results\\tables\\adaptive_fallback_probe_028_031\\offline_strategy_summary.csv": {
+    "sha256": "d67d60ba2728a01f44840b361051dadb86109a93d9dc95683b7357753cbbc219",
+    "bytes": 2727
+  },
+  "task3\\results\\tables\\center_approach_probe_019_020\\offline_paired_vs_two_stage.csv": {
+    "sha256": "482417f3a916d254a9cfc7a377256b2bb3b5eea4a08e83483006304b3d343b58",
+    "bytes": 395
+  },
+  "task3\\results\\tables\\center_approach_probe_019_020\\offline_strategy_summary.csv": {
+    "sha256": "921da89a3d568fc06b8448e22cfa38f429fa13ca1f7c719a61b621b231754603",
+    "bytes": 1838
+  },
+  "task3\\results\\tables\\center_variants_probe_021_024\\offline_paired_vs_two_stage.csv": {
+    "sha256": "1b7db5cad4665e0f4f39bfd1f8240d024dfde0d346c828b742a6946161d2e4dc",
+    "bytes": 730
+  },
+  "task3\\results\\tables\\center_variants_probe_021_024\\offline_strategy_summary.csv": {
+    "sha256": "a99cfc42e3096afd917a613b65b1c27fa37b0f5b56d6e94f14c13b05b9cc7417",
+    "bytes": 2702
+  },
+  "task3\\results\\tables\\coverage_gate_probe_032_035\\offline_paired_vs_two_stage.csv": {
+    "sha256": "08ce71c8fe9f36bdca9e1f3ef79216c2ff3ffb6e73d9e238a731972a8835d7f9",
+    "bytes": 725
+  },
+  "task3\\results\\tables\\coverage_gate_probe_032_035\\offline_strategy_summary.csv": {
+    "sha256": "2bfb4c99ec72181bb871a15aac8f0123ccfe1fc22bc39fee48d9171e773b734f",
+    "bytes": 2715
+  },
+  "task3\\results\\tables\\multi_geometry_probe_015_018\\offline_paired_vs_two_stage.csv": {
+    "sha256": "3a1a20df15b00cbf0d5ce0dfaeb3a56b775f593ff7c977b408e535ec48635f1e",
+    "bytes": 730
+  },
+  "task3\\results\\tables\\multi_geometry_probe_015_018\\offline_strategy_summary.csv": {
+    "sha256": "34d15793e15d3b39b9bde040bc0c026473b67816b8795e851ee249010cbb8a7d",
+    "bytes": 2709
+  },
+  "task3\\results\\tables\\parameter_probe_002_008\\offline_paired_vs_two_stage.csv": {
+    "sha256": "f6d6b5e9200670b8230bb31abc3ae1e7a08c3d38254c90258ac84a4c38082fef",
+    "bytes": 1081
+  },
+  "task3\\results\\tables\\parameter_probe_002_008\\offline_strategy_summary.csv": {
+    "sha256": "950ec82a9f8e38cca9de5c1568923301fc0e27f29d1ae0798782b526e180a555",
+    "bytes": 3929
+  },
+  "task3\\results\\tables\\route_probe_009_013\\offline_paired_vs_two_stage.csv": {
+    "sha256": "8d36310c2ef14ed7ca17500744bd744a4a91736d8cfd563861cae2e4a5c806ee",
+    "bytes": 840
+  },
+  "task3\\results\\tables\\route_probe_009_013\\offline_strategy_summary.csv": {
+    "sha256": "c9b76b09902f4aa0325559495f421de6cf583879d18af7845eab920e1971dfa3",
+    "bytes": 3126
+  },
+  "task3\\results\\tables\\shared_measure_probe_025_027\\offline_paired_vs_two_stage.csv": {
+    "sha256": "0cdd1e41c5d89cbd04364a7facc8d51002a780d0a6bdb812774ed82cdb26ad08",
+    "bytes": 571
+  },
+  "task3\\results\\tables\\shared_measure_probe_025_027\\offline_strategy_summary.csv": {
+    "sha256": "dad2cfa522a3663955e1bad8314c2dbf3114dad43a69f9f1308906d072b9d9cc",
+    "bytes": 2276
+  },
+  "task3\\results\\figures\\adaptive_fallback_probe_028_031\\offline_virtual_time_boxplot.png": {
+    "sha256": "37913b0bb9001c5015b74965967073b3d2e1eec8783c149f7dc44764c534c58f",
+    "bytes": 112503
+  },
+  "task3\\results\\figures\\adaptive_fallback_probe_028_031\\offline_virtual_time_ecdf.png": {
+    "sha256": "232d64579caedbcd87b7ba53778f7aa7c0551ebce316a7d510f77b9fc640407f",
+    "bytes": 120179
+  },
+  "task3\\results\\figures\\center_approach_probe_019_020\\offline_virtual_time_boxplot.png": {
+    "sha256": "c5b6daa8cb46dc72a3b73dbcedcadc1a5f3014bb26cd111430fbdd3e1d44cac0",
+    "bytes": 82439
+  },
+  "task3\\results\\figures\\center_approach_probe_019_020\\offline_virtual_time_ecdf.png": {
+    "sha256": "845f82983f58cbc66d1ab643b692547382b3c55dfd6458bd4c15c54135a16998",
+    "bytes": 83617
+  },
+  "task3\\results\\figures\\center_variants_probe_021_024\\offline_virtual_time_boxplot.png": {
+    "sha256": "10b4db862435ea329a6a68a508987e39c92a78c28f1fdeb558b1e5d8afad645a",
+    "bytes": 113971
+  },
+  "task3\\results\\figures\\center_variants_probe_021_024\\offline_virtual_time_ecdf.png": {
+    "sha256": "d9e49c219ca3901cc873c74c7a076cbf3eb8ce99cb6df291bd77f0cad0a26e2c",
+    "bytes": 113937
+  },
+  "task3\\results\\figures\\coverage_gate_probe_032_035\\offline_virtual_time_boxplot.png": {
+    "sha256": "812964ebacb7d8aeb19e20c51dac5e6f68838d41292b0e8b9a42ced9fc90ee0a",
+    "bytes": 91178
+  },
+  "task3\\results\\figures\\coverage_gate_probe_032_035\\offline_virtual_time_ecdf.png": {
+    "sha256": "bdb2c292ea4f5efd1131c95822b8cc94cf8ca93765ee2dab08baa21b3e9b4cee",
+    "bytes": 124421
+  },
+  "task3\\results\\figures\\multi_geometry_probe_015_018\\offline_virtual_time_boxplot.png": {
+    "sha256": "afc770783b03660a63326ce36f844ead6b810e817f7c3e4adfb137c352eb04c5",
+    "bytes": 119707
+  },
+  "task3\\results\\figures\\multi_geometry_probe_015_018\\offline_virtual_time_ecdf.png": {
+    "sha256": "f6cfae126343c101605d75e6109caabbbb992e3527fc545929b52c583b2d6824",
+    "bytes": 107476
+  },
+  "task3\\results\\figures\\parameter_probe_002_008\\offline_virtual_time_boxplot.png": {
+    "sha256": "818cdb6dc808c6966a57053741e8cc1a7571d40aa15d8f1e0e1bd89c321ec73f",
+    "bytes": 114795
+  },
+  "task3\\results\\figures\\parameter_probe_002_008\\offline_virtual_time_ecdf.png": {
+    "sha256": "000d914ffb5365e8821660666d1652f0b0549d8c9642a3e425159a8081daedd5",
+    "bytes": 164827
+  },
+  "task3\\results\\figures\\route_probe_009_013\\offline_virtual_time_boxplot.png": {
+    "sha256": "8d1d06f1aef4712bbb43531d5696dd53881cc2d3c465918e63c76977f69913e2",
+    "bytes": 127528
+  },
+  "task3\\results\\figures\\route_probe_009_013\\offline_virtual_time_ecdf.png": {
+    "sha256": "81b8968a7ac0e072212f2870ec4773d2fa573bffd0b18e32e79590b4c0dbf07f",
+    "bytes": 136475
+  },
+  "task3\\results\\figures\\shared_measure_probe_025_027\\offline_virtual_time_boxplot.png": {
+    "sha256": "6d9041aa4e41a3deda193f060affd5285b4dc9b6b4f98802bf42084dfd3e9aaf",
+    "bytes": 92864
+  },
+  "task3\\results\\figures\\shared_measure_probe_025_027\\offline_virtual_time_ecdf.png": {
+    "sha256": "a496a6208a9333191188cd410e5a92974934b9fa8056d3c5936a0e0eee257d24",
+    "bytes": 105357
+  },
+  "task3\\report\\strategy_optimization.md": {
+    "sha256": "d4f3caa9b5ae32b992a065885768c8bb29cf1dbc8ff5fadb7279a4da906737d8",
+    "bytes": 4819
+  },
+  "task3\\README.md": {
+    "sha256": "5b5a212ccf7ca6d2e2d28e197ba4014c79f83ac7e541f18edbd78ecede3310d7",
+    "bytes": 12383
+  },
+  "task3\\HANDOFF.md": {
+    "sha256": "f543b9125722184a8436ae12d24ec54b95ff19ab5a71bca6f92a6b0ed10c5479",
+    "bytes": 12019
+  }
+}

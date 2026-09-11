@@ -1,0 +1,5 @@
+baseline,policy,n,mean_time_saved_s,median_time_saved_s,win_rate,mean_ci_low_s,mean_ci_high_s
+candidate_019_grid10_center_approach,candidate_021_grid10_centroid_approach,5,-193.88848602378093,-174.0022697453105,0.2,-354.24503358318,-40.66703507156112
+candidate_019_grid10_center_approach,candidate_022_grid10_mec_approach,5,-9.880030421618539,-0.23897683354880428,0.4,-57.63097913818219,20.879590777088744
+candidate_019_grid10_center_approach,candidate_023_grid10_chebyshev_approach,5,-305.6755253537705,-172.28464185469147,0.0,-536.1290438271146,-153.18030422846968
+candidate_019_grid10_center_approach,candidate_024_grid5_centroid_approach,5,-29.729121293562457,-50.02833343618295,0.4,-93.45719312604615,31.457064642691694

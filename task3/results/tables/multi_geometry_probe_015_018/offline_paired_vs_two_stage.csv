@@ -1,0 +1,5 @@
+baseline,policy,n,mean_time_saved_s,median_time_saved_s,win_rate,mean_ci_low_s,mean_ci_high_s
+candidate_006_grid10_offset750,candidate_015_grid10_multi_geometry,5,-5088.8932247774255,-5083.564727992381,0.0,-5594.050498144605,-4610.599394382423
+candidate_006_grid10_offset750,candidate_016_grid10_multi_geometry_travel1e3,5,-4565.274125043606,-4814.097998770665,0.0,-5188.799278252516,-3941.748971834694
+candidate_006_grid10_offset750,candidate_017_grid10_multi_geometry_travel5e3,5,-2187.7478681694765,-2295.7531695028892,0.0,-2525.876588764594,-1849.6191475743594
+candidate_006_grid10_offset750,candidate_018_grid5_multi_geometry_travel1e3,5,-2072.329525913434,-2035.1024935753157,0.0,-2787.033366730181,-1459.6684970678734

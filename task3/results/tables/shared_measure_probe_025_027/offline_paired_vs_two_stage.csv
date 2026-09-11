@@ -1,0 +1,4 @@
+baseline,policy,n,mean_time_saved_s,median_time_saved_s,win_rate,mean_ci_low_s,mean_ci_high_s
+candidate_019_grid10_center_approach,candidate_025_grid10_center_shared1,5,-83.97218357457587,-26.627096485329275,0.2,-210.10202533544526,23.529881082823522
+candidate_019_grid10_center_approach,candidate_026_grid10_center_shared3,5,-209.92070207283214,-116.3487227227879,0.2,-410.43462868970545,-62.63214165048375
+candidate_019_grid10_center_approach,candidate_027_grid10_geometry750_shared3,5,-468.6422363711812,-588.263451497889,0.0,-609.0835383110752,-312.0224691943442

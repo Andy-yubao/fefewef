@@ -31,7 +31,11 @@ class Action:
 
 class Scheduler:
     MODES = {"two_stage", "enroute", "rolling_hard", "hybrid"}
-    FAMILIES = {"geometry", "e_optimal", "expected_diameter", "shortlist"}
+    FAMILIES = {
+        "geometry", "e_optimal", "expected_diameter", "shortlist",
+        "route_geometry", "multi_geometry", "center_approach",
+        "centroid_approach", "mec_approach", "chebyshev_approach",
+    }
 
     def __init__(self, mode: str, local_family: str, physical: PhysicalConfig,
                  planner: PlannerConfig):
@@ -96,7 +100,7 @@ class Scheduler:
             s.channel for s in sorted(
                 found,
                 key=lambda state: float(np.linalg.norm(state.certificate().center - position)),
-            )[:3]
+            )[:self.planner.local_channel_limit]
         }
         if remaining_coverage and (self.mode == "two_stage" or consecutive_local >= self.planner.local_action_limit):
             p = coverage[remaining_coverage[0]]
@@ -135,7 +139,13 @@ class Scheduler:
                                           + self._found_cost(found, removed={state.channel}),
                                           "mec_certificate", True))
                 continue
-            if state.bearing_count >= self.planner.max_bearings_before_fallback:
+            if (
+                state.bearing_count >= self.planner.max_bearings_before_fallback
+                or (
+                    self.planner.fallback_cell_threshold > 0
+                    and state.possible_count <= self.planner.fallback_cell_threshold
+                )
+            ):
                 state.activate_fallback(position)
                 point = state.next_fallback_point(position)
                 if point is not None:
@@ -155,7 +165,13 @@ class Scheduler:
                 use_particles=self.mode == "hybrid",
             )
             if candidates:
-                chosen = select_by_family(candidates, self.local_family, position, self.planner)
+                next_points = [
+                    other.certificate().center for other in found
+                    if other.channel != state.channel
+                ]
+                chosen = select_by_family(
+                    candidates, self.local_family, position, self.planner, next_points
+                )
                 travel = float(np.linalg.norm(chosen.point - position)) / self.physical.speed_mps
                 switch = self.physical.switch_s if state.channel != current_channel else 0.0
                 score = (travel + switch + self.physical.measure_s

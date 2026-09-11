@@ -1,0 +1,10 @@
+{
+  "source_count": 16,
+  "construction": "Each set is the explicit arithmetic sequence start + i for i in [0, count). Sets are pairwise disjoint.",
+  "smoke": {"start": 316000, "count": 20},
+  "development": {"start": 316100, "count": 200},
+  "stability-A": {"start": 317000, "count": 100},
+  "stability-B": {"start": 318000, "count": 100},
+  "stability-C": {"start": 319000, "count": 100},
+  "final-holdout": {"start": 320000, "count": 500}
+}

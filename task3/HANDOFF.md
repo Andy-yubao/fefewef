@@ -216,3 +216,20 @@ task2/.venv/bin/python -m task3.experiments.analyze_practice
 ## Formal-test protection
 
 No formal test has been authorized or run. Only three formal opportunities exist. Do not invoke or construct a formal-test flow unless the user explicitly authorizes it in the current task. Before a formal run, freeze code and parameters, do not tune after individual results, and preserve simulator-exported encrypted logs without renaming or editing them.
+
+## Fixed-16 optimization handoff
+
+The offline generator accepts `source_count=16` while preserving its original random
+10--16 default. `task3/src/policies.py` provides stable IDs, including
+`champion_000_geometry_baseline` and smoke-only candidates through
+`candidate_035_grid10_center_coverage8`. Raw paired probes are under
+`task3/results/raw/optimization/`; the seed protocol is
+`task3/results/raw/optimization/seed_sets.json`; the evidence boundary and stop decision
+are recorded in `task3/report/strategy_optimization.md`.
+
+The historical Geometry behavior remains the default. No candidate has been promoted:
+only smoke/small probes were run, so the required 200-case development, three 100-case
+stability batches, and 500-case holdout remain outstanding. The best smoke line was
+`candidate_020_grid5_center_approach` (3 cases, 4781.0 s mean); it is not a stable result.
+All experiments used the local deterministic MockSimulator only. The last regression was
+32 passed.

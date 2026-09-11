@@ -24,6 +24,7 @@ class LocalCandidate:
     no_signal_probability: float
     geometry_quality: float
     fim_e_score: float
+    angular_e_score: float
 
 
 def _unique_points(items: list[tuple[np.ndarray, str]], ndigits: int = 6) -> list[tuple[np.ndarray, str]]:
@@ -99,6 +100,26 @@ def _fim_e_score(channel: ChannelState, candidate: np.ndarray, targets: np.ndarr
             r2 = max(float(d @ d), 1e-9)
             h = np.array([-d[1], d[0]]) / r2
             information += np.outer(h, h)
+        values.append(float(np.linalg.eigvalsh(information)[0]))
+    return float(np.mean(values)) if values else 0.0
+
+
+def _angular_e_score(channel: ChannelState, candidate: np.ndarray,
+                     targets: np.ndarray) -> float:
+    """Distance-neutral E-score across every existing bearing, for ranking only."""
+    sensors = [
+        np.asarray(observation.position, float)
+        for observation in channel.history if observation.result == "direction"
+    ]
+    sensors.append(np.asarray(candidate, float))
+    values: list[float] = []
+    for target in targets:
+        information = np.zeros((2, 2), float)
+        for sensor in sensors:
+            delta = target - sensor
+            norm = max(float(np.linalg.norm(delta)), 1e-9)
+            normal = np.array([-delta[1], delta[0]]) / norm
+            information += np.outer(normal, normal)
         values.append(float(np.linalg.eigvalsh(information)[0]))
     return float(np.mean(values)) if values else 0.0
 
@@ -203,6 +224,7 @@ def generate_local_candidates(
         predicted, p_no = _predicted_radii(channel, point, particles, cfg, phys)
         quality = float(np.mean(_geometry_quality(first_sensor, point, particles))) if len(particles) else 0.0
         e_scores.append(_fim_e_score(channel, point, particles))
+        angular_e_score = _angular_e_score(channel, point, particles)
         if not use_particles:
             hard_radius = _hard_worst_radius(channel, point, particles, guaranteed)
             predicted = np.array([hard_radius])
@@ -216,6 +238,7 @@ def generate_local_candidates(
             no_signal_probability=p_no,
             geometry_quality=quality,
             fim_e_score=e_scores[-1],
+            angular_e_score=angular_e_score,
         ))
 
     # Explicitly include the winners of the three task-2 families.
@@ -236,7 +259,7 @@ def generate_local_candidates(
         if key in winner_keys:
             c = LocalCandidate(c.point, f"{c.source}+{winner_keys[key]}", c.guaranteed_reception,
                                c.expected_radius_m, c.p90_radius_m, c.no_signal_probability,
-                               c.geometry_quality, c.fim_e_score)
+                               c.geometry_quality, c.fim_e_score, c.angular_e_score)
         final.append(c)
     # Guarantee-reception points are preferred whenever at least one exists.
     guaranteed = [c for c in final if c.guaranteed_reception]
@@ -244,16 +267,57 @@ def generate_local_candidates(
 
 
 def select_by_family(candidates: list[LocalCandidate], family: str,
-                     current_position: np.ndarray, planner: PlannerConfig) -> LocalCandidate:
+                     current_position: np.ndarray, planner: PlannerConfig,
+                     next_points: list[np.ndarray] | None = None) -> LocalCandidate:
     if not candidates:
         raise ValueError("empty local candidate set")
     travel = lambda c: float(np.linalg.norm(c.point - current_position)) / 5.0
     if family == "geometry":
-        return max(candidates, key=lambda c: c.geometry_quality - 1e-5 * travel(c))
+        return max(
+            candidates,
+            key=lambda c: c.geometry_quality - planner.geometry_travel_weight * travel(c),
+        )
     if family == "e_optimal":
         return max(candidates, key=lambda c: c.fim_e_score / max(1.0, travel(c)))
     if family == "expected_diameter":
         return min(candidates, key=lambda c: c.expected_radius_m + 0.05 * travel(c))
+    if family == "route_geometry":
+        best_quality = max(candidate.geometry_quality for candidate in candidates)
+        admissible = [
+            candidate for candidate in candidates
+            if candidate.geometry_quality >= best_quality * planner.route_geometry_quality_fraction
+        ]
+        future = np.asarray(next_points if next_points else [], float)
+        def route_cost(candidate: LocalCandidate) -> float:
+            onward = 0.0 if not len(future) else float(
+                np.min(np.linalg.norm(future - candidate.point, axis=1))
+            ) / 5.0
+            return travel(candidate) + planner.route_geometry_next_weight * onward
+        return min(admissible, key=route_cost)
+    if family == "multi_geometry":
+        return max(
+            candidates,
+            key=lambda c: c.angular_e_score - planner.geometry_travel_weight * travel(c),
+        )
+    if family == "center_approach":
+        centers = [
+            candidate for candidate in candidates
+            if candidate.source.split("+", 1)[0] in {
+                "mec_center", "chebyshev_center", "centroid"
+            }
+        ]
+        return min(centers or candidates, key=travel)
+    if family in {"centroid_approach", "mec_approach", "chebyshev_approach"}:
+        source_name = family.removesuffix("_approach")
+        if source_name == "mec":
+            source_name = "mec_center"
+        elif source_name == "chebyshev":
+            source_name = "chebyshev_center"
+        selected = [
+            candidate for candidate in candidates
+            if candidate.source.split("+", 1)[0] == source_name
+        ]
+        return min(selected or candidates, key=travel)
     # Shortlist re-ranking by expected finish plus a P90 tail penalty.
     return min(candidates, key=lambda c: (
         travel(c) + 5.0 + c.expected_radius_m / 5.0

@@ -31,9 +31,20 @@ class Scenario:
         return len(self.sources)
 
 
-def random_scenario(seed: int, physical: PhysicalConfig = PhysicalConfig()) -> Scenario:
+def random_scenario(
+    seed: int,
+    physical: PhysicalConfig = PhysicalConfig(),
+    source_count: int | None = None,
+) -> Scenario:
     rng = np.random.default_rng(seed)
-    total = int(rng.integers(physical.min_sources, physical.max_sources + 1))
+    if source_count is None:
+        total = int(rng.integers(physical.min_sources, physical.max_sources + 1))
+    else:
+        total = int(source_count)
+        if not physical.min_sources <= total <= physical.max_sources:
+            raise ValueError(
+                f"source_count must be in [{physical.min_sources}, {physical.max_sources}]"
+            )
     channels = np.sort(rng.choice(np.arange(1, physical.channels + 1), total, replace=False))
     radii = physical.target_radius_m * np.sqrt(rng.random(total))
     angles = rng.uniform(0.0, 2.0 * math.pi, total)

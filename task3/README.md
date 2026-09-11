@@ -280,3 +280,13 @@ task2/.venv/bin/python -m task3.experiments.analyze_practice \
 仓库故意不提供自动启动正式测试的脚本。正式测试只有三次机会，必须在用户当前明确授权后才可执行；测试前还须冻结代码和参数，并原样保存模拟器导出的加密日志。普通演练授权不等于正式测试授权。
 
 `task3/prompt.md` 是用户输入文件，不属于实现成果；不要修改、移动或删除。
+
+## 固定 16 源优化记录
+
+离线优化现在支持 `random_scenario(..., source_count=16)` 和
+`run_offline --source-count 16`；不传该参数仍保持 10--16 的旧默认行为。可选择的
+稳定策略注册表位于 `src/policies.py`。本轮实验记录、固定种子协议和候选去留见
+`report/strategy_optimization.md`，种子集合见 `results/raw/optimization/seed_sets.json`。
+
+本轮未完成完整 development/stability/final-holdout 协议，因此历史
+`champion_000_geometry_baseline` 仍是默认语义；smoke 最优候选不会被描述为稳定冠军。

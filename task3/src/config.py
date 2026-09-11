@@ -32,8 +32,16 @@ class PlannerConfig:
     clear_margin_m: float = 0.25
     local_action_limit: int = 3
     max_bearings_before_fallback: int = 6
+    fallback_cell_threshold: int = 0
     local_offset_m: float = 500.0
     candidate_ring_count: int = 12
+    geometry_travel_weight: float = 1e-5
+    local_channel_limit: int = 3
+    route_geometry_quality_fraction: float = 0.80
+    route_geometry_next_weight: float = 0.50
+    shared_measurement_limit: int = 0
+    shared_min_sin_angle: float = 0.30
+    coverage_found_measurement_limit: int = 20
     particle_count: int = 80
     tail_weight: float = 0.20
     risk_quantile: float = 0.90
@@ -42,6 +50,7 @@ class PlannerConfig:
     seed: int = 20260911
     real_time_reserve_s: float = 10.0
     max_actions: int = 30_000
+    focus_after_upper_bound_discovered: bool = False
 
 
 @dataclass(frozen=True)

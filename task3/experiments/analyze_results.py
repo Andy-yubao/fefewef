@@ -76,6 +76,9 @@ def summarize(rows: list[dict], n_boot: int, seed: int) -> list[dict]:
 
 def write_csv(path: Path, rows: list[dict]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
+    if not rows:
+        path.write_text("", encoding="utf-8")
+        return
     with path.open("w", encoding="utf-8", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
         writer.writeheader()
@@ -126,6 +129,7 @@ def parser() -> argparse.ArgumentParser:
     p.add_argument("--figures", type=Path, default=Path("task3/results/figures"))
     p.add_argument("--bootstrap", type=int, default=2000)
     p.add_argument("--seed", type=int, default=20260911)
+    p.add_argument("--baseline", default="B0_two_stage")
     return p
 
 
@@ -135,7 +139,10 @@ def main() -> None:
     if not rows:
         raise SystemExit("no experiment rows")
     summary = summarize(rows, args.bootstrap, args.seed)
-    comparisons = paired(rows, "B0_two_stage", args.bootstrap, args.seed)
+    available = {row["policy"] for row in rows}
+    if args.baseline not in available:
+        raise SystemExit(f"baseline policy not present: {args.baseline}")
+    comparisons = paired(rows, args.baseline, args.bootstrap, args.seed)
     write_csv(args.tables / "offline_strategy_summary.csv", summary)
     write_csv(args.tables / "offline_paired_vs_two_stage.csv", comparisons)
     make_figures(rows, args.figures)

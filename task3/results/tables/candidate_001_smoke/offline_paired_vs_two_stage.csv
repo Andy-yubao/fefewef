@@ -1,0 +1,2 @@
+baseline,policy,n,mean_time_saved_s,median_time_saved_s,win_rate,mean_ci_low_s,mean_ci_high_s
+champion_000_geometry_baseline,candidate_001_upper_bound_focus,20,67.92512272181412,6.0,0.65,-8.0338088552892,153.16754973082416

@@ -126,6 +126,44 @@ class SearchController:
                                      "channel": channel, "position": point.tolist(), "source": source,
                                      "expanded_bearing_tolerance_deg": state.bearing_tolerance_extra_deg})
 
+    def _shared_measurements(self, point: np.ndarray, excluded_channel: int) -> None:
+        """Take bounded, guaranteed-reception bearings at an already visited point."""
+        if self.planner.shared_measurement_limit <= 0:
+            return
+        eligible: list[tuple[float, ChannelState]] = []
+        for state in self.channels.values():
+            if state.channel == excluded_channel or state.status != ChannelStatus.FOUND:
+                continue
+            if state.already_measured(point) or state.safe_clear_point() is not None:
+                continue
+            circle = state.certificate()
+            center_distance = float(np.linalg.norm(point - circle.center))
+            if center_distance + circle.radius_m > self.physical.reception_min_m:
+                continue
+            sensors = [
+                np.asarray(observation.position, float)
+                for observation in state.history if observation.result == "direction"
+            ]
+            if sensors and center_distance > 1e-9:
+                candidate_ray = point - circle.center
+                candidate_norm = float(np.linalg.norm(candidate_ray))
+                best_sine = max(
+                    abs(float(np.cross(sensor - circle.center, candidate_ray)))
+                    / max(float(np.linalg.norm(sensor - circle.center)) * candidate_norm, 1e-9)
+                    for sensor in sensors
+                )
+                if best_sine < self.planner.shared_min_sin_angle:
+                    continue
+            eligible.append((center_distance, state))
+        for _, state in sorted(eligible, key=lambda item: item[0])[
+            :self.planner.shared_measurement_limit
+        ]:
+            self._measure(point, state.channel)
+            self.diagnostics.append({
+                "type": "shared_measurement", "channel": state.channel,
+                "position": point.tolist(),
+            })
+
     def _scan_coverage(self, index: int) -> None:
         point = self.coverage[index]
         unknown = [c for c, s in self.channels.items() if s.status == ChannelStatus.UNKNOWN]
@@ -134,6 +172,12 @@ class SearchController:
             unknown.insert(0, self.client.current_channel)
         for channel in unknown:
             self._measure(point, channel, index)
+            if (
+                self.planner.focus_after_upper_bound_discovered
+                and sum(s.status in (ChannelStatus.FOUND, ChannelStatus.CLEARED)
+                        for s in self.channels.values()) == self.physical.max_sources
+            ):
+                break
         # Found channels may reuse a mandatory stop for a free movement leg.
         if self.scheduler.mode != "two_stage":
             found = [s for s in self.channels.values()
@@ -144,6 +188,7 @@ class SearchController:
                 key=lambda state: float(np.linalg.norm(state.certificate().center - point)),
                 reverse=True,
             )
+            found = found[:self.planner.coverage_found_measurement_limit]
             for state in found:
                 self._measure(point, state.channel, None)
         self.coverage_completed.add(index)
@@ -215,6 +260,12 @@ class SearchController:
                 self.client.exit()
                 return self._result(False, "real_deadline_guard", wall_start)
             remaining = [i for i in range(1, len(self.coverage)) if i not in self.coverage_completed]
+            if (
+                self.planner.focus_after_upper_bound_discovered
+                and sum(s.status in (ChannelStatus.FOUND, ChannelStatus.CLEARED)
+                        for s in self.channels.values()) == self.physical.max_sources
+            ):
+                remaining = []
             action = self.scheduler.choose(
                 self.channels,
                 np.asarray(self.client.position, float),
@@ -235,10 +286,12 @@ class SearchController:
             elif action.kind == ActionKind.LOCALIZE:
                 assert action.channel is not None
                 self._measure(action.position, action.channel)
+                self._shared_measurements(action.position, action.channel)
                 self.consecutive_local += 1
             else:
                 assert action.channel is not None
                 self._clear(action.position, action.channel, action.certified, action.source)
+                self._shared_measurements(action.position, action.channel)
                 self.consecutive_local += 1
         self.diagnostics.append({"type": "max_actions_exceeded", "limit": self.planner.max_actions})
         self.client.exit()
