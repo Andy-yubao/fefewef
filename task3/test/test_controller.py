@@ -82,3 +82,11 @@ def test_scheduler_audit_matches_every_recorded_decision() -> None:
         assert audit["chosen_channel"] == decision["channel"]
         assert audit["chosen_score_s"] == decision["score_s"]
         assert audit["chosen_source"] == decision["source"]
+        assert len(audit["channel_snapshots"]) == 20
+        assert all(
+            candidate["kind"] in {"LOCALIZE", "CLEAR"}
+            for candidate in audit["local_candidates"]
+        )
+        for candidate in audit["local_candidates"]:
+            if candidate["kind"] == "LOCALIZE":
+                assert candidate["candidate_expected_radius_m"] is not None

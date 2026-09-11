@@ -27,6 +27,7 @@ class Action:
     score_s: float
     source: str
     certified: bool = False
+    candidate_expected_radius_m: float | None = None
 
 
 class Scheduler:
@@ -76,6 +77,8 @@ class Scheduler:
         current_channel: int,
         remaining_coverage_count: int,
         found_count: int,
+        channels: dict[int, ChannelState],
+        local_channel_ids: set[int],
         original_search_score_s: float | None = None,
     ) -> None:
         """Save a read-only summary of the candidates considered by ``choose``."""
@@ -151,6 +154,40 @@ class Scheduler:
             "would_flip": would_flip,
             "would_flip_to_kind": best_local.kind.value if would_flip else None,
             "would_flip_to_channel": best_local.channel if would_flip else None,
+            "channel_snapshots": [
+                {
+                    "channel": state.channel,
+                    "status": state.status.value,
+                    "certificate_radius_m": (
+                        state.certificate().radius_m
+                        if state.status == ChannelStatus.FOUND else None
+                    ),
+                    "bearing_count": state.bearing_count,
+                    "possible_count": state.possible_count,
+                    "in_local_shortlist": state.channel in local_channel_ids,
+                }
+                for state in channels.values()
+            ],
+            "local_candidates": [
+                {
+                    "kind": action.kind.value,
+                    "channel": action.channel,
+                    "position": action.position.tolist(),
+                    "score_s": action.score_s,
+                    "source": action.source,
+                    "certified": action.certified,
+                    "candidate_expected_radius_m": action.candidate_expected_radius_m,
+                    "route_insertion_delta_m": (
+                        float(
+                            np.linalg.norm(action.position - position)
+                            + np.linalg.norm(search.position - action.position)
+                            - np.linalg.norm(search.position - position)
+                        )
+                        if search is not None else None
+                    ),
+                }
+                for action in local_actions
+            ],
         }
         if chosen.kind == ActionKind.SEARCH:
             audit["search_minus_best_localize_s"] = (
@@ -220,7 +257,8 @@ class Scheduler:
             score = self._remaining_search_cost(position, coverage, remaining_coverage, unknown_count)
             chosen = Action(ActionKind.SEARCH, p, None, score, "coverage_forced")
             self._audit(
-                [chosen], chosen, position, current_channel, len(remaining_coverage), len(found)
+                [chosen], chosen, position, current_channel, len(remaining_coverage), len(found),
+                channels, local_channel_ids,
             )
             return chosen
 
@@ -295,7 +333,10 @@ class Scheduler:
                          + self._remaining_search_cost(chosen.point, coverage, remaining_coverage, unknown_count)
                          + self._found_cost(found, {state.channel: chosen.expected_radius_m})
                          + self.planner.tail_weight * chosen.p90_radius_m / self.physical.speed_mps)
-                actions.append(Action(ActionKind.LOCALIZE, chosen.point, state.channel, score, chosen.source))
+                actions.append(Action(
+                    ActionKind.LOCALIZE, chosen.point, state.channel, score, chosen.source,
+                    candidate_expected_radius_m=chosen.expected_radius_m,
+                ))
 
         if not actions:
             raise RuntimeError("no finite action while task is incomplete")
@@ -332,6 +373,8 @@ class Scheduler:
             current_channel,
             len(remaining_coverage),
             len(found),
+            channels,
+            local_channel_ids,
             original_search_score_s,
         )
         return chosen
