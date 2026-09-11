@@ -1380,5 +1380,10 @@
     }
   },
   "case_id": "J2TJ-2H73-YG5X-Y4AZ",
-  "test_module": "problem3_practice"
+  "test_module": "problem3_practice",
+  "strategy": {
+    "mode": "hybrid",
+    "local_family": "shortlist",
+    "local_action_limit": 3
+  }
 }

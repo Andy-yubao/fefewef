@@ -1,0 +1,699 @@
+{
+  "success": true,
+  "termination_reason": "coverage_certificate_and_all_found_cleared",
+  "cleared_count": 12,
+  "known_total": 12,
+  "clear_ratio": 1.0,
+  "virtual_time_s": 4287.435573,
+  "average_localize_clear_s": 357.28629774999996,
+  "wall_runtime_s": 1.8666576240002541,
+  "coverage_completed": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+  ],
+  "action_count": 185,
+  "diagnostics": [
+    {
+      "type": "decision",
+      "kind": "SEARCH",
+      "position": [
+        919.2533317427736,
+        771.3451316238471
+      ],
+      "channel": null,
+      "score_s": 2763.8772864739003,
+      "source": "coverage_next",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "SEARCH",
+      "position": [
+        -208.3778132003161,
+        1181.7693036146497
+      ],
+      "channel": null,
+      "score_s": 2370.336912478422,
+      "source": "coverage_next",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        -580.0000000000003,
+        696.9872981077805
+      ],
+      "channel": 18,
+      "score_s": 1720.5337192914726,
+      "source": "candidate_ring+task2_geometry",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        -680.0000000000001,
+        780.0
+      ],
+      "channel": 4,
+      "score_s": 1500.7786959615598,
+      "source": "candidate_ring+task2_geometry",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "SEARCH",
+      "position": [
+        -1127.63114494309,
+        410.4241719908027
+      ],
+      "channel": null,
+      "score_s": 1480.864477054855,
+      "source": "coverage_next",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        -1026.9872981077808,
+        -20.000000000000227
+      ],
+      "channel": 8,
+      "score_s": 1266.903106267328,
+      "source": "candidate_ring",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "SEARCH",
+      "position": [
+        -919.2533317427736,
+        -771.3451316238471
+      ],
+      "channel": null,
+      "score_s": 1184.5063736716409,
+      "source": "coverage_next",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        -89.99999999999994,
+        -816.9872981077807
+      ],
+      "channel": 9,
+      "score_s": 1162.235786709282,
+      "source": "candidate_ring",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        -63.01270189221941,
+        -909.9999999999999
+      ],
+      "channel": 3,
+      "score_s": 847.4506221180776,
+      "source": "candidate_ring",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        -179.99999999999994,
+        -846.9872981077807
+      ],
+      "channel": 11,
+      "score_s": 729.2085814858599,
+      "source": "candidate_ring+task2_e_optimal",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "SEARCH",
+      "position": [
+        208.37781320031596,
+        -1181.7693036146497
+      ],
+      "channel": null,
+      "score_s": 460.5507322250722,
+      "source": "coverage_forced",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "SEARCH",
+      "position": [
+        1127.63114494309,
+        -410.42417199080234
+      ],
+      "channel": null,
+      "score_s": 881.8846624052003,
+      "source": "coverage_next",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        1287.0820393249935,
+        -902.360679774998
+      ],
+      "channel": 6,
+      "score_s": 394.44760481699416,
+      "source": "chebyshev_center+task2_geometry",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        690.0,
+        -930.0
+      ],
+      "channel": 5,
+      "score_s": 375.9045393666129,
+      "source": "boundary+task2_geometry",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        670.0,
+        -920.0
+      ],
+      "channel": 5,
+      "score_s": 234.99999093080126,
+      "source": "mec_center+task2_expected_diameter",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        670.0,
+        -910.0
+      ],
+      "channel": 5,
+      "score_s": 232.8237225656073,
+      "source": "boundary+task2_geometry",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        670.0,
+        -930.0
+      ],
+      "channel": 5,
+      "score_s": 234.8237225656073,
+      "source": "boundary+task2_e_optimal",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "CLEAR",
+      "position": [
+        670.0,
+        -930.0
+      ],
+      "channel": 5,
+      "score_s": 120.71715275392602,
+      "source": "finite_cell_cover",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        546.0,
+        -978.0
+      ],
+      "channel": 3,
+      "score_s": 252.0800618346306,
+      "source": "centroid+task2_geometry",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        560.0,
+        -980.0
+      ],
+      "channel": 3,
+      "score_s": 226.25789472912084,
+      "source": "mec_center+task2_geometry",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "CLEAR",
+      "position": [
+        550.0,
+        -970.0
+      ],
+      "channel": 3,
+      "score_s": 114.44002860220822,
+      "source": "finite_cell_cover",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        61.42857142857143,
+        -1564.2857142857142
+      ],
+      "channel": 9,
+      "score_s": 354.88356980015254,
+      "source": "centroid+task2_geometry",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        60.0,
+        -1580.0
+      ],
+      "channel": 9,
+      "score_s": 200.90122873689552,
+      "source": "mec_center+task2_geometry",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        50.0,
+        -1580.0
+      ],
+      "channel": 9,
+      "score_s": 199.1733582343248,
+      "source": "mec_center+task2_expected_diameter",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        -155.85786437626905,
+        -1575.8578643762692
+      ],
+      "channel": 11,
+      "score_s": 215.42436107014046,
+      "source": "chebyshev_center+task2_geometry",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        -160.0,
+        -1590.0
+      ],
+      "channel": 11,
+      "score_s": 174.61931725765803,
+      "source": "mec_center+task2_geometry",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        -150.0,
+        -1590.0
+      ],
+      "channel": 11,
+      "score_s": 173.22908632232568,
+      "source": "boundary+task2_geometry",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "CLEAR",
+      "position": [
+        -150.0,
+        -1590.0
+      ],
+      "channel": 11,
+      "score_s": 85.66732956546288,
+      "source": "finite_cell_cover",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        -210.0,
+        170.0
+      ],
+      "channel": 14,
+      "score_s": 499.7564711371466,
+      "source": "boundary",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        -210.0,
+        210.0
+      ],
+      "channel": 14,
+      "score_s": 143.46884827401865,
+      "source": "boundary+task2_geometry",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "CLEAR",
+      "position": [
+        -210.0,
+        210.0
+      ],
+      "channel": 14,
+      "score_s": 73.51704802458998,
+      "source": "finite_cell_cover",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        -140.0,
+        260.0
+      ],
+      "channel": 20,
+      "score_s": 136.67127740590036,
+      "source": "mec_center+task2_geometry",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "CLEAR",
+      "position": [
+        -150.0,
+        250.0
+      ],
+      "channel": 20,
+      "score_s": 68.01704802358998,
+      "source": "finite_cell_cover",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        -640.0,
+        340.0
+      ],
+      "channel": 7,
+      "score_s": 205.5526253461129,
+      "source": "mec_center+task2_geometry",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        -644.142135623731,
+        355.85786437626905
+      ],
+      "channel": 7,
+      "score_s": 106.37643227632411,
+      "source": "chebyshev_center+task2_geometry",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        -640.0,
+        350.0
+      ],
+      "channel": 7,
+      "score_s": 104.57755665302416,
+      "source": "mec_center+task2_e_optimal",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        -1390.0,
+        280.0
+      ],
+      "channel": 8,
+      "score_s": 226.308536239731,
+      "source": "mec_center+task2_geometry",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        -1380.0,
+        280.0
+      ],
+      "channel": 8,
+      "score_s": 76.24561516854754,
+      "source": "mec_center+task2_e_optimal",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        -1135.857864376269,
+        1115.857864376269
+      ],
+      "channel": 18,
+      "score_s": 242.87371619080162,
+      "source": "chebyshev_center+task2_geometry",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        -1140.0,
+        1120.0
+      ],
+      "channel": 18,
+      "score_s": 67.83429754734215,
+      "source": "mec_center+task2_geometry",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        -1140.0,
+        1130.0
+      ],
+      "channel": 18,
+      "score_s": 68.57766570332747,
+      "source": "mec_center+task2_e_optimal",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        -430.0,
+        1240.0
+      ],
+      "channel": 4,
+      "score_s": 182.48406888262983,
+      "source": "mec_center+task2_geometry",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        -440.0,
+        1240.0
+      ],
+      "channel": 4,
+      "score_s": 39.56568542694924,
+      "source": "mec_center+task2_expected_diameter",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        700.0,
+        1530.0
+      ],
+      "channel": 13,
+      "score_s": 259.56802843834737,
+      "source": "mec_center+task2_geometry",
+      "certified": false
+    }
+  ],
+  "time_breakdown": {
+    "movement_s": 3205.435571603828,
+    "switching_s": 157.0,
+    "measurement_s": 865.0,
+    "optical_s": 36.0,
+    "laser_s": 24.0
+  },
+  "channel_status": {
+    "1": "absent",
+    "2": "absent",
+    "3": "cleared",
+    "4": "cleared",
+    "5": "cleared",
+    "6": "cleared",
+    "7": "cleared",
+    "8": "cleared",
+    "9": "cleared",
+    "10": "absent",
+    "11": "cleared",
+    "12": "absent",
+    "13": "cleared",
+    "14": "cleared",
+    "15": "absent",
+    "16": "absent",
+    "17": "absent",
+    "18": "cleared",
+    "19": "absent",
+    "20": "cleared"
+  },
+  "first_discovery_time_s": 17.0,
+  "mean_found_to_clear_s": 2472.344220833333,
+  "per_channel_timing": {
+    "3": {
+      "first_found_virtual_time_s": 17.0,
+      "cleared_virtual_time_s": 2732.759816,
+      "found_to_clear_s": 2715.759816
+    },
+    "4": {
+      "first_found_virtual_time_s": 737.0,
+      "cleared_virtual_time_s": 4041.174016,
+      "found_to_clear_s": 3304.174016
+    },
+    "5": {
+      "first_found_virtual_time_s": 1952.066792,
+      "cleared_virtual_time_s": 2684.50973,
+      "found_to_clear_s": 732.4429380000001
+    },
+    "6": {
+      "first_found_virtual_time_s": 1958.066792,
+      "cleared_virtual_time_s": 2528.49331,
+      "found_to_clear_s": 570.4265179999998
+    },
+    "7": {
+      "first_found_virtual_time_s": 41.0,
+      "cleared_virtual_time_s": 3512.499723,
+      "found_to_clear_s": 3471.499723
+    },
+    "8": {
+      "first_found_virtual_time_s": 1145.256209,
+      "cleared_virtual_time_s": 3681.15164,
+      "found_to_clear_s": 2535.895431
+    },
+    "9": {
+      "first_found_virtual_time_s": 1511.468974,
+      "cleared_virtual_time_s": 2912.78279,
+      "found_to_clear_s": 1401.3138160000003
+    },
+    "11": {
+      "first_found_virtual_time_s": 1523.468974,
+      "cleared_virtual_time_s": 2979.909949,
+      "found_to_clear_s": 1456.440975
+    },
+    "13": {
+      "first_found_virtual_time_s": 425.0,
+      "cleared_virtual_time_s": 4287.435573,
+      "found_to_clear_s": 3862.4355729999997
+    },
+    "14": {
+      "first_found_virtual_time_s": 83.0,
+      "cleared_virtual_time_s": 3356.114435,
+      "found_to_clear_s": 3273.114435
+    },
+    "18": {
+      "first_found_virtual_time_s": 803.0,
+      "cleared_virtual_time_s": 3879.479896,
+      "found_to_clear_s": 3076.479896
+    },
+    "20": {
+      "first_found_virtual_time_s": 119.0,
+      "cleared_virtual_time_s": 3387.147513,
+      "found_to_clear_s": 3268.147513
+    }
+  },
+  "repository": {
+    "commit": "78a329d74864f4154f988de70e8a34078fd0ea69",
+    "dirty": true
+  },
+  "configuration": {
+    "ClientConfig": {
+      "base_url": "http://172.26.112.1:2027",
+      "arena_id": "default",
+      "robot_id": "<redacted>",
+      "timeout_s": 5.0,
+      "retries": 3,
+      "retry_backoff_s": 0.2
+    },
+    "PhysicalConfig": {
+      "target_radius_m": 1800.0,
+      "reception_min_m": 1000.0,
+      "reception_max_m": 1500.0,
+      "bearing_error_deg": 1.0,
+      "near_radius_m": 5.0,
+      "clear_radius_m": 20.0,
+      "speed_mps": 5.0,
+      "measure_s": 5.0,
+      "switch_s": 1.0,
+      "optical_s": 3.0,
+      "laser_s": 2.0,
+      "max_sources": 16,
+      "min_sources": 10,
+      "channels": 20
+    },
+    "PlannerConfig": {
+      "ring_radius_m": 1200.0,
+      "grid_step_m": 20.0,
+      "numeric_distance_tol_m": 1e-07,
+      "numeric_angle_tol_deg": 1e-06,
+      "clear_margin_m": 0.25,
+      "local_action_limit": 3,
+      "max_bearings_before_fallback": 6,
+      "local_offset_m": 500.0,
+      "candidate_ring_count": 12,
+      "particle_count": 80,
+      "tail_weight": 0.2,
+      "risk_quantile": 0.9,
+      "route_insert_limit_m": 300.0,
+      "rotation_deg": 0.0,
+      "seed": 20260911,
+      "real_time_reserve_s": 10.0,
+      "max_actions": 30000
+    }
+  },
+  "case_id": "WBBE-W933-ZBEX-DQ7B",
+  "test_module": "problem3_practice",
+  "strategy": {
+    "mode": "hybrid",
+    "local_family": "geometry",
+    "local_action_limit": 3
+  }
+}
