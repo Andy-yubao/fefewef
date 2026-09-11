@@ -93,6 +93,30 @@ def region_area_diameter(region):
     return float(region.area), convex_diameter(region)
 
 
+def theoretical_candidate_region(first_region, cfg=PhysicalConfig(), resolution=64):
+    """Cf = F1 Minkowski-sum B(0, Rmax), with Shapely arc approximation."""
+    return first_region.buffer(cfg.reception_max,
+                               quad_segs=max(8, int(resolution))).buffer(0)
+
+
+def guaranteed_reception_region(first_region, cfg=PhysicalConfig(), resolution=64):
+    """Cg = intersection over g in F1 of B(g, Rmin).
+
+    For convex F1 it suffices to constrain its extreme points. Curved boundaries
+    are represented by the configured polygon resolution.
+    """
+    vertices = _coords_from_geometry(first_region)
+    if len(vertices) == 0:
+        return first_region
+    region = disk(vertices[0], cfg.reception_min, resolution)
+    for vertex in vertices[1:]:
+        region = region.intersection(
+            disk(vertex, cfg.reception_min, resolution))
+        if region.is_empty:
+            break
+    return region.buffer(0)
+
+
 def sample_region_grid(region, step=80.0, max_points=None, rng=None):
     """Approximately uniform deterministic grid samples from a region."""
     if region.is_empty:
@@ -133,17 +157,73 @@ def sample_region_random(region, n=80, rng=None):
     return np.vstack(accepted)[:n]
 
 
-def action_grid(cfg=PhysicalConfig(), step=250.0):
-    vals = np.arange(-cfg.target_radius, cfg.target_radius + 1e-9, step)
-    return np.array([(x, y) for x in vals for y in vals
-                     if x * x + y * y <= cfg.target_radius ** 2 + 1e-9],
-                    dtype=float)
+def action_grid(cfg=PhysicalConfig(), step=250.0, domain="target_disk",
+                posterior_points=None):
+    """Deterministic action grid for the declared candidate domain."""
+    limit = cfg.target_radius if domain == "target_disk" else (
+        cfg.target_radius + cfg.reception_max)
+    vals = np.arange(-limit, limit + 1e-9, step)
+    grid = np.array([(x, y) for x in vals for y in vals], dtype=float)
+    if domain == "target_disk":
+        return grid[np.sum(grid * grid, axis=1) <= cfg.target_radius ** 2 + 1e-9]
+    if domain != "detectable":
+        raise ValueError(f"unknown candidate domain: {domain}")
+    if posterior_points is None or len(posterior_points) == 0:
+        return grid
+    d = np.linalg.norm(grid[:, None, :] -
+                       np.asarray(posterior_points)[None, :, :], axis=2)
+    return grid[np.min(d, axis=1) <= cfg.reception_max]
+
+
+def candidate_diagnostics(points, sensor1, posterior_points,
+                          cfg=PhysicalConfig(), radius_samples=None,
+                          min_detection_probability=0.0,
+                          min_median_abs_sin_angle=0.0,
+                          pruning_mode="reachable_only"):
+    """Classify arbitrary points; thresholds are computational pruning knobs."""
+    grid = np.asarray(points, dtype=float)
+    targets = np.asarray(posterior_points, dtype=float)
+    if radius_samples is None:
+        radius_samples = np.full(len(targets), cfg.reception_max)
+    radius_samples = np.asarray(radius_samples, dtype=float)
+    d = np.linalg.norm(grid[:, None, :] - targets[None, :, :], axis=2)
+    detect = d <= radius_samples[None, :]
+    near = d <= cfg.near_radius
+    pdet = np.mean(detect, axis=1)
+    direct = np.mean(near, axis=1)
+    ang = np.empty_like(d)
+    for j, g in enumerate(targets):
+        ang[:, j] = intersection_angle(sensor1, grid, g)
+    median_sin = np.median(np.abs(np.sin(ang)), axis=1)
+    feasible = np.any(d <= cfg.reception_max, axis=1)
+    if pruning_mode == "current":
+        recommended = (feasible & (pdet >= min_detection_probability) &
+                       ((median_sin >= min_median_abs_sin_angle) | (direct > 0)))
+    elif pruning_mode == "weak":
+        recommended = feasible & ((pdet >= min_detection_probability) |
+                                  (median_sin >= min_median_abs_sin_angle))
+    elif pruning_mode in ("no_pdet", "reachable_only"):
+        recommended = feasible & ((median_sin >= min_median_abs_sin_angle) |
+                                  (direct > 0))
+    else:
+        raise ValueError(f"unknown pruning mode: {pruning_mode}")
+    if not np.any(recommended):
+        score = pdet * (0.1 + median_sin)
+        recommended[np.argsort(score)[-min(8, len(score)):]] = True
+    guaranteed = np.max(d, axis=1) <= cfg.reception_min
+    return {"points": grid, "feasible": feasible,
+            "recommended": recommended,
+            "guaranteed_reception": guaranteed,
+            "detection_probability": pdet,
+            "direct_probability": direct,
+            "median_abs_sin_angle": median_sin}
 
 
 def candidate_regions(sensor1, posterior_points, cfg=PhysicalConfig(),
                       step=250.0, radius_samples=None,
-                      min_detection_probability=0.25,
-                      min_median_abs_sin_angle=0.12):
+                      min_detection_probability=0.0,
+                      min_median_abs_sin_angle=0.0,
+                      domain="target_disk", pruning_mode="reachable_only"):
     """Return action grid plus feasible/recommended masks and diagnostics.
 
     Feasible: at least one possible target can be received under R_max.
@@ -152,34 +232,7 @@ def candidate_regions(sensor1, posterior_points, cfg=PhysicalConfig(),
     a bounded, travel-efficient modeling choice (the simulator itself allows
     outside positions).
     """
-    grid = action_grid(cfg, step)
-    targets = np.asarray(posterior_points, dtype=float)
-    if radius_samples is None:
-        radius_samples = np.full(len(targets), cfg.reception_max)
-    radius_samples = np.asarray(radius_samples, dtype=float)
-    d = np.linalg.norm(grid[:, None, :] - targets[None, :, :], axis=2)
-    detect = d <= radius_samples[None, :]
-    near = d <= cfg.near_radius
-    detection_probability = np.mean(detect, axis=1)
-    direct_probability = np.mean(near, axis=1)
-    ang = np.empty_like(d)
-    for j, g in enumerate(targets):
-        ang[:, j] = intersection_angle(sensor1, grid, g)
-    median_sin = np.median(np.abs(np.sin(ang)), axis=1)
-    feasible = np.any(d <= cfg.reception_max, axis=1)
-    recommended = (feasible &
-                   (detection_probability >= min_detection_probability) &
-                   ((median_sin >= min_median_abs_sin_angle) |
-                    (direct_probability > 0)))
-    # Always provide a useful pool even in coarse-grid edge cases.
-    if not np.any(recommended):
-        score = detection_probability * (0.1 + median_sin)
-        recommended[np.argsort(score)[-min(8, len(score)):]] = True
-    return {
-        "points": grid,
-        "feasible": feasible,
-        "recommended": recommended,
-        "detection_probability": detection_probability,
-        "direct_probability": direct_probability,
-        "median_abs_sin_angle": median_sin,
-    }
+    grid = action_grid(cfg, step, domain, posterior_points)
+    return candidate_diagnostics(
+        grid, sensor1, posterior_points, cfg, radius_samples,
+        min_detection_probability, min_median_abs_sin_angle, pruning_mode)

@@ -9,10 +9,13 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import seaborn as sns
+from shapely import wkt
 
 from src.config import PhysicalConfig, SearchConfig
 from src.geometry.regions import (candidate_regions, first_feasible_region,
-                                  sample_region_random)
+                                  guaranteed_reception_region,
+                                  sample_region_random,
+                                  theoretical_candidate_region)
 from src.strategies import StrategyContext, select_all
 
 
@@ -25,6 +28,7 @@ PALETTE = "tab10"
 
 def save(fig, name):
     fig.savefig(FIGURES / name, dpi=240, bbox_inches="tight")
+    fig.savefig(FIGURES / f"{Path(name).stem}.pdf", bbox_inches="tight")
     plt.close(fig)
 
 
@@ -42,58 +46,67 @@ def reconstruct_first(sc, seed=20260911):
     reg = first_feasible_region(s1, sc.bearing1_rad, cfg,
                                 resolution=search.polygon_resolution)
     rng = np.random.default_rng(seed + int(sc.scenario_id))
-    pts = sample_region_random(reg, 64, rng)
+    pts = sample_region_random(reg, search.posterior_samples, rng)
     low = np.maximum(cfg.reception_min, np.linalg.norm(pts - s1, axis=1))
     radii = rng.uniform(low, cfg.reception_max)
     return cfg, search, s1, reg, pts, radii
 
 
-def region_figures(scenarios):
-    ids = [0, len(scenarios) // 3, 2 * len(scenarios) // 3]
-    fig, axes = plt.subplots(1, 3, figsize=(14, 4.5), constrained_layout=True)
-    for ax, i in zip(axes, ids):
-        sc = scenarios.iloc[i]
-        cfg, search, s1, reg, pts, radii = reconstruct_first(sc)
-        cand = candidate_regions(s1, pts, cfg, search.grid_step, radii)
-        theta = np.linspace(0, 2 * np.pi, 400)
-        ax.plot(cfg.target_radius*np.cos(theta), cfg.target_radius*np.sin(theta),
-                color="black", lw=1, label="target boundary")
-        xy_fill(ax, reg, color="#f4a261", alpha=.45, label="target possible region")
-        p = cand["points"]
-        ax.scatter(p[cand["feasible"], 0], p[cand["feasible"], 1], s=7,
-                   color="#8ecae6", label="S2 feasible")
-        ax.scatter(p[cand["recommended"], 0], p[cand["recommended"], 1], s=10,
-                   color="#2a9d8f", label="S2 recommended")
-        ax.scatter(*s1, marker="^", s=55, color="red", label="S1")
-        ax.set(title=f"Scenario {int(sc.scenario_id)}", aspect="equal",
-               xlabel="x (m)", ylabel="y (m)")
-    handles, labels = axes[0].get_legend_handles_labels()
-    fig.legend(handles, labels, loc="outside lower center", ncol=5)
-    save(fig, "regions_typical_scenarios.png")
+def region_figures(scenarios, selections):
+    sc = scenarios.iloc[0]
+    cfg, search, s1, reg, pts, radii = reconstruct_first(sc)
+    cand = candidate_regions(s1, pts, cfg, search.grid_step, radii,
+                             domain=search.candidate_domain,
+                             pruning_mode=search.pruning_mode)
+    cf = theoretical_candidate_region(reg, cfg, search.polygon_resolution)
+    cg = guaranteed_reception_region(reg, cfg, search.polygon_resolution)
+    chosen = selections[(selections.scenario_id == sc.scenario_id) &
+                        (selections.strategy == "expected_diameter")].iloc[0]
+    fig, ax = plt.subplots(figsize=(8, 7), constrained_layout=True)
+    theta = np.linspace(0, 2 * np.pi, 400)
+    ax.plot(cfg.target_radius*np.cos(theta), cfg.target_radius*np.sin(theta),
+            color="black", lw=1.2, label=r"target domain $\Omega$")
+    xy_fill(ax, cf, color="#8ecae6", alpha=.16, label=r"theoretical $C_f$")
+    if not cg.is_empty:
+        xy_fill(ax, cg, color="#90be6d", alpha=.35,
+                label=r"guaranteed reception $C_g$")
+    xy_fill(ax, reg, color="#f4a261", alpha=.55, label=r"first region $F_1$")
+    p = cand["points"]
+    ax.scatter(p[cand["recommended"], 0], p[cand["recommended"], 1], s=9,
+               color="#277da1", alpha=.65, label="practical candidates")
+    ax.scatter(chosen.s2_x, chosen.s2_y, marker="*", s=180, color="#d62828",
+               edgecolor="white", label=r"ED $S_2^*$", zorder=6)
+    ax.scatter(sc.target_x, sc.target_y, marker="X", s=80, color="#6a4c93",
+               label="simulated truth")
+    ax.scatter(*s1, marker="^", s=75, color="black", label=r"$S_1$")
+    ax.set(aspect="equal", xlabel="x (m)", ylabel="y (m)",
+           title="Q2 geometry and candidate regions")
+    ax.legend(fontsize=8, ncol=2)
+    save(fig, "q2_geometry_candidate_regions.png")
 
 
 def objective_and_selection_figures(sc):
     cfg, search, s1, reg, pts, radii = reconstruct_first(sc, 617)
     ctx = StrategyContext(s1, sc.bearing1_rad, reg, pts, radii, cfg, search,
                           617 + int(sc.scenario_id))
-    results = select_all(ctx)
-    names = ["geometry", "gdop_mean", "fim_a", "fim_d", "fim_e",
-             "expected_diameter", "minimax_diameter", "eig"]
-    fig, axes = plt.subplots(2, 4, figsize=(15, 7.5), constrained_layout=True)
-    for ax, name in zip(axes.flat, names):
-        res = results[name]
-        p = np.asarray(res.diagnostics["grid_points"])
-        z = np.asarray(res.diagnostics["objective_surface"], float)
-        finite = np.isfinite(z)
-        if finite.any():
-            lo, hi = np.quantile(z[finite], [.02, .98])
-            z = np.clip(z, lo, hi)
-        m = ax.scatter(p[finite,0], p[finite,1], c=z[finite], s=20, cmap="viridis")
-        ax.scatter(*res.point, marker="*", s=130, c="red", edgecolor="white")
-        ax.scatter(*s1, marker="^", s=45, c="black")
-        ax.set(title=name, aspect="equal", xticks=[], yticks=[])
-        fig.colorbar(m, ax=ax, shrink=.7)
-    save(fig, "objective_heatmaps.png")
+    names = ["expected_diameter", "geometry", "gdop_mean", "fim_e", "random"]
+    results = select_all(ctx, names)
+    res = results["expected_diameter"]
+    p = np.asarray(res.diagnostics["grid_points"])
+    z = np.asarray(res.diagnostics["objective_surface"], float)
+    finite = np.isfinite(z)
+    fig, ax = plt.subplots(figsize=(7.5, 6.5), constrained_layout=True)
+    m = ax.scatter(p[finite, 0], p[finite, 1], c=z[finite], s=42,
+                   cmap="viridis_r", edgecolor="none")
+    xy_fill(ax, reg, color="#f4a261", alpha=.18)
+    ax.scatter(*res.point, marker="*", s=170, c="#d62828", edgecolor="white",
+               label=r"$S_2^*$")
+    ax.scatter(*s1, marker="^", s=65, c="black", label=r"$S_1$")
+    ax.set(title="Expected posterior-diameter search surface",
+           aspect="equal", xlabel="x (m)", ylabel="y (m)")
+    fig.colorbar(m, ax=ax, label="Expected diameter (m)")
+    ax.legend()
+    save(fig, "expected_diameter_objective_surface.png")
     fig, ax = plt.subplots(figsize=(7, 6))
     xy_fill(ax, reg, color="#f4a261", alpha=.35)
     ax.scatter(pts[:,0], pts[:,1], s=8, color="#555555", alpha=.5,
@@ -127,13 +140,13 @@ def result_figures(df, summary):
     save(fig, "diameter_cdf.png")
 
     long = summary.melt(id_vars="strategy",
-                        value_vars=["diameter_mean","diameter_median","diameter_p95"],
+                        value_vars=["diameter_mean","diameter_p95","diameter_max"],
                         var_name="metric", value_name="diameter_m")
     fig, ax = plt.subplots(figsize=(11, 5))
     sns.barplot(data=long, x="strategy", y="diameter_m", hue="metric",
                 order=order, ax=ax)
     ax.tick_params(axis="x", rotation=35); ax.set(xlabel="", ylabel="Diameter (m)")
-    save(fig, "diameter_summary.png")
+    save(fig, "q2_strategy_tail_comparison.png")
 
     fig, ax = plt.subplots(figsize=(7, 5))
     ax.scatter(summary.move_distance_mean, summary.diameter_mean, s=65)
@@ -166,18 +179,83 @@ def sensitivity_figures():
              "radius_sensitivity.png")
 
 
+def ablation_and_convergence_figures():
+    path = TABLES / "ablation_expected_diameter.csv"
+    if path.exists():
+        d = pd.read_csv(path)
+        keep = d[d.study.isin(["ED-old-hidden-R-update",
+                               "ED-corrected-observable-update"])]
+        fig, axes = plt.subplots(1, 3, figsize=(11, 3.8), constrained_layout=True)
+        metrics = [("realized_diameter_mean_m", "Mean diameter (m)"),
+                   ("realized_diameter_p95_m", "P95 diameter (m)"),
+                   ("selected_point_shift_mean_m", "Point shift vs full (m)")]
+        for ax, (col, label) in zip(axes, metrics):
+            sns.barplot(data=keep, x="study", y=col, hue="study",
+                        palette=["#b56576", "#2a9d8f"], legend=False, ax=ax)
+            ax.set(xlabel="", ylabel=label)
+            ax.tick_params(axis="x", rotation=18, labelsize=7)
+        save(fig, "hidden_radius_fix_comparison.png")
+    path = TABLES / "sampling_convergence.csv"
+    if path.exists():
+        d = pd.read_csv(path)
+        fig, axes = plt.subplots(1, 2, figsize=(10, 4), constrained_layout=True)
+        for ne, g in d.groupby("error_samples"):
+            axes[0].plot(g.target_samples, g.expected_diameter_mean_m,
+                         marker="o", label=f"{int(ne)} errors")
+            axes[1].plot(g.target_samples, g.selection_runtime_mean_s,
+                         marker="o", label=f"{int(ne)} errors")
+        axes[0].set(xlabel="Target samples", ylabel="Expected diameter (m)")
+        axes[1].set(xlabel="Target samples", ylabel="Selection runtime (s)")
+        for ax in axes: ax.grid(alpha=.25)
+        axes[0].legend(fontsize=7)
+        save(fig, "sampling_convergence.png")
+
+
+def representative_case_figures():
+    table = TABLES / "representative_cases.csv"
+    case_dir = TASK_ROOT / "results" / "case_studies"
+    if not table.exists():
+        return
+    cases = pd.read_csv(table).head(6)
+    n = len(cases)
+    fig, axes = plt.subplots(2, 3, figsize=(13, 8.5), constrained_layout=True)
+    for ax in axes.flat:
+        ax.set_visible(False)
+    for ax, case in zip(axes.flat, cases.itertuples()):
+        ax.set_visible(True)
+        import json
+        geometry = json.loads((case_dir / f"case_{int(case.scenario_id):03d}.json")
+                              .read_text(encoding="utf-8"))
+        f1, cf, cg = (wkt.loads(geometry[k]) for k in
+                      ["f1_wkt", "cf_wkt", "cg_wkt"])
+        xy_fill(ax, cf, color="#8ecae6", alpha=.12)
+        if not cg.is_empty: xy_fill(ax, cg, color="#90be6d", alpha=.28)
+        xy_fill(ax, f1, color="#f4a261", alpha=.42)
+        if geometry["illustrative_zero_error_f2_wkt"]:
+            xy_fill(ax, wkt.loads(geometry["illustrative_zero_error_f2_wkt"]),
+                    color="#e63946", alpha=.50)
+        ax.scatter(case.s1_x, case.s1_y, marker="^", c="black", s=42)
+        ax.scatter(case.s2_x, case.s2_y, marker="*", c="#d62828", s=90)
+        ax.scatter(case.target_x, case.target_y, marker="X", c="#6a4c93", s=48)
+        ax.set(title=f"{case.case_reason} (#{int(case.scenario_id)})",
+               aspect="equal", xticks=[], yticks=[])
+    save(fig, "representative_case_studies.png")
+
+
 def main():
     FIGURES.mkdir(parents=True, exist_ok=True)
     sns.set_theme(style="whitegrid", context="paper")
     df = pd.read_csv(RAW / "evaluations.csv")
     scenarios = pd.read_csv(RAW / "base_scenarios.csv")
+    selections = pd.read_csv(RAW / "selected_points.csv")
     summary = pd.read_csv(TABLES / "strategy_summary.csv")
-    region_figures(scenarios)
+    region_figures(scenarios, selections)
     objective_and_selection_figures(scenarios.iloc[0])
     result_figures(df, summary)
     sensitivity_figures()
+    ablation_and_convergence_figures()
+    representative_case_figures()
 
 
 if __name__ == "__main__":
     main()
-

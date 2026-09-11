@@ -13,7 +13,8 @@ def context(step, n=80):
     return StrategyContext(s1, 0.0, reg, pts, np.full(n, 1250.0), cfg,
                            SearchConfig(grid_step=step, polygon_resolution=40,
                                         shortlist_size=3,
-                                        objective_target_samples=5), 17)
+                                        objective_target_samples=5,
+                                        coarse_to_fine=False), 17)
 
 
 def test_nested_grid_search_objective_converges():
@@ -31,4 +32,3 @@ def test_every_required_strategy_returns_a_finite_candidate():
     for result in results.values():
         assert np.all(np.isfinite(result.point))
         assert result.candidate_count > 0
-

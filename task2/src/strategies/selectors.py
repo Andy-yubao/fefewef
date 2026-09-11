@@ -10,15 +10,16 @@ import math
 import time
 
 import numpy as np
-from shapely.geometry import Point
+from scipy.stats import truncnorm
 
 from ..config import PhysicalConfig, SearchConfig
 from ..geometry.angles import bearing, intersection_angle
-from ..geometry.regions import (candidate_regions, disk, localization_region,
+from ..geometry.regions import (candidate_diagnostics, candidate_regions,
                                 region_area_diameter)
 from ..localization.metrics import (bearing_fim, bounded_linearized_diameter,
                                     covariance_metrics)
 from ..localization.observation import observe
+from ..localization.update import update_region_from_observation
 
 
 @dataclass
@@ -43,13 +44,24 @@ class SelectionResult:
     diagnostics: dict = field(default_factory=dict)
 
 
-def _pool(ctx):
-    c = candidate_regions(
-        ctx.sensor1, ctx.posterior_points, ctx.physical,
-        step=ctx.search.grid_step, radius_samples=ctx.radius_samples,
+def _pool(ctx, points=None):
+    kwargs = dict(
+        radius_samples=ctx.radius_samples,
         min_detection_probability=ctx.search.min_detection_probability,
         min_median_abs_sin_angle=ctx.search.min_median_abs_sin_angle,
-    )
+        pruning_mode=ctx.search.pruning_mode)
+    if points is None:
+        c = candidate_regions(
+            ctx.sensor1, ctx.posterior_points, ctx.physical,
+            step=ctx.search.grid_step, domain=ctx.search.candidate_domain,
+            **kwargs)
+    else:
+        points = np.asarray(points, dtype=float)
+        if ctx.search.candidate_domain == "target_disk":
+            points = points[np.sum(points * points, axis=1) <=
+                            ctx.physical.target_radius ** 2 + 1e-9]
+        c = candidate_diagnostics(
+            points, ctx.sensor1, ctx.posterior_points, ctx.physical, **kwargs)
     idx = np.flatnonzero(c["recommended"])
     return c, idx
 
@@ -78,9 +90,7 @@ def select_random(ctx):
                             "maximize": True})
 
 
-def select_geometry(ctx):
-    start = time.perf_counter()
-    c, idx = _pool(ctx)
+def _geometry_surface(ctx, c, idx):
     grid, targets = c["points"], ctx.posterior_points
     scores = np.full(len(grid), -np.inf)
     for i in idx:
@@ -92,11 +102,56 @@ def select_geometry(ctx):
         quality = np.abs(np.sin(ang)) / np.sqrt(np.maximum(d1 * d2, 10000.0))
         detected = d2 <= ctx.radius_samples
         scores[i] = np.mean(quality * detected)
-    return _finish("geometry", grid, idx, scores, True, start)
+    return scores
 
 
-def _fim_surface(ctx, criterion, worst=False):
-    c, idx = _pool(ctx)
+def _generic_coarse_to_fine(ctx, name, surface_fn, maximize):
+    start = time.perf_counter()
+    steps = [ctx.search.grid_step]
+    if ctx.search.coarse_to_fine:
+        steps.extend(ctx.search.refine_steps)
+    centres, previous_step = None, ctx.search.grid_step
+    levels, all_points, all_values = [], [], []
+    chosen_point, chosen_value, total = None, None, 0
+    for level, step in enumerate(steps, start=1):
+        level_start = time.perf_counter()
+        if centres is None:
+            c, idx = _pool(ctx)
+        else:
+            points = _refinement_points(
+                centres, previous_step, step, ctx.search.refine_radius_factor)
+            c, idx = _pool(ctx, points)
+        values = surface_fn(c, idx)
+        order = idx[np.argsort(values[idx])]
+        if maximize:
+            order = order[::-1]
+        centres = c["points"][order[:min(ctx.search.refine_top_k, len(order))]]
+        chosen = int(order[0])
+        chosen_point = c["points"][chosen].copy()
+        chosen_value = float(values[chosen])
+        total += len(idx)
+        levels.append({"level": level, "step_m": float(step),
+                       "candidate_count": int(len(idx)),
+                       "best_x": float(chosen_point[0]),
+                       "best_y": float(chosen_point[1]),
+                       "best_objective": chosen_value,
+                       "runtime_s": time.perf_counter() - level_start})
+        all_points.extend(c["points"].tolist())
+        all_values.extend(values.tolist())
+        previous_step = step
+    return SelectionResult(
+        name, chosen_point, chosen_value, time.perf_counter() - start, total,
+        {"grid_points": all_points, "objective_surface": all_values,
+         "maximize": maximize, "search_levels": levels,
+         "exact_objective_evaluation_count": 0})
+
+
+def select_geometry(ctx):
+    return _generic_coarse_to_fine(
+        ctx, "geometry", lambda c, idx: _geometry_surface(ctx, c, idx), True)
+
+
+def _fim_values(ctx, c, idx, criterion, worst=False):
     grid, targets = c["points"], ctx.posterior_points
     values = np.full(len(grid), np.inf if criterion in ("a", "gdop") else -np.inf)
     minimize = criterion in ("a", "gdop")
@@ -120,97 +175,170 @@ def _fim_surface(ctx, criterion, worst=False):
             values[i] = max(per) if minimize else min(per)
         else:
             values[i] = float(np.mean(per))
-    return c, idx, values, not minimize
+    return values
 
 
 def select_gdop_mean(ctx):
-    start = time.perf_counter()
-    c, idx, values, maximize = _fim_surface(ctx, "gdop", False)
-    return _finish("gdop_mean", c["points"], idx, values, maximize, start)
+    return _generic_coarse_to_fine(
+        ctx, "gdop_mean",
+        lambda c, idx: _fim_values(ctx, c, idx, "gdop", False), False)
 
 
 def select_gdop_worst(ctx):
-    start = time.perf_counter()
-    c, idx, values, maximize = _fim_surface(ctx, "gdop", True)
-    return _finish("gdop_worst", c["points"], idx, values, maximize, start)
+    return _generic_coarse_to_fine(
+        ctx, "gdop_worst",
+        lambda c, idx: _fim_values(ctx, c, idx, "gdop", True), False)
 
 
 def select_fim(ctx, criterion):
-    start = time.perf_counter()
-    c, idx, values, maximize = _fim_surface(ctx, criterion, False)
     label = {"a": "fim_a", "d": "fim_d", "e": "fim_e"}[criterion]
-    return _finish(label, c["points"], idx, values, maximize, start,
-                   {"gaussian_approximation": True})
+    maximize = criterion not in ("a", "gdop")
+    result = _generic_coarse_to_fine(
+        ctx, label,
+        lambda c, idx: _fim_values(ctx, c, idx, criterion, False), maximize)
+    result.diagnostics["gaussian_approximation"] = True
+    return result
 
 
-def _hypothetical_region(ctx, s2, target, radius, error2):
-    cfg = ctx.physical
-    outcome = observe(s2, target, radius, error2, cfg.near_radius)
-    if outcome["kind"] == "near":
-        return ctx.first_region.intersection(
-            disk(s2, cfg.near_radius, ctx.search.polygon_resolution))
-    if outcome["kind"] == "no_signal":
-        # Conditional on a sampled radius. The outer experiment also measures
-        # performance when radius is unknown/misspecified.
-        return ctx.first_region.difference(
-            disk(s2, radius, ctx.search.polygon_resolution))
-    return localization_region(
-        [ctx.sensor1, s2], [ctx.bearing1, outcome["bearing"]], cfg,
-        [cfg.reception_max, radius], ctx.search.polygon_resolution,
-    )
+def _error_quadrature(ctx):
+    """Deterministic bounded-error nodes and weights for action comparison."""
+    n = max(1, ctx.search.objective_error_samples)
+    bound = math.radians(ctx.physical.bearing_error_deg)
+    model = ctx.search.objective_error_model
+    if model == "uniform":
+        nodes = np.linspace(-1 + 1 / n, 1 - 1 / n, n) * bound
+    elif model == "truncated_gaussian":
+        q = (np.arange(n) + 0.5) / n
+        nodes = truncnorm.ppf(q, -2.0, 2.0, loc=0.0, scale=bound / 2.0)
+    elif model in ("endpoint", "worst_bounded"):
+        nodes = np.array([-bound, bound]) if n > 1 else np.array([bound])
+    else:
+        raise ValueError(f"unknown objective error model: {model}")
+    return np.asarray(nodes, float), np.full(len(nodes), 1.0 / len(nodes))
 
 
-def _diameter_surface(ctx, minimax=False):
-    c, idx = _pool(ctx)
-    grid, targets = c["points"], ctx.posterior_points
-    # Proxy is evaluated everywhere, then true set-membership diameter on a
-    # shortlist. This is a computational search device, not the final metric.
-    proxy = np.full(len(grid), np.inf)
+def _hypothetical_update(ctx, s2, target, radius, error2):
+    outcome = observe(s2, target, radius, error2, ctx.physical.near_radius)
+    return update_region_from_observation(
+        ctx.first_region, s2, outcome, ctx.physical,
+        ctx.search.polygon_resolution,
+        observable_information=ctx.search.observable_update,
+        hidden_radius=radius)
+
+
+def _proxy_surface(ctx, grid, idx, minimax):
+    values = np.full(len(grid), np.inf)
     first_diam = region_area_diameter(ctx.first_region)[1]
+    half_width = math.radians(ctx.physical.bearing_error_deg)
     for i in idx:
+        no_signal = update_region_from_observation(
+            ctx.first_region, grid[i], {"kind": "no_signal"}, ctx.physical,
+            ctx.search.polygon_resolution,
+            observable_information=ctx.search.observable_update,
+            hidden_radius=float(np.mean(ctx.radius_samples))).diameter
         ds = []
-        for g, r in zip(targets, ctx.radius_samples):
-            if np.linalg.norm(g - grid[i]) > r:
-                ds.append(first_diam)
+        for g, r in zip(ctx.posterior_points, ctx.radius_samples):
+            distance = np.linalg.norm(g - grid[i])
+            if distance <= ctx.physical.near_radius:
+                ds.append(0.0)
+            elif distance > r:
+                ds.append(no_signal)
             else:
                 ds.append(min(first_diam, bounded_linearized_diameter(
-                    [ctx.sensor1, grid[i]], g,
-                    math.radians(ctx.physical.bearing_error_deg))))
-        proxy[i] = max(ds) if minimax else float(np.mean(ds))
-    shortlist = idx[np.argsort(proxy[idx])[:min(ctx.search.shortlist_size, len(idx))]]
-    rng = np.random.default_rng(ctx.seed + (8101 if minimax else 7103))
-    n = min(ctx.search.objective_target_samples, len(targets))
-    take = rng.choice(len(targets), n, replace=False)
-    errors = np.linspace(-1.0, 1.0, ctx.search.objective_error_samples) * math.radians(
-        ctx.physical.bearing_error_deg)
-    exact = proxy.copy()
-    exact_details = {}
+                    [ctx.sensor1, grid[i]], g, half_width)))
+        values[i] = max(ds) if minimax else float(np.mean(ds))
+    return values
+
+
+def _exact_surface(ctx, grid, shortlist, target_indices, errors, weights,
+                   minimax):
+    values = np.full(len(grid), np.inf)
     for i in shortlist:
-        ds = []
-        for j in take:
-            for e in errors:
-                reg = _hypothetical_region(ctx, grid[i], targets[j],
-                                           ctx.radius_samples[j], e)
-                ds.append(region_area_diameter(reg)[1])
-        exact[i] = max(ds) if minimax else float(np.mean(ds))
-        exact_details[int(i)] = ds
-    return c, idx, exact, shortlist, exact_details
+        ds, ws = [], []
+        for j in target_indices:
+            for e, w in zip(errors, weights):
+                update = _hypothetical_update(
+                    ctx, grid[i], ctx.posterior_points[j],
+                    ctx.radius_samples[j], e)
+                ds.append(update.diameter)
+                ws.append(w)
+        values[i] = max(ds) if minimax else float(np.average(ds, weights=ws))
+    return values
+
+
+def _refinement_points(centres, previous_step, step, factor):
+    radius = previous_step * factor
+    offsets = np.arange(-radius, radius + 1e-9, step)
+    pts = np.array([c + (dx, dy) for c in centres
+                    for dx in offsets for dy in offsets], dtype=float)
+    return np.unique(np.round(pts, 8), axis=0)
+
+
+def _diameter_search(ctx, minimax=False):
+    rng = np.random.default_rng(ctx.seed + (8101 if minimax else 7103))
+    n = min(ctx.search.objective_target_samples, len(ctx.posterior_points))
+    target_indices = np.sort(rng.choice(len(ctx.posterior_points), n,
+                                        replace=False))
+    errors, weights = _error_quadrature(ctx)
+    levels, all_points, all_values = [], [], []
+    steps = [ctx.search.grid_step]
+    if ctx.search.coarse_to_fine:
+        steps.extend(ctx.search.refine_steps)
+    centres = None
+    previous_step = ctx.search.grid_step
+    exact_count = 0
+    for level, step in enumerate(steps, start=1):
+        level_start = time.perf_counter()
+        if centres is None:
+            candidates, idx = _pool(ctx)
+        else:
+            points = _refinement_points(
+                centres, previous_step, step, ctx.search.refine_radius_factor)
+            candidates, idx = _pool(ctx, points)
+        grid = candidates["points"]
+        proxy = _proxy_surface(ctx, grid, idx, minimax)
+        shortlist = idx[np.argsort(proxy[idx])[:min(ctx.search.shortlist_size,
+                                                    len(idx))]]
+        exact = _exact_surface(ctx, grid, shortlist, target_indices,
+                               errors, weights, minimax)
+        exact_count += len(shortlist) * len(target_indices) * len(errors)
+        order = shortlist[np.argsort(exact[shortlist])]
+        centres = grid[order[:min(ctx.search.refine_top_k, len(order))]]
+        best = int(order[0])
+        levels.append({"level": level, "step_m": float(step),
+                       "candidate_count": int(len(idx)),
+                       "exact_candidate_count": int(len(shortlist)),
+                       "best_x": float(grid[best, 0]),
+                       "best_y": float(grid[best, 1]),
+                       "best_objective": float(exact[best]),
+                       "runtime_s": time.perf_counter() - level_start})
+        all_points.extend(grid.tolist())
+        all_values.extend(exact.tolist())
+        previous_step = step
+    final = levels[-1]
+    diagnostics = {"grid_points": all_points,
+                   "objective_surface": all_values,
+                   "maximize": False, "search_levels": levels,
+                   "exact_objective_evaluation_count": exact_count,
+                   "target_sample_count": len(target_indices),
+                   "error_sample_count": len(errors),
+                   "observable_information_update": ctx.search.observable_update}
+    return np.array([final["best_x"], final["best_y"]]), \
+        final["best_objective"], sum(x["candidate_count"] for x in levels), diagnostics
 
 
 def select_expected_diameter(ctx):
     start = time.perf_counter()
-    c, idx, values, shortlist, details = _diameter_surface(ctx, False)
-    return _finish("expected_diameter", c["points"], shortlist, values, False,
-                   start, {"base_candidate_count": len(idx),
-                           "exact_shortlist_indices": shortlist.tolist()})
+    point, objective, count, diagnostics = _diameter_search(ctx, False)
+    return SelectionResult("expected_diameter", point, objective,
+                           time.perf_counter() - start, count, diagnostics)
 
 
 def select_minimax_diameter(ctx):
     start = time.perf_counter()
-    c, idx, values, shortlist, details = _diameter_surface(ctx, True)
-    return _finish("minimax_diameter", c["points"], shortlist, values, False,
-                   start, {"base_candidate_count": len(idx),
-                           "exact_shortlist_indices": shortlist.tolist()})
+    point, objective, count, diagnostics = _diameter_search(ctx, True)
+    return SelectionResult("minimax_diameter", point, objective,
+                           time.perf_counter() - start, count, diagnostics)
 
 
 def _entropy_from_counts(counts):

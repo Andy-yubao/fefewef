@@ -1,0 +1,4 @@
+error_model,n_scenarios,expected_diameter_mean_m,realized_diameter_mean_m,realized_diameter_p95_m,selected_point_shift_mean_m,selection_runtime_mean_s,candidate_count_mean,exact_evaluation_count_mean,selection_stability_within_100m,scenario_objective_rank_spearman
+uniform,12,44.649852317504404,47.788352259580314,67.86361991877732,0.0,4.046869183335123,279.3333333333333,12000.0,1.0,1.0
+truncated_gaussian,12,44.66976278461556,47.788352259580314,67.86361991877732,0.0,4.008760241669127,279.3333333333333,12000.0,1.0,1.0
+endpoint,12,44.56229594702075,47.788352259580314,67.86361991877732,0.0,2.0087229083304314,279.3333333333333,4800.0,1.0,1.0
