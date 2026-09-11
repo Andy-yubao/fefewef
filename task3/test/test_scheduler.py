@@ -8,6 +8,7 @@ from task3.src.channel_state import Observation, initialize_channels
 from task3.src.config import PhysicalConfig, PlannerConfig
 from task3.src.coverage import seven_points
 from task3.src.geometry import CellGrid
+from task3.src.policies import POLICIES
 from task3.src.scheduler import ActionKind, Scheduler
 
 
@@ -31,3 +32,13 @@ def test_channel_switch_cost_is_constant_not_channel_distance() -> None:
     costs = [physical.switch_s if c != current else 0.0 for c in (2, 10, 20)]
     assert costs == [1.0, 1.0, 1.0]
 
+
+def test_candidate_020_registry_resolves_complete_online_configuration() -> None:
+    spec = POLICIES["candidate_020_grid5_center_approach"]
+    planner = PlannerConfig(**spec.planner_overrides)
+    scheduler = Scheduler(spec.mode, spec.local_family, PhysicalConfig(), planner)
+    assert scheduler.mode == "hybrid"
+    assert scheduler.local_family == "center_approach"
+    assert planner.grid_step_m == 5.0
+    assert planner.local_channel_limit == 3
+    assert planner.local_action_limit == 3

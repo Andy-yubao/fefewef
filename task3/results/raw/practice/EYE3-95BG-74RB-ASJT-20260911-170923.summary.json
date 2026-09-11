@@ -1,0 +1,514 @@
+{
+  "success": true,
+  "termination_reason": "coverage_certificate_and_all_found_cleared",
+  "cleared_count": 11,
+  "known_total": null,
+  "clear_ratio": null,
+  "virtual_time_s": 4748.648074,
+  "average_localize_clear_s": 431.6952794545454,
+  "wall_runtime_s": 1.8852081839995662,
+  "coverage_completed": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+  ],
+  "action_count": 170,
+  "diagnostics": [
+    {
+      "type": "decision",
+      "kind": "SEARCH",
+      "position": [
+        919.2533317427733,
+        -771.3451316238475
+      ],
+      "channel": null,
+      "score_s": 3213.8084598868327,
+      "source": "coverage_next",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        1079.9999999999998,
+        -1023.0127018922192
+      ],
+      "channel": 5,
+      "score_s": 2486.2960767410996,
+      "source": "candidate_ring",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "SEARCH",
+      "position": [
+        -208.37781320031743,
+        -1181.7693036146495
+      ],
+      "channel": null,
+      "score_s": 2443.8699699001954,
+      "source": "coverage_next",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "SEARCH",
+      "position": [
+        -1127.63114494309,
+        -410.4241719908024
+      ],
+      "channel": null,
+      "score_s": 1952.2308151347718,
+      "source": "coverage_next",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "SEARCH",
+      "position": [
+        -919.2533317427735,
+        771.3451316238474
+      ],
+      "channel": null,
+      "score_s": 1388.884610146226,
+      "source": "coverage_next",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "SEARCH",
+      "position": [
+        208.3778132003165,
+        1181.7693036146495
+      ],
+      "channel": null,
+      "score_s": 1026.7196819708786,
+      "source": "coverage_next",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "SEARCH",
+      "position": [
+        1127.63114494309,
+        410.42417199080245
+      ],
+      "channel": null,
+      "score_s": 703.0878288410381,
+      "source": "coverage_next",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        386.0,
+        202.0
+      ],
+      "channel": 18,
+      "score_s": 548.9038485544279,
+      "source": "centroid+task2_geometry",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        410.0,
+        -40.0
+      ],
+      "channel": 7,
+      "score_s": 415.0566793405136,
+      "source": "mec_center+task2_geometry",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "CLEAR",
+      "position": [
+        410.0,
+        -50.0
+      ],
+      "channel": 7,
+      "score_s": 190.03439638249236,
+      "source": "finite_cell_cover",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        -40.0,
+        380.0
+      ],
+      "channel": 1,
+      "score_s": 473.98841853820556,
+      "source": "mec_center+task2_expected_diameter",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        -670.0,
+        80.0
+      ],
+      "channel": 12,
+      "score_s": 482.3670134619376,
+      "source": "mec_center+task2_geometry",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        -820.0,
+        -700.0
+      ],
+      "channel": 10,
+      "score_s": 383.6004780023379,
+      "source": "candidate_ring",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        -1224.142135623731,
+        -555.857864376269
+      ],
+      "channel": 10,
+      "score_s": 309.1474147804576,
+      "source": "chebyshev_center+task2_geometry",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        -180.0,
+        -630.0
+      ],
+      "channel": 15,
+      "score_s": 426.8628952644717,
+      "source": "mec_center+task2_geometry",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        -180.0,
+        -620.0
+      ],
+      "channel": 15,
+      "score_s": 207.29716864019528,
+      "source": "mec_center+task2_geometry",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "CLEAR",
+      "position": [
+        -190.0,
+        -630.0
+      ],
+      "channel": 15,
+      "score_s": 110.7677810729245,
+      "source": "finite_cell_cover",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        -180.0,
+        -390.0
+      ],
+      "channel": 6,
+      "score_s": 246.96865742901207,
+      "source": "mec_center+task2_geometry",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        -784.142135623731,
+        1215.857864376269
+      ],
+      "channel": 16,
+      "score_s": 505.9830118614081,
+      "source": "chebyshev_center+task2_geometry",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        -800.0,
+        1210.0
+      ],
+      "channel": 16,
+      "score_s": 164.6569172835801,
+      "source": "mec_center+task2_expected_diameter",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        -270.0,
+        1480.0
+      ],
+      "channel": 11,
+      "score_s": 182.03614599372904,
+      "source": "candidate_ring+task2_e_optimal",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        -538.2842712474618,
+        1230.0
+      ],
+      "channel": 9,
+      "score_s": 141.98436932525323,
+      "source": "chebyshev_center",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        -550.0,
+        1230.0
+      ],
+      "channel": 9,
+      "score_s": 68.80408029036589,
+      "source": "mec_center+task2_geometry",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        240.0,
+        1730.0
+      ],
+      "channel": 11,
+      "score_s": 224.45949865168674,
+      "source": "mec_center+task2_geometry",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        1570.0,
+        -493.3333333333333
+      ],
+      "channel": 5,
+      "score_s": 542.2328390765449,
+      "source": "centroid+task2_geometry",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        1580.0,
+        -480.0
+      ],
+      "channel": 5,
+      "score_s": 25.178749392875456,
+      "source": "mec_center+task2_geometry",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        1580.0,
+        -490.0
+      ],
+      "channel": 5,
+      "score_s": 23.366563148399496,
+      "source": "mec_center+task2_e_optimal",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "CLEAR",
+      "position": [
+        1570.0,
+        -490.0
+      ],
+      "channel": 5,
+      "score_s": 12.73606797849979,
+      "source": "finite_cell_cover",
+      "certified": false
+    }
+  ],
+  "time_breakdown": {
+    "movement_s": 3748.6480725246565,
+    "switching_s": 150.0,
+    "measurement_s": 795.0,
+    "optical_s": 33.0,
+    "laser_s": 22.0
+  },
+  "channel_status": {
+    "1": "cleared",
+    "2": "absent",
+    "3": "absent",
+    "4": "absent",
+    "5": "cleared",
+    "6": "cleared",
+    "7": "cleared",
+    "8": "absent",
+    "9": "cleared",
+    "10": "cleared",
+    "11": "cleared",
+    "12": "cleared",
+    "13": "absent",
+    "14": "absent",
+    "15": "cleared",
+    "16": "cleared",
+    "17": "absent",
+    "18": "cleared",
+    "19": "absent",
+    "20": "absent"
+  },
+  "first_discovery_time_s": 5.0,
+  "mean_found_to_clear_s": 2901.6640258181815,
+  "per_channel_timing": {
+    "1": {
+      "first_found_virtual_time_s": 5.0,
+      "cleared_virtual_time_s": 2724.541882,
+      "found_to_clear_s": 2719.541882
+    },
+    "5": {
+      "first_found_virtual_time_s": 388.0,
+      "cleared_virtual_time_s": 4748.648074,
+      "found_to_clear_s": 4360.648074
+    },
+    "6": {
+      "first_found_virtual_time_s": 35.0,
+      "cleared_virtual_time_s": 3424.996632,
+      "found_to_clear_s": 3389.996632
+    },
+    "7": {
+      "first_found_virtual_time_s": 41.0,
+      "cleared_virtual_time_s": 2589.058951,
+      "found_to_clear_s": 2548.058951
+    },
+    "9": {
+      "first_found_virtual_time_s": 53.0,
+      "cleared_virtual_time_s": 4004.173264,
+      "found_to_clear_s": 3951.173264
+    },
+    "10": {
+      "first_found_virtual_time_s": 1193.349146,
+      "cleared_virtual_time_s": 3135.772325,
+      "found_to_clear_s": 1942.423179
+    },
+    "11": {
+      "first_found_virtual_time_s": 1913.349146,
+      "cleared_virtual_time_s": 4202.159895,
+      "found_to_clear_s": 2288.8107489999998
+    },
+    "12": {
+      "first_found_virtual_time_s": 71.0,
+      "cleared_virtual_time_s": 2875.098322,
+      "found_to_clear_s": 2804.098322
+    },
+    "15": {
+      "first_found_virtual_time_s": 89.0,
+      "cleared_virtual_time_s": 3365.954983,
+      "found_to_clear_s": 3276.954983
+    },
+    "16": {
+      "first_found_virtual_time_s": 1571.349146,
+      "cleared_virtual_time_s": 3787.525877,
+      "found_to_clear_s": 2216.176731
+    },
+    "18": {
+      "first_found_virtual_time_s": 107.0,
+      "cleared_virtual_time_s": 2527.421517,
+      "found_to_clear_s": 2420.421517
+    }
+  },
+  "repository": {
+    "commit": "585b8af5cf867c7e6a8dfa3b26062ae5d23c50af",
+    "dirty": true
+  },
+  "configuration": {
+    "ClientConfig": {
+      "base_url": "http://172.26.112.1:2027",
+      "arena_id": "default",
+      "robot_id": "<redacted>",
+      "timeout_s": 5.0,
+      "retries": 3,
+      "retry_backoff_s": 0.2
+    },
+    "PhysicalConfig": {
+      "target_radius_m": 1800.0,
+      "reception_min_m": 1000.0,
+      "reception_max_m": 1500.0,
+      "bearing_error_deg": 1.0,
+      "near_radius_m": 5.0,
+      "clear_radius_m": 20.0,
+      "speed_mps": 5.0,
+      "measure_s": 5.0,
+      "switch_s": 1.0,
+      "optical_s": 3.0,
+      "laser_s": 2.0,
+      "max_sources": 16,
+      "min_sources": 10,
+      "channels": 20
+    },
+    "PlannerConfig": {
+      "ring_radius_m": 1200.0,
+      "grid_step_m": 20.0,
+      "numeric_distance_tol_m": 1e-07,
+      "numeric_angle_tol_deg": 1e-06,
+      "clear_margin_m": 0.25,
+      "local_action_limit": 3,
+      "max_bearings_before_fallback": 6,
+      "fallback_cell_threshold": 0,
+      "local_offset_m": 500.0,
+      "candidate_ring_count": 12,
+      "geometry_travel_weight": 1e-05,
+      "local_channel_limit": 3,
+      "route_geometry_quality_fraction": 0.8,
+      "route_geometry_next_weight": 0.5,
+      "shared_measurement_limit": 0,
+      "shared_min_sin_angle": 0.3,
+      "coverage_found_measurement_limit": 20,
+      "particle_count": 80,
+      "tail_weight": 0.2,
+      "risk_quantile": 0.9,
+      "route_insert_limit_m": 300.0,
+      "rotation_deg": 0.0,
+      "seed": 20260911,
+      "real_time_reserve_s": 10.0,
+      "max_actions": 30000,
+      "focus_after_upper_bound_discovered": false
+    }
+  },
+  "strategy": {
+    "policy_id": "champion_000_geometry_baseline",
+    "mode": "hybrid",
+    "local_family": "geometry",
+    "planner_overrides": {
+      "local_action_limit": 3
+    }
+  },
+  "case_id": "EYE3-95BG-74RB-ASJT",
+  "test_module": "problem3_practice"
+}

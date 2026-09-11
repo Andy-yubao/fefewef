@@ -109,7 +109,7 @@ Offline artifacts:
 
 ## Official simulator practice
 
-Two Problem 3 practice runs completed through a Windows simulator reachable from WSL. Do not persist the runtime team ID, service address, proxy, or credentials. The user must start each new practice in the GUI and provide a fresh case code.
+Four Problem 3 practice runs completed through a Windows simulator reachable from WSL. Do not persist the runtime team ID, service address, proxy, or credentials. The user must start each new practice in the GUI and provide a fresh case code.
 
 ### Practice 1: B3 hybrid-shortlist
 
@@ -153,20 +153,65 @@ The Geometry run improved the cross-case average by 11.709066 s/source (3.17%) a
 
 The aggregate is `task3/results/tables/practice_summary.csv`; the paper material is `task3/report/problem3_report_katex.md`.
 
+### Practice 3: stable champion Geometry baseline
+
+- Case: `GRT8-SCD6-UNQG-528K`
+- Policy interpretation after rereading this handoff: `champion_000_geometry_baseline`, executed as `hybrid + geometry + local_action_limit=3`
+- Source count: 14 clears plus complete seven-point absence certificates; GUI total still needs explicit cross-check
+- Cleared: 14 (100% under the problem assumptions and valid interface responses)
+- Completion: `coverage_certificate_and_all_found_cleared`
+- Coverage: 7/7
+- Virtual time: 4684.355693 s
+- Average: 334.596835 s/source
+- Wall time: 2.753333 s
+- Controller actions: 188
+- Accepted responses including enter/exit: 190
+- Network retries: 0
+- Time breakdown: movement 3585.355693, switching 159, measurement 870, optical 42, laser 28 s
+- Fallback clear misses: 0
+- Certified clears: 1; certified clear failures: 0
+- Raw log: `task3/results/raw/practice/GRT8-SCD6-UNQG-528K-20260911-165522.jsonl`
+- Summary: matching `.summary.json`
+
+The user described the offline work as optimized, but the durable optimization record does not promote any new candidate: all candidates remain smoke/small-probe evidence. Therefore this online run deliberately used the stable historical Geometry champion, not `candidate_020` or another unvalidated candidate.
+
+### Practice 4: experimental candidate 020
+
+- Case: `GKW6-72AQ-J2CJ-DY5A`
+- Policy: `candidate_020_grid5_center_approach`
+- Resolved configuration: `hybrid + center_approach`, 5 m hard grid, local channel limit 3, local action limit 3
+- Source count: 11 clears plus complete seven-point absence certificates; GUI total still needs explicit cross-check
+- Cleared: 11 (100% under the problem assumptions and valid interface responses)
+- Completion: `coverage_certificate_and_all_found_cleared`
+- Coverage: 7/7
+- Virtual time: 4774.150930 s
+- Average: 434.013721 s/source
+- Wall time: 6.963582 s
+- Controller actions: 177
+- Accepted responses including enter/exit: 179
+- Network retries: 0
+- Time breakdown: movement 3741.150930, switching 148, measurement 830, optical 33, laser 22 s
+- Per-source time: movement 340.104630, switching 13.454545, measurement 75.454545, optical 3, laser 2 s
+- Certified clears: 4; the other seven clears followed `near`
+- Fallback and certified clear failures: 0
+- Raw log: `task3/results/raw/practice/GKW6-72AQ-J2CJ-DY5A-20260911-170011.jsonl`
+- Summary: matching `.summary.json`
+
+This cross-case result is worse than the prior champion practice on average time per source (434.014 versus 334.597 s/source), mostly due to movement (340.105 versus 256.097 s/source). The cases differ, so this does not reject candidate 020 statistically; it also does not provide promotion evidence. Keep the stable Geometry champion as the default.
+
 ## Working-tree state
 
-Before this documentation request, `git status --short` showed:
+Immediately after Practice 3 and before updating these documents, `git status --short` showed:
 
 ```text
-M  task3/experiments/run_practice.py
-M  task3/report/problem3_report_katex.md
-M  task3/results/raw/practice/J2TJ-2H73-YG5X-Y4AZ-20260911-132112.summary.json
 M  task3/results/tables/practice_summary.csv
-?? task3/results/raw/practice/WBBE-W933-ZBEX-DQ7B-20260911-145148.jsonl
-?? task3/results/raw/practice/WBBE-W933-ZBEX-DQ7B-20260911-145148.summary.json
+?? task3/results/raw/practice/GRT8-SCD6-UNQG-528K-20260911-165522.jsonl
+?? task3/results/raw/practice/GRT8-SCD6-UNQG-528K-20260911-165522.summary.json
 ```
 
-`task3/README.md` and this `task3/HANDOFF.md` are also changed/new by the documentation request. Re-run `git status --short` before editing. Do not discard or reset these files. Do not touch `task3/prompt.md`.
+`task3/README.md`, this `task3/HANDOFF.md`, and the problem-3 report were then updated with Practice 3. Re-run `git status --short` before editing. Do not discard or reset these files. Do not touch `task3/prompt.md`.
+
+Afterward, the practice/main CLI gained registered `--policy` support so candidate 020 could be loaded without dropping its 5 m grid override. `task3/test/test_scheduler.py` now checks that complete resolution, the exception summary redacts the team ID, and the latest regression is 33 passed. Practice 4 added another raw log and summary plus refreshed documentation and the aggregate table.
 
 ## Known performance issues
 

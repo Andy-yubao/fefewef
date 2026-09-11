@@ -1,0 +1,611 @@
+{
+  "success": true,
+  "termination_reason": "coverage_certificate_and_all_found_cleared",
+  "cleared_count": 11,
+  "known_total": 11,
+  "clear_ratio": 1.0,
+  "virtual_time_s": 4774.15093,
+  "average_localize_clear_s": 434.01372090909086,
+  "wall_runtime_s": 6.963582059001055,
+  "coverage_completed": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+  ],
+  "action_count": 177,
+  "diagnostics": [
+    {
+      "type": "decision",
+      "kind": "SEARCH",
+      "position": [
+        771.3451316238471,
+        -919.2533317427738
+      ],
+      "channel": null,
+      "score_s": 2902.6963931405653,
+      "source": "coverage_next",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "SEARCH",
+      "position": [
+        -410.42417199080325,
+        -1127.6311449430898
+      ],
+      "channel": null,
+      "score_s": 2596.3641879778834,
+      "source": "coverage_next",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "SEARCH",
+      "position": [
+        -1181.7693036146497,
+        -208.37781320031604
+      ],
+      "channel": null,
+      "score_s": 2037.0783314075584,
+      "source": "coverage_next",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "SEARCH",
+      "position": [
+        -771.3451316238468,
+        919.253331742774
+      ],
+      "channel": null,
+      "score_s": 1460.7952325017382,
+      "source": "coverage_next",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "SEARCH",
+      "position": [
+        410.42417199080256,
+        1127.63114494309
+      ],
+      "channel": null,
+      "score_s": 1237.9384423874221,
+      "source": "coverage_next",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "SEARCH",
+      "position": [
+        1181.7693036146495,
+        208.3778132003164
+      ],
+      "channel": null,
+      "score_s": 960.4467377415544,
+      "source": "coverage_next",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        791.0,
+        -280.0
+      ],
+      "channel": 14,
+      "score_s": 639.8762311966569,
+      "source": "mec_center",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        386.5047393364929,
+        -971.1611374407582
+      ],
+      "channel": 12,
+      "score_s": 644.3741175565804,
+      "source": "centroid",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        296.7290313388962,
+        -988.0681416465931
+      ],
+      "channel": 12,
+      "score_s": 480.5048329937132,
+      "source": "chebyshev_center",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        322.1116135138178,
+        -983.5776772972364
+      ],
+      "channel": 12,
+      "score_s": 426.23834206245044,
+      "source": "chebyshev_center",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        85.43616561668789,
+        -1115.436165616688
+      ],
+      "channel": 8,
+      "score_s": 456.0427650429246,
+      "source": "chebyshev_center",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        81.57002829714999,
+        -1115.8574929257124
+      ],
+      "channel": 8,
+      "score_s": 401.1349694941271,
+      "source": "chebyshev_center+task2_e_optimal",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "CLEAR",
+      "position": [
+        67.5,
+        -1117.5
+      ],
+      "channel": 8,
+      "score_s": 387.324525440531,
+      "source": "mec_certificate",
+      "certified": true
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        840.0,
+        -1237.5
+      ],
+      "channel": 18,
+      "score_s": 518.3071419253312,
+      "source": "mec_center",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        815.9375,
+        -1109.9479166666667
+      ],
+      "channel": 18,
+      "score_s": 348.169482877934,
+      "source": "centroid",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        830.0,
+        -1172.5
+      ],
+      "channel": 18,
+      "score_s": 325.8041011234981,
+      "source": "mec_center",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        1513.2358380670103,
+        -388.72639677835065
+      ],
+      "channel": 20,
+      "score_s": 492.49636952860743,
+      "source": "chebyshev_center",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "CLEAR",
+      "position": [
+        1525.0,
+        -390.0
+      ],
+      "channel": 20,
+      "score_s": 269.7492145521865,
+      "source": "mec_certificate",
+      "certified": true
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        655.0,
+        1342.5
+      ],
+      "channel": 1,
+      "score_s": 629.9824944903165,
+      "source": "mec_center",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        770.0,
+        1455.0
+      ],
+      "channel": 1,
+      "score_s": 252.8407829178129,
+      "source": "mec_center",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        827.5,
+        1512.5
+      ],
+      "channel": 1,
+      "score_s": 217.76259656690144,
+      "source": "mec_center",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        832.5000000000001,
+        1517.5
+      ],
+      "channel": 1,
+      "score_s": 187.98746103062004,
+      "source": "chebyshev_center+task2_e_optimal",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        837.5,
+        1522.5
+      ],
+      "channel": 1,
+      "score_s": 187.21276127227705,
+      "source": "chebyshev_center+task2_e_optimal",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        -950.0,
+        1465.0
+      ],
+      "channel": 17,
+      "score_s": 517.4510839515477,
+      "source": "mec_center",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        -948.8819660112501,
+        1460.2639320225003
+      ],
+      "channel": 17,
+      "score_s": 157.3802120304875,
+      "source": "chebyshev_center+task2_e_optimal",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        -945.2639320225002,
+        1453.0278640450003
+      ],
+      "channel": 17,
+      "score_s": 147.9305163955467,
+      "source": "chebyshev_center",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        -653.75,
+        263.75
+      ],
+      "channel": 2,
+      "score_s": 377.2408724144201,
+      "source": "mec_center",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "CLEAR",
+      "position": [
+        -657.5,
+        270.0
+      ],
+      "channel": 2,
+      "score_s": 127.0111475280678,
+      "source": "mec_certificate",
+      "certified": true
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        -1317.5,
+        173.75
+      ],
+      "channel": 19,
+      "score_s": 260.8510585656064,
+      "source": "mec_center+task2_expected_diameter",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "CLEAR",
+      "position": [
+        -1317.5,
+        162.5
+      ],
+      "channel": 19,
+      "score_s": 112.29647045802648,
+      "source": "mec_certificate",
+      "certified": true
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        -1487.5,
+        -220.0
+      ],
+      "channel": 4,
+      "score_s": 183.55136276786666,
+      "source": "mec_center",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        -1637.622950819672,
+        -220.0
+      ],
+      "channel": 4,
+      "score_s": 103.951151176538,
+      "source": "mec_center",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        -1712.5,
+        -217.5
+      ],
+      "channel": 4,
+      "score_s": 69.16724416264208,
+      "source": "mec_center",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        -1696.9098300562503,
+        -220.0
+      ],
+      "channel": 4,
+      "score_s": 42.65294655484888,
+      "source": "chebyshev_center",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        -1695.0,
+        -220.0
+      ],
+      "channel": 4,
+      "score_s": 26.67872309377316,
+      "source": "chebyshev_center+task2_e_optimal",
+      "certified": false
+    },
+    {
+      "type": "decision",
+      "kind": "LOCALIZE",
+      "position": [
+        -670.0,
+        -555.0
+      ],
+      "channel": 5,
+      "score_s": 227.56547299959365,
+      "source": "mec_center",
+      "certified": false
+    }
+  ],
+  "time_breakdown": {
+    "movement_s": 3741.1509295042183,
+    "switching_s": 148.0,
+    "measurement_s": 830.0,
+    "optical_s": 33.0,
+    "laser_s": 22.0
+  },
+  "channel_status": {
+    "1": "cleared",
+    "2": "cleared",
+    "3": "absent",
+    "4": "cleared",
+    "5": "cleared",
+    "6": "absent",
+    "7": "absent",
+    "8": "cleared",
+    "9": "absent",
+    "10": "absent",
+    "11": "absent",
+    "12": "cleared",
+    "13": "absent",
+    "14": "cleared",
+    "15": "absent",
+    "16": "absent",
+    "17": "cleared",
+    "18": "cleared",
+    "19": "cleared",
+    "20": "cleared"
+  },
+  "first_discovery_time_s": 11.0,
+  "mean_found_to_clear_s": 3033.1262056363635,
+  "per_channel_timing": {
+    "1": {
+      "first_found_virtual_time_s": 1804.0,
+      "cleared_virtual_time_s": 3598.939321,
+      "found_to_clear_s": 1794.9393209999998
+    },
+    "2": {
+      "first_found_virtual_time_s": 11.0,
+      "cleared_virtual_time_s": 4237.570152,
+      "found_to_clear_s": 4226.570152
+    },
+    "4": {
+      "first_found_virtual_time_s": 1096.0,
+      "cleared_virtual_time_s": 4547.479884,
+      "found_to_clear_s": 3451.4798840000003
+    },
+    "5": {
+      "first_found_virtual_time_s": 29.0,
+      "cleared_virtual_time_s": 4774.15093,
+      "found_to_clear_s": 4745.15093
+    },
+    "8": {
+      "first_found_virtual_time_s": 47.0,
+      "cleared_virtual_time_s": 2691.481677,
+      "found_to_clear_s": 2644.481677
+    },
+    "12": {
+      "first_found_virtual_time_s": 418.0,
+      "cleared_virtual_time_s": 2617.685176,
+      "found_to_clear_s": 2199.685176
+    },
+    "14": {
+      "first_found_virtual_time_s": 83.0,
+      "cleared_virtual_time_s": 2413.09413,
+      "found_to_clear_s": 2330.09413
+    },
+    "17": {
+      "first_found_virtual_time_s": 1504.0,
+      "cleared_virtual_time_s": 3980.215521,
+      "found_to_clear_s": 2476.215521
+    },
+    "18": {
+      "first_found_virtual_time_s": 448.0,
+      "cleared_virtual_time_s": 2907.61769,
+      "found_to_clear_s": 2459.61769
+    },
+    "19": {
+      "first_found_virtual_time_s": 113.0,
+      "cleared_virtual_time_s": 4384.216413,
+      "found_to_clear_s": 4271.216413
+    },
+    "20": {
+      "first_found_virtual_time_s": 364.0,
+      "cleared_virtual_time_s": 3128.937368,
+      "found_to_clear_s": 2764.937368
+    }
+  },
+  "repository": {
+    "commit": "585b8af5cf867c7e6a8dfa3b26062ae5d23c50af",
+    "dirty": true
+  },
+  "configuration": {
+    "ClientConfig": {
+      "base_url": "http://172.26.112.1:2027",
+      "arena_id": "default",
+      "robot_id": "<redacted>",
+      "timeout_s": 5.0,
+      "retries": 3,
+      "retry_backoff_s": 0.2
+    },
+    "PhysicalConfig": {
+      "target_radius_m": 1800.0,
+      "reception_min_m": 1000.0,
+      "reception_max_m": 1500.0,
+      "bearing_error_deg": 1.0,
+      "near_radius_m": 5.0,
+      "clear_radius_m": 20.0,
+      "speed_mps": 5.0,
+      "measure_s": 5.0,
+      "switch_s": 1.0,
+      "optical_s": 3.0,
+      "laser_s": 2.0,
+      "max_sources": 16,
+      "min_sources": 10,
+      "channels": 20
+    },
+    "PlannerConfig": {
+      "ring_radius_m": 1200.0,
+      "grid_step_m": 5.0,
+      "numeric_distance_tol_m": 1e-07,
+      "numeric_angle_tol_deg": 1e-06,
+      "clear_margin_m": 0.25,
+      "local_action_limit": 3,
+      "max_bearings_before_fallback": 6,
+      "fallback_cell_threshold": 0,
+      "local_offset_m": 500.0,
+      "candidate_ring_count": 12,
+      "geometry_travel_weight": 1e-05,
+      "local_channel_limit": 3,
+      "route_geometry_quality_fraction": 0.8,
+      "route_geometry_next_weight": 0.5,
+      "shared_measurement_limit": 0,
+      "shared_min_sin_angle": 0.3,
+      "coverage_found_measurement_limit": 20,
+      "particle_count": 80,
+      "tail_weight": 0.2,
+      "risk_quantile": 0.9,
+      "route_insert_limit_m": 300.0,
+      "rotation_deg": 0.0,
+      "seed": 20260911,
+      "real_time_reserve_s": 10.0,
+      "max_actions": 30000,
+      "focus_after_upper_bound_discovered": false
+    }
+  },
+  "strategy": {
+    "policy_id": "candidate_020_grid5_center_approach",
+    "mode": "hybrid",
+    "local_family": "center_approach",
+    "planner_overrides": {
+      "grid_step_m": 5.0,
+      "local_channel_limit": 3
+    }
+  },
+  "case_id": "GKW6-72AQ-J2CJ-DY5A",
+  "test_module": "problem3_practice"
+}
