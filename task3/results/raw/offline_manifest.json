@@ -1,0 +1,78 @@
+{
+  "task3/src/__init__.py": {
+    "sha256": "4628aae2b4c7179b74493f101f396b4366106a211d53fb8df7d5cbe307c972c7",
+    "bytes": 80
+  },
+  "task3/src/channel_state.py": {
+    "sha256": "7c4d370da0799efb00988e1410b9aa4c4b95e822523c439ec9aafe5e747ba115",
+    "bytes": 8389
+  },
+  "task3/src/client.py": {
+    "sha256": "276aca1cfdfbc8210b7591e2311587491569f392df233c97ff8d63f20b74845c",
+    "bytes": 7014
+  },
+  "task3/src/config.py": {
+    "sha256": "5468ce4d39b73b8ac1e15b6625f2fac5c1c44ab4f5963f0f714bf63b4c566bd8",
+    "bytes": 1619
+  },
+  "task3/src/controller.py": {
+    "sha256": "933421655cb704b335b50f9775cb820cd7675a135aca645935fad29fe6fd1d4f",
+    "bytes": 11813
+  },
+  "task3/src/coverage.py": {
+    "sha256": "66b106ff3d3793b258ebdb86cbbd0aa226998bd70fbc045b9703f771f2d757d2",
+    "bytes": 3961
+  },
+  "task3/src/geometry.py": {
+    "sha256": "612cc479cddff7e0aad9868ac690988e73b223edb191631ea867a192c045f5a2",
+    "bytes": 9039
+  },
+  "task3/src/local_planner.py": {
+    "sha256": "9125d7dcd20bacd3fc77284c03a5b91e9eb7583c29e838d9ff72f3dd23fece7c",
+    "bytes": 11565
+  },
+  "task3/src/main.py": {
+    "sha256": "82046adb17d73d15e082f41f5bbb894fff320873402afd62ce553baac3cae3b2",
+    "bytes": 3894
+  },
+  "task3/src/mock_simulator.py": {
+    "sha256": "9d13f49834c44cde5e7d876a9e8c4d20c322fe23264bc3668fab9a4883552807",
+    "bytes": 6130
+  },
+  "task3/src/scheduler.py": {
+    "sha256": "21784a436116e408725829310c678a0d2c12178b57f387137200480fe9dc2f5e",
+    "bytes": 8454
+  },
+  "task3/experiments/run_offline.py": {
+    "sha256": "e99c4642fd588a67dafad0b2a7949cf82aba45365f80607dcceebd46ee939b11",
+    "bytes": 4791
+  },
+  "task3/experiments/analyze_results.py": {
+    "sha256": "3807e1aae97b93a1955ec0bfef5ff68bdd72fe6ef26b9a78e2c6fd7f614d8ab6",
+    "bytes": 7136
+  },
+  "task3/requirements.txt": {
+    "sha256": "8bc96acc44b1e8ef8cd668dfe8c55d4cbe03c02d4954886b9debead25c559771",
+    "bytes": 60
+  },
+  "task3/results/raw/offline_runs.jsonl.gz": {
+    "sha256": "98acb8dcc830e63c93786de9c1990b9750c397c8d175a65ff27bf2458a9187de",
+    "bytes": 6391498
+  },
+  "task3/results/tables/offline_paired_vs_two_stage.csv": {
+    "sha256": "af4a01bdf06356d3b41814dea6b58ec01ad3884c5c4403f705753185d61de4a2",
+    "bytes": 968
+  },
+  "task3/results/tables/offline_strategy_summary.csv": {
+    "sha256": "57b88dc7d099a302d4828c45fca91f254ddde7e361b142e63f0610979b378001",
+    "bytes": 4265
+  },
+  "task3/results/figures/offline_virtual_time_boxplot.png": {
+    "sha256": "5e2769e747d27f8ef0cd56d4b6aa8f8452e551c795d03c4d015d239989b8b550",
+    "bytes": 82333
+  },
+  "task3/results/figures/offline_virtual_time_ecdf.png": {
+    "sha256": "d995ef9ffcbeef096d88e6524f6df81e34b07a2334bd78aebd6faf52d1819463",
+    "bytes": 153940
+  }
+}
