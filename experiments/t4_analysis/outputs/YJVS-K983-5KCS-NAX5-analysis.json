@@ -1,0 +1,225 @@
+{
+  "strategy": "deferred",
+  "total_actions": 671,
+  "accepted_actions": 671,
+  "measurements": 658,
+  "unique_measure_positions": 49,
+  "measure_result_counts": {
+    "direction": 47,
+    "no_signal": 611
+  },
+  "no_signal_rate": 0.9285714285714286,
+  "clear_attempts": 11,
+  "clear_successes": 11,
+  "first_clear_action": 660,
+  "last_measure_action": 659,
+  "all_clears_after_last_measure": true,
+  "discovered_channels": [
+    1,
+    3,
+    4,
+    7,
+    10,
+    11,
+    13,
+    14,
+    18,
+    19,
+    20
+  ],
+  "undiscovered_channels": [
+    2,
+    5,
+    6,
+    8,
+    9,
+    12,
+    15,
+    16,
+    17
+  ],
+  "no_signal_measurements_on_eventually_discovered_channels": 170,
+  "final_virtual_time_s": 12529.850766,
+  "channel_stats": {
+    "1": {
+      "measurements": 28,
+      "no_signal": 21,
+      "direction": 7,
+      "near": 0,
+      "first_signal_action": 2,
+      "first_signal_virtual_time_s": 5,
+      "last_measure_action": 431
+    },
+    "2": {
+      "measurements": 49,
+      "no_signal": 49,
+      "direction": 0,
+      "near": 0,
+      "first_signal_action": null,
+      "first_signal_virtual_time_s": null,
+      "last_measure_action": 651
+    },
+    "3": {
+      "measurements": 36,
+      "no_signal": 33,
+      "direction": 3,
+      "near": 0,
+      "first_signal_action": 477,
+      "first_signal_virtual_time_s": 6575,
+      "last_measure_action": 521
+    },
+    "4": {
+      "measurements": 9,
+      "no_signal": 4,
+      "direction": 5,
+      "near": 0,
+      "first_signal_action": 5,
+      "first_signal_virtual_time_s": 23,
+      "last_measure_action": 161
+    },
+    "5": {
+      "measurements": 49,
+      "no_signal": 49,
+      "direction": 0,
+      "near": 0,
+      "first_signal_action": null,
+      "first_signal_virtual_time_s": null,
+      "last_measure_action": 652
+    },
+    "6": {
+      "measurements": 49,
+      "no_signal": 49,
+      "direction": 0,
+      "near": 0,
+      "first_signal_action": null,
+      "first_signal_virtual_time_s": null,
+      "last_measure_action": 653
+    },
+    "7": {
+      "measurements": 27,
+      "no_signal": 22,
+      "direction": 5,
+      "near": 0,
+      "first_signal_action": 8,
+      "first_signal_virtual_time_s": 41,
+      "last_measure_action": 423
+    },
+    "8": {
+      "measurements": 49,
+      "no_signal": 49,
+      "direction": 0,
+      "near": 0,
+      "first_signal_action": null,
+      "first_signal_virtual_time_s": null,
+      "last_measure_action": 654
+    },
+    "9": {
+      "measurements": 49,
+      "no_signal": 49,
+      "direction": 0,
+      "near": 0,
+      "first_signal_action": null,
+      "first_signal_virtual_time_s": null,
+      "last_measure_action": 655
+    },
+    "10": {
+      "measurements": 48,
+      "no_signal": 44,
+      "direction": 4,
+      "near": 0,
+      "first_signal_action": 556,
+      "first_signal_virtual_time_s": 7889,
+      "last_measure_action": 646
+    },
+    "11": {
+      "measurements": 8,
+      "no_signal": 4,
+      "direction": 4,
+      "near": 0,
+      "first_signal_action": 92,
+      "first_signal_virtual_time_s": 1025,
+      "last_measure_action": 149
+    },
+    "12": {
+      "measurements": 49,
+      "no_signal": 49,
+      "direction": 0,
+      "near": 0,
+      "first_signal_action": null,
+      "first_signal_virtual_time_s": null,
+      "last_measure_action": 656
+    },
+    "13": {
+      "measurements": 10,
+      "no_signal": 6,
+      "direction": 4,
+      "near": 0,
+      "first_signal_action": 14,
+      "first_signal_virtual_time_s": 77,
+      "last_measure_action": 186
+    },
+    "14": {
+      "measurements": 13,
+      "no_signal": 9,
+      "direction": 4,
+      "near": 0,
+      "first_signal_action": 170,
+      "first_signal_virtual_time_s": 1973,
+      "last_measure_action": 235
+    },
+    "15": {
+      "measurements": 49,
+      "no_signal": 49,
+      "direction": 0,
+      "near": 0,
+      "first_signal_action": null,
+      "first_signal_virtual_time_s": null,
+      "last_measure_action": 657
+    },
+    "16": {
+      "measurements": 49,
+      "no_signal": 49,
+      "direction": 0,
+      "near": 0,
+      "first_signal_action": null,
+      "first_signal_virtual_time_s": null,
+      "last_measure_action": 658
+    },
+    "17": {
+      "measurements": 49,
+      "no_signal": 49,
+      "direction": 0,
+      "near": 0,
+      "first_signal_action": null,
+      "first_signal_virtual_time_s": null,
+      "last_measure_action": 659
+    },
+    "18": {
+      "measurements": 12,
+      "no_signal": 8,
+      "direction": 4,
+      "near": 0,
+      "first_signal_action": 19,
+      "first_signal_virtual_time_s": 107,
+      "last_measure_action": 223
+    },
+    "19": {
+      "measurements": 22,
+      "no_signal": 18,
+      "direction": 4,
+      "near": 0,
+      "first_signal_action": 295,
+      "first_signal_virtual_time_s": 3683,
+      "last_measure_action": 365
+    },
+    "20": {
+      "measurements": 4,
+      "no_signal": 1,
+      "direction": 3,
+      "near": 0,
+      "first_signal_action": 41,
+      "first_signal_virtual_time_s": 359,
+      "last_measure_action": 81
+    }
+  }
+}

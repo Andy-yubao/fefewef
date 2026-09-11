@@ -1,0 +1,227 @@
+{
+  "metrics": {
+    "strategy": "early_stop",
+    "seed": 114,
+    "emitter_count": 11,
+    "directional_count": 3,
+    "cleared_count": 10,
+    "clear_rate": 0.9090909090909091,
+    "all_cleared": false,
+    "average_localize_clear_time_s": 827.1954187450644,
+    "virtual_time_s": 8271.954187450645,
+    "movement_time_s": 5384.954187450645,
+    "movement_distance_m": 26924.770937253234,
+    "measure_time_s": 2365.0,
+    "measure_count": 473,
+    "no_signal_count": 431,
+    "no_signal_rate": 0.9112050739957717,
+    "direction_count": 42,
+    "near_count": 0,
+    "channel_switch_count": 472,
+    "optical_count": 10,
+    "clear_attempt_count": 10,
+    "clear_success_count": 10,
+    "directional_loss_count": 3,
+    "directional_reacquisition_count": 3,
+    "mean_first_seen_time_s": 2016.4448520771653,
+    "max_first_seen_time_s": 4813.498573952725,
+    "first_clear_time_s": 2743.811079369968,
+    "last_clear_time_s": 7329.34535763464,
+    "measurements_before_first_clear": 200,
+    "wall_time_s": 0.024899099000322167
+  },
+  "strategy_result": {
+    "strategy": "early_stop",
+    "cleared_channels": [
+      2,
+      3,
+      4,
+      5,
+      8,
+      9,
+      11,
+      14,
+      18,
+      19
+    ],
+    "seen_channels": [
+      2,
+      3,
+      4,
+      5,
+      8,
+      9,
+      11,
+      14,
+      18,
+      19
+    ],
+    "first_seen_virtual_s": {
+      "2": 4548.498231,
+      "3": 289.0,
+      "4": 295.0,
+      "5": 4813.498574,
+      "8": 2495.0,
+      "9": 2817.953485,
+      "11": 65.0,
+      "14": 4348.498231,
+      "18": 107.0,
+      "19": 385.0
+    },
+    "final_virtual_time_s": 8271.954187,
+    "action_count": 485,
+    "wall_time_s": 0.02489701999729732
+  },
+  "truth": {
+    "seed": 114,
+    "emitter_count": 11,
+    "directional_count": 3,
+    "cleared_count": 10,
+    "clear_rate": 0.9090909090909091,
+    "all_cleared": false,
+    "virtual_time_s": 8271.954187450645,
+    "first_seen_time_s": {
+      "11": 65.0,
+      "18": 107.0,
+      "3": 289.0,
+      "4": 295.0,
+      "19": 385.0,
+      "8": 2495.0,
+      "9": 2817.9534850291075,
+      "14": 4348.498230894911,
+      "2": 4548.498230894911,
+      "5": 4813.498573952725
+    },
+    "clear_success_time_s": {
+      "11": 2743.811079369968,
+      "4": 3039.3656824086916,
+      "9": 3653.571892495159,
+      "8": 3740.7123721607286,
+      "18": 4651.109335549959,
+      "3": 5251.958151761841,
+      "2": 5424.89920604569,
+      "19": 5736.177355825369,
+      "14": 7028.709839931433,
+      "5": 7329.34535763464
+    },
+    "first_clear_time_s": 2743.811079369968,
+    "last_clear_time_s": 7329.34535763464,
+    "measurements_before_first_clear": 200,
+    "directional_loss_count": 3,
+    "directional_reacquisition_count": 3,
+    "stats": {
+      "movement_distance_m": 26924.770937253234,
+      "movement_time_s": 5384.954187450645,
+      "measure_time_s": 2365.0,
+      "measure_count": 473,
+      "no_signal_count": 431,
+      "direction_count": 42,
+      "near_count": 0,
+      "channel_switch_count": 472,
+      "clear_attempt_count": 10,
+      "clear_success_count": 10,
+      "optical_count": 10
+    },
+    "emitters": [
+      {
+        "channel": 19,
+        "x": -1334.8432158467351,
+        "y": -320.50160804121356,
+        "receive_radius_m": 1186.1995471185658,
+        "directional": false,
+        "direction_deg": null,
+        "cleared": true
+      },
+      {
+        "channel": 4,
+        "x": 738.9699994600721,
+        "y": -1319.55579040285,
+        "receive_radius_m": 1398.217951739093,
+        "directional": true,
+        "direction_deg": 142.27565854618345,
+        "cleared": true
+      },
+      {
+        "channel": 11,
+        "x": 1236.8243771287966,
+        "y": -641.034645505551,
+        "receive_radius_m": 1442.2547421216393,
+        "directional": false,
+        "direction_deg": null,
+        "cleared": true
+      },
+      {
+        "channel": 8,
+        "x": 1299.0487790692807,
+        "y": -131.34682194979877,
+        "receive_radius_m": 1217.6472791355238,
+        "directional": false,
+        "direction_deg": null,
+        "cleared": true
+      },
+      {
+        "channel": 2,
+        "x": -1210.4779124598456,
+        "y": 158.46536124662873,
+        "receive_radius_m": 1111.9084762973357,
+        "directional": false,
+        "direction_deg": null,
+        "cleared": true
+      },
+      {
+        "channel": 3,
+        "x": -1506.5096939106593,
+        "y": -631.2344088736063,
+        "receive_radius_m": 1342.5364901316955,
+        "directional": false,
+        "direction_deg": null,
+        "cleared": true
+      },
+      {
+        "channel": 9,
+        "x": 1676.5168713775083,
+        "y": -314.6493461762842,
+        "receive_radius_m": 1287.9798995753135,
+        "directional": false,
+        "direction_deg": null,
+        "cleared": true
+      },
+      {
+        "channel": 14,
+        "x": -815.8649732602979,
+        "y": 1195.155214475385,
+        "receive_radius_m": 1394.4890944771444,
+        "directional": false,
+        "direction_deg": null,
+        "cleared": true
+      },
+      {
+        "channel": 18,
+        "x": -436.0974892527941,
+        "y": 658.4289485013891,
+        "receive_radius_m": 1050.016631555525,
+        "directional": false,
+        "direction_deg": null,
+        "cleared": true
+      },
+      {
+        "channel": 13,
+        "x": 1530.97602863611,
+        "y": 621.2540147821007,
+        "receive_radius_m": 1136.0106369103078,
+        "directional": true,
+        "direction_deg": 31.53231262133424,
+        "cleared": false
+      },
+      {
+        "channel": 5,
+        "x": -815.2150087303039,
+        "y": 315.0776764315597,
+        "receive_radius_m": 1236.54683216178,
+        "directional": true,
+        "direction_deg": 149.32109271528424,
+        "cleared": true
+      }
+    ]
+  }
+}

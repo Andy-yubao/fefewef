@@ -1,0 +1,4 @@
+seed,strategy,emitter_count,directional_count,cleared_count,all_cleared,virtual_time_s,movement_distance_m,measure_count,no_signal_count,direction_count,near_count,first_clear_time_s,distinct_measure_positions,source_log,figure
+869462,opportunistic,12,4,12,True,9185.017497040175,32550.087485200867,436,398,38,0,770.4732150751213,37,experiments/t4_analysis/outputs/random3/seed_869462.json,seed_869462_path.svg
+379913,opportunistic,12,6,12,True,9594.361081533887,32646.80540766944,501,454,47,0,714.6864132388953,38,experiments/t4_analysis/outputs/random3/seed_379913.json,seed_379913_path.svg
+24546,opportunistic,14,10,14,True,9956.296813218403,36086.484066092016,445,403,42,0,701.5373776808453,37,experiments/t4_analysis/outputs/random3/seed_24546.json,seed_24546_path.svg

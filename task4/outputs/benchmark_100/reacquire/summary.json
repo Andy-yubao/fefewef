@@ -1,0 +1,35 @@
+{
+  "strategy": "reacquire",
+  "cases": 100,
+  "aggregate_clear_rate": 1.0,
+  "all_clear_case_rate": 1.0,
+  "mean_average_localize_clear_time_s": 1225.4457969788743,
+  "p95_average_localize_clear_time_s": 1479.866642567593,
+  "mean_virtual_time_s": 15250.727787009075,
+  "p50_virtual_time_s": 15500.994943656402,
+  "p90_virtual_time_s": 16352.27182193644,
+  "p95_virtual_time_s": 16727.872529361455,
+  "max_virtual_time_s": 17205.684671995492,
+  "mean_movement_distance_m": 60868.538935045384,
+  "mean_movement_time_s": 12173.707787009074,
+  "mean_measure_time_s": 2537.4,
+  "mean_measure_count": 507.48,
+  "mean_channel_switch_count": 475.92,
+  "mean_optical_count": 12.74,
+  "mean_clear_attempt_count": 12.74,
+  "mean_directional_loss_count": 3.75,
+  "mean_directional_reacquisition_count": 3.75,
+  "mean_first_seen_time_s": 4888.098489517022,
+  "mean_wall_time_s": 0.09302190111018717,
+  "total_wall_time_s": 9.302190111018717,
+  "failure_seeds": [],
+  "seed_start": 0,
+  "seed_end": 99,
+  "strategy_config": {
+    "grid_spacing": 600.0,
+    "grid_half_extent": 1800.0
+  },
+  "simulator_config": {
+    "directional_probability": 0.5
+  }
+}

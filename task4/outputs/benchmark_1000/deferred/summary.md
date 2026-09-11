@@ -1,0 +1,30 @@
+# T4 本地批量实验汇总
+
+- strategy: `deferred`
+- cases: `1000`
+- aggregate_clear_rate: `1.0`
+- all_clear_case_rate: `1.0`
+- mean_average_localize_clear_time_s: `955.4082062286668`
+- p95_average_localize_clear_time_s: `1243.9392797923736`
+- mean_virtual_time_s: `11938.349940076829`
+- p50_virtual_time_s: `12100.820565387688`
+- p90_virtual_time_s: `12662.387359821576`
+- p95_virtual_time_s: `12820.697496511739`
+- max_virtual_time_s: `13683.982296462336`
+- mean_movement_distance_m: `40812.49970038414`
+- mean_movement_time_s: `8162.499940076828`
+- mean_measure_time_s: `3093.83`
+- mean_measure_count: `618.766`
+- mean_channel_switch_count: `617.655`
+- mean_optical_count: `12.873`
+- mean_clear_attempt_count: `12.873`
+- mean_directional_loss_count: `6.578`
+- mean_directional_reacquisition_count: `6.578`
+- mean_first_seen_time_s: `2068.0204105394605`
+- mean_wall_time_s: `0.030369050294997577`
+- total_wall_time_s: `30.369050294997578`
+- failure_seeds: `[]`
+- seed_start: `0`
+- seed_end: `999`
+- strategy_config: `{'grid_spacing': 600.0, 'grid_half_extent': 1800.0}`
+- simulator_config: `{'directional_probability': 0.5}`

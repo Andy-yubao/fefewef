@@ -1,0 +1,53 @@
+{
+  "strategy": "early_stop",
+  "cases": 200,
+  "aggregate_clear_rate": 0.996484375,
+  "all_clear_case_rate": 0.96,
+  "mean_average_localize_clear_time_s": 746.8473185117285,
+  "p95_average_localize_clear_time_s": 986.0269884734145,
+  "mean_virtual_time_s": 9313.719113495483,
+  "p50_virtual_time_s": 9285.463992990904,
+  "p90_virtual_time_s": 10724.49573846587,
+  "p95_virtual_time_s": 11089.407252487003,
+  "max_virtual_time_s": 11807.850313131978,
+  "mean_movement_distance_m": 32243.045567477417,
+  "mean_movement_time_s": 6448.609113495482,
+  "mean_measure_time_s": 2335.475,
+  "mean_measure_count": 467.095,
+  "mean_no_signal_count": 421.9,
+  "mean_no_signal_rate": 0.9004352593664099,
+  "mean_direction_count": 45.19,
+  "mean_channel_switch_count": 465.86,
+  "mean_optical_count": 12.755,
+  "mean_clear_attempt_count": 12.755,
+  "mean_directional_loss_count": 7.335,
+  "mean_directional_reacquisition_count": 7.335,
+  "mean_first_seen_time_s": 1967.4197574634416,
+  "mean_first_clear_time_s": 1066.959912079888,
+  "mean_measurements_before_first_clear": 81.245,
+  "mean_wall_time_s": 0.02852641786015738,
+  "total_wall_time_s": 5.705283572031476,
+  "failure_seeds": [
+    35,
+    36,
+    47,
+    73,
+    114,
+    140,
+    154,
+    173
+  ],
+  "seed_start": 0,
+  "seed_end": 199,
+  "strategy_config": {
+    "grid_spacing": 600.0,
+    "grid_half_extent": 1800.0,
+    "lattice_spacing": 760.0,
+    "clear_detour_threshold_m": 1500.0,
+    "minimum_search_fraction": 0.8,
+    "discovery_patience": 7
+  },
+  "simulator_config": {
+    "directional_probability": 0.5
+  }
+}

@@ -1,0 +1,35 @@
+# T4 本地批量实验汇总
+
+- strategy: `belief`
+- cases: `500`
+- aggregate_clear_rate: `1.0`
+- all_clear_case_rate: `1.0`
+- mean_average_localize_clear_time_s: `855.1909797895413`
+- p95_average_localize_clear_time_s: `1116.3478108364864`
+- mean_virtual_time_s: `10811.974486128445`
+- p50_virtual_time_s: `10817.718901591412`
+- p90_virtual_time_s: `11636.3224086509`
+- p95_virtual_time_s: `11937.216726464649`
+- max_virtual_time_s: `12808.64209356774`
+- mean_movement_distance_m: `39222.90243064223`
+- mean_movement_time_s: `7844.580486128446`
+- mean_measure_time_s: `2420.13`
+- mean_measure_count: `484.026`
+- mean_no_signal_count: `440.738`
+- mean_no_signal_rate: `0.9080457797157115`
+- mean_direction_count: `43.286`
+- mean_channel_switch_count: `482.494`
+- mean_optical_count: `12.954`
+- mean_clear_attempt_count: `12.954`
+- mean_directional_loss_count: `13.62`
+- mean_directional_reacquisition_count: `13.62`
+- mean_first_seen_time_s: `1751.3579831873863`
+- mean_first_clear_time_s: `976.3306230374685`
+- mean_measurements_before_first_clear: `75.394`
+- mean_wall_time_s: `0.08287848558799306`
+- total_wall_time_s: `41.43924279399653`
+- failure_seeds: `[]`
+- seed_start: `2000`
+- seed_end: `2499`
+- strategy_config: `{'grid_spacing': 600.0, 'grid_half_extent': 1800.0, 'lattice_spacing': 760.0, 'clear_detour_threshold_m': 1500.0, 'particle_count': 1600, 'belief_seed': 20260911, 'assumed_directional_probability': 0.5, 'belief_travel_weight': 16.0}`
+- simulator_config: `{'directional_probability': 1.0}`
