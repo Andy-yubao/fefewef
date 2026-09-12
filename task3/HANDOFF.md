@@ -2,6 +2,12 @@
 
 最后更新：2026-09-12（Asia/Shanghai）
 
+## 本轮优化成果封存
+
+按用户要求停止继续搜索，保留代码、配置和全部实验记录。**本轮最佳完整验证候选为 `candidate_057_posterior_free`**：新配对 30 场、396/396 源全清，260.80 s/源；同批 041 为 287.54 s/源，降低 9.30%，30 场均改善。220 s/源尚未实现。049 是计算开销较低的备选。
+
+详见 [执行与封存记录](report/optimization_execution.md)、[冻结配置与代码哈希](results/tables/optimization_best_snapshot.json)、[完整对照表](results/tables/optimization_validation/summary.csv)。下文“当前采用模型”仍指既有正式基线 041；057 保留为本轮最佳实验候选，尚未经过原定大规模晋级验证，不自动替换正式默认。
+
 ## 当前采用模型
 
 唯一当前策略为：

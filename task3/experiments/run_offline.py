@@ -7,6 +7,7 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 from dataclasses import asdict
 from datetime import datetime, timezone
 import gzip
+import hashlib
 import json
 from pathlib import Path
 import subprocess
@@ -17,6 +18,7 @@ from task3.src.mock_simulator import MockSimulator, random_scenario
 from task3.src.policies import POLICIES, select_policy_ids
 from task3.src.task_driven_controller import TaskDrivenController
 from task3.src.dynamic_open_route_controller import DynamicOpenRouteController
+from task3.src.optimized_controller import OptimizedController
 
 
 def repository_version() -> dict[str, str | bool]:
@@ -45,6 +47,8 @@ def run_case(args: tuple[int, int, float, bool, int | None, list[str]]) -> list[
             result = TaskDrivenController(
                 mock, physical, planner, scenario.total
             ).run()
+        elif spec.controller == "optimized_open_route":
+            result = OptimizedController(mock, physical, planner, scenario.total).run()
         elif spec.controller == "dynamic_open_route":
             result = DynamicOpenRouteController(
                 mock, physical, planner, scenario.total
@@ -114,6 +118,10 @@ def main() -> None:
         "policies": {policy_id: asdict(POLICIES[policy_id]) for policy_id in policy_ids},
         "configuration": config_dict(PhysicalConfig(), PlannerConfig(seed=args.seed, grid_step_m=args.grid_step)),
         "repository": repository_version(),
+        "implementation_sha256": {
+            str(path.as_posix()): hashlib.sha256(path.read_bytes()).hexdigest()
+            for path in sorted(Path('task3/src').glob('*.py'))
+        },
         "error_model": "SHA256 location-fixed bounded error; independent locations differ deterministically",
     }
     tasks = [

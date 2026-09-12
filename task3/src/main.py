@@ -14,6 +14,7 @@ from .controller import SearchController
 from .policies import POLICIES
 from .task_driven_controller import TaskDrivenController
 from .dynamic_open_route_controller import DynamicOpenRouteController
+from .optimized_controller import OptimizedController
 from .scheduler import Scheduler
 
 
@@ -79,6 +80,8 @@ def main(argv: list[str] | None = None) -> int:
         controller = TaskDrivenController(
             client, PhysicalConfig(), planner, args.known_total
         )
+    elif controller_kind == "optimized_open_route":
+        controller = OptimizedController(client, PhysicalConfig(), planner, args.known_total)
     elif controller_kind == "dynamic_open_route":
         controller = DynamicOpenRouteController(
             client, PhysicalConfig(), planner, args.known_total

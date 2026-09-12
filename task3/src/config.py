@@ -72,6 +72,32 @@ class PlannerConfig:
     tsp_window_forward_deg: float = 90.0
     tsp_window_backward_deg: float = 30.0
     possible_opportunity_limit_per_source: int = 3
+    # Opt-in experiments; historical policies retain their original behavior.
+    completion_lookahead: bool = False
+    completion_sample_count: int = 5
+    exact_reception_region: bool = False
+    adaptive_search_certificate: bool = False
+    shared_stop_measurements: bool = False
+    optical_probe_limit: int = 0
+    optical_probe_min_fraction: float = 0.65
+    refine_certificate: bool = False
+    clear_region_routing: bool = False
+    improve_greedy_route: bool = False
+    joint_service_alternatives: bool = False
+    admit_ready_sources: bool = False
+    defer_clear_to_route: bool = False
+    free_coverage_order: bool = False
+    opportunistic_probe_budget: int = 0
+    opportunistic_probe_source_limit: int = 4
+    opportunistic_probe_min_gain_s: float = 1.0
+    posterior_completion: bool = False
+    aggressive_shared_search: bool = False
+    shared_search_min_fraction: float = 0.35
+    shared_search_measurement_budget: int = 80
+    adaptive_anchor_positions: bool = False
+    posterior_clear_rollout: bool = False
+    optical_probe_radius_m: float = 50.0
+    coverage_ring_vertices: int = 6
 
 
 @dataclass(frozen=True)

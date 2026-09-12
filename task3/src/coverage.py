@@ -36,13 +36,16 @@ def analytic_certificate(
     planner: PlannerConfig = PlannerConfig(),
 ) -> CoverageCertificate:
     """Compute the exact sixfold-symmetry upper bound used in the proof."""
-    half = math.pi / 6.0
+    count = planner.coverage_ring_vertices
+    if not isinstance(count, int) or not 3 <= count <= 12:
+        raise ValueError('coverage ring must have 3 through 12 vertices')
+    half = math.pi / count
     ring = planner.ring_radius_m
     target = physical.target_radius_m
     inner = ring / (2.0 * math.cos(half))
     boundary = math.sqrt(target * target + ring * ring - 2.0 * target * ring * math.cos(half))
     worst = max(inner, boundary)
-    centers = seven_points(planner.rotation_deg, ring)
+    centers = regular_coverage_points(planner.rotation_deg, ring, count)
     route = float(np.sum(np.linalg.norm(np.diff(centers, axis=0), axis=1)))
     return CoverageCertificate(
         centers=centers,
@@ -145,8 +148,17 @@ def choose_orientation(
     return (-best[1]) % 60.0, bool(best[2])
 
 
-def ordered_points(rotation_deg: float, reverse: bool, ring_radius_m: float = 1200.0) -> np.ndarray:
-    points = seven_points(rotation_deg, ring_radius_m)
+def regular_coverage_points(rotation_deg: float, ring_radius_m: float, count: int = 6) -> np.ndarray:
+    if count == 6:
+        return seven_points(rotation_deg, ring_radius_m)
+    theta = math.radians(rotation_deg) + np.arange(count) * (2.0 * math.pi / count)
+    return np.vstack((np.zeros((1, 2)),
+                      np.column_stack((ring_radius_m*np.cos(theta),ring_radius_m*np.sin(theta)))))
+
+
+def ordered_points(rotation_deg: float, reverse: bool, ring_radius_m: float = 1200.0,
+                   ring_vertices: int = 6) -> np.ndarray:
+    points = regular_coverage_points(rotation_deg, ring_radius_m, ring_vertices)
     if reverse:
         points = np.vstack((points[0], points[:0:-1]))
     return points

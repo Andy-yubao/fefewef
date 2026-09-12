@@ -568,7 +568,7 @@ class DynamicOpenRouteController(SearchController):
                 guard=target.kind == RouteNodeKind.GUARD,
             )
             state = self.channels[target.channel]
-            safe = state.safe_clear_point() if state.status == ChannelStatus.FOUND else None
+            safe = self._immediate_clear_point(state) if state.status == ChannelStatus.FOUND else None
             if safe is not None:
                 self._record_clear(
                     safe, target.channel, "immediate_clear_after_service_measurement",
@@ -604,7 +604,7 @@ class DynamicOpenRouteController(SearchController):
         for state in self.channels.values():
             self._refresh_tsp_window(state)
             self._refresh_cross_view_window(state)
-        nodes, anchors = build_candidate_nodes(
+        nodes, anchors = self._build_route_nodes(
             current_position=position,
             progress=self.progress,
             coverage=self.coverage,
@@ -655,7 +655,7 @@ class DynamicOpenRouteController(SearchController):
         })
         if first is None:
             return None, None
-        guard = self.crossing_guard.check(position, first, self.progress, self.channels)
+        guard = self._check_guard(position, first)
         self.diagnostics.append({
             "type": "angular_crossing_guard",
             "channel": guard.channel,
@@ -669,6 +669,18 @@ class DynamicOpenRouteController(SearchController):
             "response_level": guard.level.value,
         })
         return first, guard
+
+    def _build_route_nodes(self, **kwargs: Any) -> tuple[list[RouteNode], list[int]]:
+        return build_candidate_nodes(**kwargs)
+
+    def _immediate_clear_point(self, state: Any) -> np.ndarray | None:
+        return state.safe_clear_point()
+
+    def _check_guard(self, position: np.ndarray, first: RouteNode) -> GuardDecision:
+        return self.crossing_guard.check(position, first, self.progress, self.channels)
+
+    def _search_complete(self) -> bool:
+        return len(self.coverage_completed) == len(self.coverage)
 
     def _statistics(self, reason: str) -> None:
         assert self.progress is not None
@@ -727,7 +739,7 @@ class DynamicOpenRouteController(SearchController):
         self.progress.update(np.asarray(self.client.position, float))
 
         while self.action_count < self.planner.max_actions:
-            complete = len(self.coverage_completed) == len(self.coverage)
+            complete = self._search_complete()
             done, reason = termination_status(self.channels, complete, self.physical)
             if done or reason == "invalid_below_problem_lower_bound":
                 self._statistics(reason)

@@ -61,7 +61,24 @@ class RoutePlanner:
             origin_bearings_deg, self.planner.rotation_deg,
             self.planner.orientation_strategy,
         )
+        if self.planner.coverage_ring_vertices != 6:
+            # Generalized rings are experimental free-order covers. Choose a
+            # bootstrap orientation using their actual radial rays, not a
+            # hypothetical six-point geometry.
+            import math
+            count = self.planner.coverage_ring_vertices
+            options = []
+            for rotation_candidate in np.linspace(0., 360./count, 12, endpoint=False):
+                angles = rotation_candidate + np.arange(count)*360./count
+                separation = min((min(abs((b-a+180.)%360.-180.) for a in angles)
+                                  for b in origin_bearings_deg), default=180.)
+                for reverse_candidate in (False,True):
+                    first = angles[-1] if reverse_candidate else angles[0]
+                    quality = sum(abs(math.sin(math.radians(b-first))) for b in origin_bearings_deg)
+                    options.append(((separation,quality,-rotation_candidate,-int(reverse_candidate)),
+                                    float(rotation_candidate),reverse_candidate))
+            _,rotation,reverse=max(options,key=lambda item:item[0])
         coverage = ordered_points(
-            rotation, reverse, self.planner.ring_radius_m
+            rotation, reverse, self.planner.ring_radius_m, self.planner.coverage_ring_vertices
         )
         return RoutePlan(coverage, rotation, reverse)

@@ -1,0 +1,15 @@
+policy,sources_per_case,cases,mean_time_per_source_s
+candidate_041_dynamic_open_route_deferred_cross_view,10,3,334.99711668740696
+candidate_041_dynamic_open_route_deferred_cross_view,11,5,319.98486128925873
+candidate_041_dynamic_open_route_deferred_cross_view,12,3,291.94683119842585
+candidate_041_dynamic_open_route_deferred_cross_view,13,2,285.8240798013678
+candidate_041_dynamic_open_route_deferred_cross_view,14,5,257.82784086440813
+candidate_041_dynamic_open_route_deferred_cross_view,15,10,253.14519726801137
+candidate_041_dynamic_open_route_deferred_cross_view,16,2,248.85166563954706
+candidate_049_joint_completion,10,3,316.77466231709275
+candidate_049_joint_completion,11,5,303.3112982856672
+candidate_049_joint_completion,12,3,277.3851239387849
+candidate_049_joint_completion,13,2,259.37398688407245
+candidate_049_joint_completion,14,5,241.46165776506678
+candidate_049_joint_completion,15,10,234.0683025512121
+candidate_049_joint_completion,16,2,231.3728207073331

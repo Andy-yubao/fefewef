@@ -1,0 +1,2 @@
+policy,cases,sources,successful_cases,all_clear,mean_case_s,total_time_per_source_s,ratio_ci_low_s,ratio_ci_high_s,p90_case_s,p95_case_s,max_case_s,mean_wall_s,max_wall_s,unexpected_clear_failures,mean_laser_s,mean_measurement_s,mean_movement_s,mean_optical_s,mean_switching_s
+candidate_053_free_order,5,79,5,True,3599.4929184377806,227.81600749606204,212.73118070483883,241.67406906907732,3769.3704205521626,3783.6279256053513,3797.88543065854,25.886801839998224,35.25759769999422,0,31.6,598.0,2815.4929184377806,49.2,105.2
