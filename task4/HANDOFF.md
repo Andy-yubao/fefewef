@@ -8,17 +8,22 @@ Deliver a runnable solution for CUMCM Problem B, Task 4: an official-compatible 
 
 ## Evidence boundary and current status
 
-- The implementation is runnable. There are 24 registered strategies, each with its own concrete strategy file, plus shared behavior in `base.py`.
-- The last executed test suite had 24/24 unit and integration tests passing, including HTTP tests.
-- The current CLI default and local recommendation are `early_optical_clear_probe` with `lattice_spacing=731`, `replacement_distance_m=400`, `max_replaced_waypoints=2`, and `early_clear_radius_m=30`.
-- Local evidence for that setting is 1000/1000 all-clear on seeds 0--999, 1000/1000 on disjoint seeds 1000--1999, 500/500 in all-directional stress, and 500/500 in all-omnidirectional stress.
-- An additional 1000 unique 32-bit seeds selected at run time from operating-system entropy were 1000/1000 all-clear: minimum/mean/median/P95/P99/maximum 5527.82/8909.21/8908.40/9967.15/10467.40/11133.29 s. The exact sampled seeds were persisted before execution.
+- The new independent `adaptive_double_ring_clear_probe` keeps the 25-point discovery certificate, permits 50 m early optical clearing with a certified center-plus-ten-point ring, probes at most two active channels at clear sites, and switches to reliable known-source completion as soon as 16 channels have been observed. The original double-ring implementation and CLI default remain unchanged. Locked-parameter validation used 1000 cases, all cleared: mixed 300 mean 6641.99→6377.34 s; all-directional 300 mean 7443.91→7056.22 s; fixed-16 mixed 200 mean 6337.99→5742.93 s, with full-clear-at-6000 rate 36%→62.5%; fixed-10 mixed 100 and all-omni 100 also passed. See [paired evidence and commands](../experiments/t4_analysis/outputs/toward6000_v2/REPORT.md). These are local results; this candidate has no official run and does not meet 6000 s on every case.
+
+- The implementation is runnable; strategies are independently registered, with shared behavior in `base.py`.
+- The latest full suite passed 49/49 unit and integration tests, including nine new adaptive-double-ring tests and the HTTP tests. The older CLI-default seed-257 and seed-918 reruns cleared 12/12 in 6933.93 s and 16/16 in 8535.89 s.
+- The current CLI default and risk-budgeted local recommendation are `geometry_early_optical_clear_probe` with `lattice_spacing=731`, `replacement_distance_m=550`, `max_replaced_waypoints=2`, `early_clear_radius_m=35`, and `route_length_slack_m=100`.
+- The baseline `double_ring_optical_clear_probe` uses a 25-point double-ring discovery cover with no waypoint replacement by default, a certified seven-disk fallback for 35 m feasible regions, and a full positive-bearing optical-strip endgame. A fresh mixed 1000 was 1000/1000 all-clear at mean/P95 6622.84/7716.41 s; a fresh all-directional 300 was 300/300 at 7486.88/8891.01 s. The current working-tree `task4/outputs/official-run.json` records this strategy clearing 16 distinct channels at 5681.439475 s, superseding the older same-filename account below. That is one online case, not an estimate of general performance; this turn did not make another official run.
+- The older `replacement_aware_clear_probe / 731 / 400 / 2` setting was 1000/1000 all-clear on seeds 0--999, 1000/1000 on disjoint seeds 1000--1999, 500/500 in all-directional stress, and 500/500 in all-omnidirectional stress.
+- An additional 1000 unique 32-bit seeds selected at run time from operating-system entropy were 1000/1000 all-clear for that older setting: minimum/mean/median/P95/P99/maximum 5527.82/8909.21/8908.40/9967.15/10467.40/11133.29 s. The exact sampled seeds were persisted before execution.
 - On those same random 1000, 30 m early optical was also 1000/1000 and reduced mean/P95/maximum to 8353.66/9290.72/10261.54 s. Paired random all-directional and all-omni sets of 200 each were all clear at 9075.41 and 7535.33 s mean.
-- Combining early optical with the robot-visible geometry route tie-break passed paired random 100/300 and 100-case directional/omni stresses. At 35 m it averaged 8095.16 s on the paired random 300 and is the current speed candidate pending a fresh OS-entropy 1000-case validation.
-- The seeds 0--999 mean is 8919.61 s with P95 9911.17 s. This is 2.36% below the prior `clear_probe / 735 / 400 / 2` recommendation, 10.88% below `opportunistic`, and 25.29% below `deferred`.
-- Only the old `deferred` strategy has been exercised against the official evaluator. None of the optimized strategies has official evidence yet. Never present the local numbers below as official scores.
+- Combining early optical with the robot-visible geometry route tie-break passed paired random 100/300 and 100-case directional/omni stresses. Its earlier 400 m version had a fresh OS-entropy random 1000 at 1000/1000 all-clear and minimum/mean/median/P95/P99/maximum 4299.72/8133.23/8186.92/8982.90/9498.41/10731.29 s.
+- A fresh OS-entropy all-directional 300 also passed 300/300 at minimum/mean/median/P95/maximum 6552.27/8833.18/8799.38/9812.92/10727.76 s. With zero failures, its one-sided 95% binomial upper bound is about 0.994%; this is evidence only for the stated local distribution.
+- At 550 m, a new OS-entropy mixed 1000 was 999/1000 at minimum/mean/median/P95/P99/maximum 5252.97/7878.29/7910.04/8836.33/9343.67/9794.08 s. A new all-directional 1000 was 998/1000 at 6302.65/8674.85/8642.54/9792.46/10302.60/10891.37 s. Their exact one-sided 95% incomplete-case upper bounds are 0.4735% and 0.6282%, below the approved 1% boundary.
+- The historical iteration-18 seeds 0--999 mean is 8919.61 s with P95 9911.17 s. This is 2.36% below the prior `clear_probe / 735 / 400 / 2` recommendation, 10.88% below `opportunistic`, and 25.29% below `deferred`.
+- One explicitly authorized official run now exists for the optimized default, in addition to the older `deferred` run. Never present local-batch numbers as official scores.
 - The official API never reveals the true emitter count. A list of successful clear calls does not prove full completion; the evaluator GUI must be checked.
-- The iteration-18--21 implementation, documents, and generated experiment outputs are currently uncommitted. Preserve the pre-existing user change in this handoff file and review `git status` before any commit.
+- The iteration-18--37 implementation, documents, and generated experiment outputs are currently uncommitted. Preserve the pre-existing user change in this handoff file and review `git status` before any commit.
 
 ## Rules that drive the design
 
@@ -44,6 +49,8 @@ Positive bearings are converted to intersections of +/-1.01-degree wedges, clipp
 The 731 m triangular lattice is the current base coverage. Under ideal problem geometry, every point in a triangular cell is within 731 m of all three vertices, and any half-plane through the source contains at least one cell vertex. Because 731 < the minimum 1000 m receive radius, an unmodified lattice supplies a discovery fallback for both omni and 180-degree directional sources. The narrow 730.5--735 m sweep found that 731 m is just above the tested topology transition from 43 to 37 generated points.
 
 Important distinction: `replacement_aware_clear_probe` still removes up to two unvisited lattice points within 400 m of a successful clear. Route awareness changes when clears are visited, not the proof status. Despite zero observed failures over 3000 final-candidate cases, its replacement reliability is empirical. `certified_clear_probe` is the slower alternative whose six-neighbor substitution has a local triangular coverage certificate.
+
+The current fused strategy raises that empirical radius to 550 m under the explicit <=1% incomplete-case allowance. Its mixed and all-directional confidence bounds satisfy that statistical boundary, but it has observed failures and does not restore the triangular-lattice proof.
 
 Offline diagnosis is isolated in `experiments/t4_analysis/`. An analyzer may use local truth only after a run for evaluation/plotting; it must never feed that truth back to a live strategy. The robot-visible log analyzer and persisted-summary comparator do not require simulator truth.
 
@@ -89,24 +96,28 @@ Offline diagnosis is isolated in `experiments/t4_analysis/`. An analyzer may use
 - `active_clear_probe`: measures active channels at every clear site; it helped directional tail metrics but added too many measurements.
 - `endgame_clear_probe`: orders residual active channels by their nearest route-compatible candidate; mixed-set behavior was unchanged.
 - `optimized_clear_probe`: combination ablation of multi-start, active clear probes, and endgame ordering; movement fell but extra measurements made it slower than multi-start alone.
-- `replacement_aware_clear_probe`: current default; multi-start rolling open 2-opt plans over the node set expected after successful 400 m/two-point clear-site substitutions.
-- `early_optical_clear_probe`: current default; iteration-18 routing plus a 30 m feasible-radius optical target and a 5 m failed-target retry shift.
+- `replacement_aware_clear_probe`: former default; multi-start rolling open 2-opt plans over the node set expected after successful 400 m/two-point clear-site substitutions.
+- `early_optical_clear_probe`: conservative fallback; iteration-18 routing plus a 30 m feasible-radius optical target and a 5 m failed-target retry shift.
 - `ida_heuristic_clear_probe`: depth-3 IDA*-inspired `g+h`/bearing-geometry route evaluator; rejected after an all-directional random failure.
 - `geometry_aware_clear_probe`: chooses among near-equal open routes by robot-visible active-bearing crossing geometry; faster in small batches but unsafe because seed 257 regressed.
 - `certified_geometry_clear_probe`: applies that route tie-break to six-neighbor certified substitution; the next proof-oriented candidate for larger validation.
-- `geometry_early_optical_clear_probe`: combines early optical clearing with the active-bearing geometry route tie-break; the 35 m/100 m-slack setting is the current speed candidate.
+- `geometry_early_optical_clear_probe`: current default; combines 35 m early optical clearing with the active-bearing geometry route tie-break and 100 m route slack.
+- `guarded_ida_clear_probe`: applies depth-3 `g+h` only among routes meeting a first-step geometry gate; the safe 100% gate was slightly slower overall.
+- `relocate_geometry_clear_probe`: adds Or-opt-1 relocation after open 2-opt; rejected because rolling mean and wall time increased.
+- `geometry_replacement_clear_probe`: protects replacement candidates with high active-bearing geometry value; rejected after only a 2.67 s random-300 gain and no reduction in batch failures.
+- `double_ring_optical_clear_probe`: 25-point double-ring discovery cover with zero replacements by default, certified 35 m seven-disk clearing, and a full positive-bearing optical-strip fallback after radio reacquisition fails. It is the current sub-7000 candidate, not the CLI default.
 
-## Current `early_optical_clear_probe` decision loop
+## Current `geometry_early_optical_clear_probe` decision loop
 
 1. Maintain all unvisited 731 m triangular-lattice probes and all located-but-uncleared targets.
-2. For route scoring, provisionally remove up to two pending probes within 400 m of each located clear target, because a successful clear there will scan unresolved channels and substitute those points.
-3. Build deterministic nearest-neighbor routes from every possible first node, improve each with open 2-opt, and select the shortest; recompute after every action, with no forced return to an old route.
+2. For route scoring, provisionally remove up to two pending probes within 550 m of each located clear target, because a successful clear there will scan unresolved channels and substitute those points. This is an empirically validated risk setting, not a coverage certificate.
+3. Build deterministic nearest-neighbor routes from every possible first node and improve each with open 2-opt. Among routes no more than 100 m longer than the shortest, prefer the first node with the best robot-visible active-bearing crossing geometry; recompute after every action, with no forced return to an old route.
 4. At a coverage probe, scan only unresolved active/unseen channels; cleared channels are retired.
 5. Use bearing-wedge intersection to localize. As soon as the feasible set fits within optical tolerance, add it as a clear target; do not spend time estimating source direction.
 6. Only after a clear actually succeeds, scan unresolved channels at the same point and remove its actual nearest eligible probes. Failed clears do not delete coverage nodes.
 7. Alternate ascending/descending channel order according to the receiver's current channel. This changes switch time only, not geometry or detection outcomes.
 8. If a directional source is lost, record the negative without changing an active channel to absent. The base coverage and final reacquisition helper provide spatially distinct later observations.
-9. Once the feasible-region radius reaches 30 m, schedule its center for an optical attempt instead of waiting for 19.5 m. A failed 3 s attempt returns the channel to active status and cannot repeat until the estimated center shifts by 5 m.
+9. Once the feasible-region radius reaches 35 m, schedule its center for an optical attempt instead of waiting for 19.5 m. A failed 3 s attempt returns the channel to active status and cannot repeat until the estimated center shifts by 5 m.
 
 ## Research-derived lessons actually used
 
@@ -120,7 +131,9 @@ Offline diagnosis is isolated in `experiments/t4_analysis/`. An analyzer may use
 
 ## Official online evidence
 
-The only official run used `deferred` with a 600 m grid and 1800 m half-extent on case `YJVS-K983-5KCS-NAX5` through the forwarded endpoint `http://172.26.112.1:2027` with team ID `202609001035`.
+With explicit user authorization on 2026-09-12, the current `geometry_early_optical_clear_probe / 731 / 550 / 2 / 35 m / 100 m` default completed one official run through `http://172.26.112.1:2027`. All 534 requests were accepted. The robot made 520 measurements at 37 distinct positions (31 directions and 489 no-signals), attempted 12 clears, and succeeded on 11 channels: 1, 3, 4, 5, 6, 7, 9, 11, 15, 16, and 17. First clear was at 1271.55 s, movement was 33568.85 m, and final virtual time was 9856.77 s. The API did not disclose the total emitter count, so only the GUI can establish whether the case was fully cleared. The log is `task4/outputs/official-run.json`; robot-visible analysis and the path SVG are under `experiments/t4_analysis/outputs/official-run-analysis/` and `experiments/t4_analysis/outputs/official-run-figures/`. The overwritten prior log was preserved as `task4/outputs/official-run.pre-test-20260912.json`.
+
+The earlier official run used `deferred` with a 600 m grid and 1800 m half-extent on case `YJVS-K983-5KCS-NAX5` through the forwarded endpoint `http://172.26.112.1:2027` with team ID `202609001035`.
 
 It produced 671 accepted actions, 658 measurements, 611 `no_signal` responses (92.86%), and 11 successful clears. There were 49 unique measurement positions. The first clear was action 660 and the last measurement was action 659: every clear was end-loaded. There were 170 no-signals on channels that were eventually found. The API did not reveal total source count, so GUI confirmation is required before stating that this run fully cleared the case.
 
@@ -143,7 +156,7 @@ All results in this section are local-simulator evidence.
 - `belief` cut measurements/no-signals by roughly 9.6%/10.3% versus `opportunistic` but cost 0.43% mean total time. Movement dominates the objective more than raw detection count.
 - Old `opportunistic` stress: all-directional 10682.0 s and all-omni 9217.0 s over 500 cases each, with zero failures.
 
-### Thirty-one optimization iterations
+### Thirty-seven optimization iterations
 
 | Iteration | Change | Cases | All-clear | Mean (s) | Decision |
 |---|---|---:|---:|---:|---|
@@ -176,6 +189,12 @@ All results in this section are local-simulator evidence.
 | 29 | Tighten geometry route slack to 60 m | regressions first | seed 3917738334 failed | 10188.1 failed case | Reject |
 | 30 | Depth-1 travel-minus-geometry `f` score | regressions first | seed 3917738334 failed | 10188.1 failed case | Reject |
 | 31 | Widen geometry route slack to 120 m | random 100 + regressions | 100% | 8038.2 | Reject: slower than 100 m slack |
+| 32 | Guard depth-3 `g+h` with a 90% geometry floor | regressions first | seed 3917738334 failed | 10188.1 failed case | Reject |
+| 33 | Tighten guarded IDA* floor to 100% | random 100 + 300, stresses, regressions | 100% all sets | 8098.3 on random 300 | Reject: slightly slower overall |
+| 34 | Add Or-opt-1 relocation after open 2-opt | random 100 + regressions | 100% | 8046.2 | Reject: mean/wall time worse |
+| 35 | Raise replacement radius to 450 m | paired sets + fresh mixed/directional 1000 + regressions | mixed 1000/1000; directional 999/1000 | 8048.6 fresh mixed | Met risk boundary |
+| 36 | Raise replacement radius to 550 m | paired sets + fresh mixed/directional 1000 + regressions | mixed 999/1000; directional 998/1000 | **7878.3 fresh mixed** | Current risk-budgeted default |
+| 37 | Geometry-aware replacement ranking | paired random 100/300 + regressions | 100/100; 299/300 | 7849.8 paired 300 | Reject: negligible gain, same failure |
 
 ### Final local comparisons
 
@@ -197,8 +216,12 @@ All results in this section are local-simulator evidence.
 | `early_optical_clear_probe`, all omni | paired random / 200 | 200/200 | **7535.33** | **8344.91** | 8650.84 | -- | 408.00 | 367.99 |
 | `geometry_early_optical_clear_probe`, 30 m | paired random / 300 | 300/300 | **8123.04** | **9097.49** | 9900.83 | 27916.35 | 417.96 | 379.47 |
 | `geometry_early_optical_clear_probe`, 35 m | paired random / 300 | 300/300 | **8095.16** | **9093.64** | 9890.49 | 27924.85 | 412.88 | 376.33 |
+| `geometry_early_optical_clear_probe`, 35 m | fresh OS random / 1000 | 1000/1000 | **8133.23** | **8982.90** | 10731.29 | 27973.86 | 417.66 | 381.30 |
 | `geometry_early_optical_clear_probe`, 35 m, all directional | paired random / 100 | 100/100 | **8881.02** | -- | -- | -- | 459.07 | 423.68 |
 | `geometry_early_optical_clear_probe`, 35 m, all omni | paired random / 100 | 100/100 | **7259.03** | -- | -- | -- | 366.04 | 329.08 |
+| `geometry_early_optical_clear_probe`, 35 m, all directional | fresh OS random / 300 | 300/300 | **8833.18** | **9812.92** | 10727.76 | 30328.83 | 455.99 | -- |
+| `geometry_early_optical_clear_probe`, 35 m, 550 m replace | fresh OS mixed / 1000 | 999/1000 | **7878.29** | **8836.33** | 9794.08 | 27063.89 | 405.27 | 368.64 |
+| `geometry_early_optical_clear_probe`, 35 m, 550 m replace, all directional | fresh OS random / 1000 | 998/1000 | **8674.85** | **9792.46** | 10891.37 | 29756.53 | 448.50 | 413.10 |
 
 `*` The holdout and stress runs predate the final channel-order-only change. Their positions, measurements, and all-clear outcomes remain applicable; their channel-switch/total-time figures do not include the final small switch saving.
 
@@ -227,7 +250,7 @@ The standalone feature report is based on the old final-1000 `opportunistic` dat
 - Fixed route optimization followed by forced return creates backtracking. Rolling joint routing is the useful part of the TSP idea.
 - EIG/particle scoring reduces probes and starts clearing earlier but, without a strong route constraint, extra travel outweighs its information benefit.
 - Early stopping produced 4--6% failures; even requiring 11--15 known sources still produced 0.6--4.2% failures. These apparent 9000 s-class results are invalid for the primary objective.
-- Clear-site replacement is non-monotonic because removing one point changes later rolling routes. Results: 400 m 1000/1000 tuning plus 1000/1000 holdout; 450 m failed seed 257; 500 m happened to pass 1000/1000 but lies between failing settings; 550 m failed seed 918; 600--675 m each 499/500; 700--750 m 497/500; 800 m 199/200 with two replacements and 198/200 with three. Keep 400 m unless explicitly accepting risk.
+- Clear-site replacement is non-monotonic because removing one point changes later rolling routes. Historical isolated sweeps found failures at 450/550 m and above. Under the later explicit <=1% risk allowance, the fused 550 m strategy was independently 999/1000 mixed and 998/1000 all-directional, with 95% upper bounds below 1%; use 400 m or a certified strategy when zero observed misses matters more than mean time.
 - Post-run failure analysis found different mechanisms: seed 918 had no actually visible executed probe for its missed directional source, while skipped lattice probes would have been visible; seed 257 detected its missed channel but lacked enough directional geometry to certify a clear. The final 731/400/2 candidate clears both regression cases.
 - Multi-start routing improved the 0--99 mean by 108.20 s. Making the route anticipate successful substitutions improved it by a further 35.70 s at 735 m. Moving to 731 m then lowered the final main-set mean to 8919.61 s.
 - Probing active channels at every clear site reduced the 100-case all-directional P95 and maximum, but extra measurements made the combined mixed-set strategy 11.65 s slower than multi-start alone. Residual-channel ordering had no mixed-set effect and only a 10.09 s all-directional mean improvement.
@@ -235,20 +258,23 @@ The standalone feature report is based on the old final-1000 `opportunistic` dat
 - Active-bearing route tie-breaking reduced both 100-case mixed means, but the uncertified form failed seed 257 even with route slack swept from 0 to 80 m. Small mean gains do not override a mandatory regression.
 - Combining the same tie-break with six-neighbor certified substitution cleared seeds 257/918 and four 100-case batches. Its main/holdout means were 8916.14/8757.53 s and directional/omni means 9659.16/8058.58 s. This is promising but not enough evidence to supersede a default validated over 3000 cases.
 - Full POMDP planning was not implemented. A dense five-dimensional belief per channel would be expensive and highly prior-sensitive. The particle implementation is retained as a tested heuristic/ablation, not the default.
-- The 8000 s target was not reached on the mixed distribution: the new evidence-backed mean is 8919.61 s. The final all-omni stress mean is 7876.72 s, but that distribution-specific result is not a mixed or official score.
+- The local mixed-distribution 8000 s target was reached only after accepting the stated risk budget: the current fresh-random-1000 mean is 7878.29 s with one incomplete case. This remains local evidence, not an official score.
 
 ## Current recommendation and fallback
 
-Use `early_optical_clear_probe` with exactly:
+Use `geometry_early_optical_clear_probe` locally with exactly:
 
 ```text
 lattice_spacing = 731 m
-replacement_distance_m = 400 m
+replacement_distance_m = 550 m
 max_replaced_waypoints = 2
-early_clear_radius_m = 30 m
+early_clear_radius_m = 35 m
+route_length_slack_m = 100 m
 ```
 
-It is the best evidence-backed mean-time choice. It inherits the no-forced-rejoin replacement-aware route and adds only the guarded 30 m optical attempt. It cleared the paired random 1000 and both random 200-case stress sets. Relative to its exact random-1000 baseline, mean/P95 improved by 6.24%/6.79%.
+It is the best evidence-backed local mean-time choice under the approved risk tolerance: its fresh OS-entropy mixed 1000 was 999/1000 at mean/P95 7878.29/8836.33 s, and its fresh all-directional 1000 was 998/1000 at 8674.85/9792.46 s. The corresponding exact one-sided 95% upper bounds on incomplete-case probability are about 0.4735% and 0.6282%. These bounds do not transfer automatically to the hidden official distribution.
+
+For a longer evidence history with less aggressive routing, use `early_optical_clear_probe / 731 / 400 / 2 / 30 m`: it cleared the paired random 1000 and both random 200-case stress sets, with random-1000 mean/P95 8353.66/9290.72 s.
 
 For the strongest tested substitution proof with the better small-sample mean, expand `certified_geometry_clear_probe / 735` first: its local six-neighbor triangle fan preserves the 1000 m half-plane discovery argument for each removed interior vertex, and it cleared both regressions plus four 100-case batches. Its evidence is still too small for promotion. `certified_clear_probe` is the simpler proof ablation (9277.52 s over 100 tuning cases). For the simplest conservative fallback, use `integrated_route` at 735 m with no coverage-point replacement; it was 1000/1000 locally at mean 9281.10 s and retains the unmodified lattice argument.
 
@@ -258,8 +284,9 @@ For the strongest tested substitution proof with the better small-sample mean, e
 - The local evaluator omits peripheral official behavior including concurrent-new-action 409 handling, 429 throttling, the GUI's wall-clock orchestration, and socket closure after GUI termination.
 - The local error is a deterministic hash into [-1,1] degrees to reproduce fixed same-location error. Its spatial correlation may differ from the official environment.
 - `replacement_aware_clear_probe` has no proof after its empirical 400 m replacement. Zero failures over the tested seed sets does not eliminate adversarial geometric holes; route awareness does not change that evidence boundary.
+- The current 550 m fused default deliberately spends the accepted risk budget: observed local failures remain regression evidence, not bugs to omit from reporting.
 - `no_signal` remains ambiguous. Belief updates can eliminate only hypotheses that would necessarily have been visible; they cannot prove channel absence without coverage/count logic.
-- `early_optical_clear_probe` has not been tested online. Official server semantics, distribution mismatch, or route edge cases may change performance.
+- Neither optimized early-optical strategy has been tested online. Official server semantics, distribution mismatch, or route edge cases may change performance.
 - Existing randomized path figures show the former strategy. Generate new `clear_probe` figures before using a path diagram in the paper.
 - The current local optimizer is fast, but the official test has a real-time limit and network retries; always respect `remaining_real_duration_s` and retain logs.
 
@@ -269,14 +296,14 @@ Emitter count is discrete uniform 10--16; channels are sampled without replaceme
 
 ## Next recommended optimization work
 
-1. Do not run any official action-producing command without fresh explicit user authorization. If later authorized, first use a rehearsal with `early_optical_clear_probe / 731 / 400 / 2 / 30m`, preserve client/evaluator logs, and verify the hidden total in the GUI.
-2. Re-run random path visualizations with `replacement_aware_clear_probe`; the current figures show old `opportunistic` and are stale.
-3. Keep seeds 0--999 for comparison and 1000--1999 as holdout. Prefer zero failures; if accepting a nonzero rate, require an estimated incomplete-case probability no greater than 1%, report uncertainty, and rerun both stress sets after any geometry/order change.
+1. Do not run another official action-producing command without fresh explicit user authorization. The 2026-09-12 run was individually authorized; that permission does not carry forward. Preserve both client and evaluator logs.
+2. Re-run random path visualizations with the current `geometry_early_optical_clear_probe`; the current figures show old `opportunistic` and are stale.
+3. Use saved OS-entropy manifests for paired A/B comparisons, then require fresh OS-entropy large batches for promotion. Prefer zero failures; if accepting a nonzero rate, require an estimated incomplete-case probability no greater than 1%, report uncertainty, and rerun both stress sets after any geometry/order change.
 4. Expand `certified_geometry_clear_probe / 735` to the full 1000 + 1000 + 500 + 500 protocol before considering promotion; then extend the certificate beyond the current single-clear six-neighbor fan if it remains competitive.
 5. Reduce multi-start compute without changing its selected first node, or add a route-aware bounded lookahead that directly prices measurement and replacement effects. Validate virtual movement and real wall time.
 6. Analyze the all-directional maximum separately: iteration 18 improved its mean/P95 but increased the observed maximum from 12012.90 to 12102.41 s.
 7. Keep seeds 257, 918, and all-directional 3917738334 as mandatory regressions. The latter rejects the IDA*-inspired route evaluator.
-8. The mixed mean remains 8919.61 s, so reaching 8000 requires a structural reduction in safe coverage travel or repeated absent-channel measurements, not another early-stop or large-radius shortcut.
+8. The fresh mixed mean is now 7878.29 s under the <=1% risk boundary. Further work should reduce replacement-induced directional holes without giving back the sub-8000 mean; do not use an early-stop shortcut.
 
 ## Exact reproduction commands
 
@@ -284,7 +311,7 @@ From repository root:
 
 ```bash
 python3 -m unittest discover -s task4/tests -v
-python3 -m task4.cli run --mode local --strategy early_optical_clear_probe --seed 42 --lattice-spacing 731 --early-clear-radius 30 --output task4/outputs/seed42.json
+python3 -m task4.cli run --mode local --strategy geometry_early_optical_clear_probe --seed 42 --lattice-spacing 731 --early-clear-radius 35 --route-length-slack 100 --output task4/outputs/seed42.json
 python3 -m task4.cli batch --strategy clear_probe --seed-start 0 --cases 1000 --output-dir experiments/t4_analysis/outputs/final_optimized1000/clear_probe_final
 python3 -m task4.cli batch --strategy integrated_route --seed-start 0 --cases 1000 --lattice-spacing 735 --output-dir experiments/t4_analysis/outputs/final_optimized1000/integrated735
 python3 -m task4.cli batch --strategy clear_probe --seed-start 1000 --cases 1000 --output-dir experiments/t4_analysis/outputs/final_optimized_holdout1000/probe400_rerun
@@ -321,7 +348,7 @@ Do not execute that command as a connectivity check: it calls `/enter` and consu
 
 1. Read `problem/B题/B题.md`, both attachment documents, `task4/README.md`, this file, and `experiments/t4_analysis/outputs/iterations/ITERATION_REPORT.md` before changing rules or claims.
 2. Run `git status --short`; the current work may still be untracked and belongs to the user/team.
-3. Run the 24-test suite, then reproduce seeds 42, 257, and 918 with the current default.
+3. Run the full test suite, then reproduce seeds 257, 918, 3917738334, and the current 550 m failure cases before changing replacement logic.
 4. Inspect actual persisted summaries before quoting numbers. Label local and official evidence separately.
 5. Keep production changes in `task4/`, simulator changes in `experiments/t4_local/`, and analysis-only programs in `experiments/t4_analysis/`.
 6. For every optimization: state a hypothesis, implement one controlled change, compare identical seeds, inspect failures/tails, and update both README and HANDOFF with actual—not planned—results.

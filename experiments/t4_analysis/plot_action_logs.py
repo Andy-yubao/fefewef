@@ -56,24 +56,47 @@ def summarize(payload: dict[str, Any]) -> dict[str, Any]:
 
     truth = payload.get("local_truth", {})
     stats = truth.get("stats", {})
+    strategy_result = payload.get("strategy_result", {})
+    successful_clears = sum(clear["success"] for clear in clears)
+    movement_distance = sum(
+        math.hypot(second[0] - first[0], second[1] - first[1])
+        for first, second in zip(route, route[1:])
+    )
+    response_times = [
+        action.get("response", {}).get("virtual_time_s") for action in actions
+    ]
+    response_times = [value for value in response_times if value is not None]
+    successful_clear_times = [
+        action.get("response", {}).get("virtual_time_s")
+        for action in actions
+        if action.get("path") == "/clear"
+        and action.get("response", {}).get("clear_result") == "success"
+    ]
     return {
         "seed": truth.get("seed"),
-        "strategy": payload.get("strategy_result", {}).get("strategy"),
+        "strategy": strategy_result.get("strategy"),
         "route": route,
         "measurements": measurements,
         "clears": clears,
         "emitters": truth.get("emitters", []),
         "emitter_count": truth.get("emitter_count"),
         "directional_count": truth.get("directional_count"),
-        "cleared_count": truth.get("cleared_count"),
+        "cleared_count": truth.get("cleared_count", successful_clears),
         "all_cleared": truth.get("all_cleared"),
-        "virtual_time_s": truth.get("virtual_time_s"),
-        "movement_distance_m": stats.get("movement_distance_m"),
+        "virtual_time_s": truth.get(
+            "virtual_time_s",
+            strategy_result.get(
+                "final_virtual_time_s", max(response_times, default=0.0)
+            ),
+        ),
+        "movement_distance_m": stats.get("movement_distance_m", movement_distance),
         "measure_count": stats.get("measure_count", sum(result_counts.values())),
         "no_signal_count": stats.get("no_signal_count", result_counts["no_signal"]),
         "direction_count": stats.get("direction_count", result_counts["direction"]),
         "near_count": stats.get("near_count", result_counts["near"]),
-        "first_clear_time_s": truth.get("first_clear_time_s"),
+        "first_clear_time_s": truth.get(
+            "first_clear_time_s", min(successful_clear_times, default=None)
+        ),
         "distinct_measure_positions": len(measurements),
     }
 
@@ -96,9 +119,16 @@ def render_svg(summary: dict[str, Any], path: Path) -> None:
             f'stroke="{stroke}" stroke-width="{stroke_width}" opacity="{opacity}"/>'
         )
 
+    case_label = (
+        f'Seed {summary["seed"]}' if summary["seed"] is not None else "Official log"
+    )
+    clear_label = (
+        f'{summary["cleared_count"]}/{summary["emitter_count"]} cleared'
+        if summary["emitter_count"] is not None
+        else f'{summary["cleared_count"]} successful clears; total unknown'
+    )
     title = (
-        f'Seed {summary["seed"]} | {summary["strategy"]} | '
-        f'{summary["cleared_count"]}/{summary["emitter_count"]} cleared | '
+        f'{case_label} | {summary["strategy"]} | {clear_label} | '
         f'{summary["virtual_time_s"]:.1f} s'
     )
     svg = [
@@ -168,9 +198,14 @@ def render_svg(summary: dict[str, Any], path: Path) -> None:
         ("#94a3b8", "no-signal-only measurement site"),
         ("#f59e0b", "site with >=1 signal"),
         ("#059669", "successful clear; Corder:channel"),
-        ("#7c3aed", "omnidirectional source (local truth)"),
-        ("#dc2626", "directional source + emission direction"),
     ]
+    if summary["emitters"]:
+        legend.extend(
+            [
+                ("#7c3aed", "omnidirectional source (local truth)"),
+                ("#dc2626", "directional source + emission direction"),
+            ]
+        )
     lx, ly = 78, height - 122
     svg.append(f'<rect x="{lx-12}" y="{ly-20}" width="320" height="115" rx="6" fill="#ffffff" stroke="#cbd5e1" opacity="0.94"/>')
     for index, (color, label) in enumerate(legend):
@@ -200,7 +235,8 @@ def main() -> None:
     for source in args.logs:
         payload = json.loads(source.read_text(encoding="utf-8"))
         summary = summarize(payload)
-        output = args.output_dir / f'seed_{summary["seed"]}_path.svg'
+        label = f'seed_{summary["seed"]}' if summary["seed"] is not None else source.stem
+        output = args.output_dir / f"{label}_path.svg"
         render_svg(summary, output)
         summary["source_log"] = str(source)
         summary["figure"] = output.name
@@ -224,23 +260,33 @@ def main() -> None:
         "figures": [item["figure"] for item in summaries],
     }
     (args.output_dir / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
-    lines = ["# 三次随机案例路径图", ""]
+    lines = ["# T4 路径图", ""]
     if args.selection_seed is not None:
         lines.append(f"案例由固定随机选择种子 `{args.selection_seed}` 抽取，便于复现。")
         lines.append("")
     for item in summaries:
+        case_label = (
+            f'Seed {item["seed"]}' if item["seed"] is not None else "在线日志"
+        )
+        clear_text = (
+            f'{item["cleared_count"]}/{item["emitter_count"]}'
+            if item["emitter_count"] is not None
+            else f'{item["cleared_count"]} 次成功（总数未知）'
+        )
+        lines.extend([f"## {case_label}", ""])
+        if item["emitter_count"] is not None:
+            lines.append(
+                f'- 干扰源：{item["emitter_count"]}（定向 {item["directional_count"]}）'
+            )
         lines.extend(
             [
-                f'## Seed {item["seed"]}',
-                "",
-                f'- 干扰源：{item["emitter_count"]}（定向 {item["directional_count"]}）',
-                f'- 清除：{item["cleared_count"]}/{item["emitter_count"]}',
+                f"- 清除：{clear_text}",
                 f'- 总虚拟时间：{item["virtual_time_s"]:.2f} s',
                 f'- 移动距离：{item["movement_distance_m"]:.2f} m',
                 f'- 测量：{item["measure_count"]}，无信号：{item["no_signal_count"]}，不同测量位置：{item["distinct_measure_positions"]}',
                 f'- 首次清除：{item["first_clear_time_s"]:.2f} s',
                 "",
-                f'![Seed {item["seed"]} path]({item["figure"]})',
+                f'![{case_label} path]({item["figure"]})',
                 "",
             ]
         )

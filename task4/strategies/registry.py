@@ -4,6 +4,7 @@ from collections.abc import Callable
 
 from .active import ActiveStrategy
 from .active_clear_probe import ActiveClearProbeStrategy
+from .adaptive_double_ring_clear_probe import AdaptiveDoubleRingClearProbeStrategy
 from .base import BaseStrategy
 from .coverage import CoverageStrategy
 from .clear_probe import ClearProbeStrategy
@@ -11,6 +12,7 @@ from .clear_probe_multistart import ClearProbeMultistartStrategy
 from .certified_clear_probe import CertifiedClearProbeStrategy
 from .certified_geometry_clear_probe import CertifiedGeometryClearProbeStrategy
 from .deferred import DeferredCoverageStrategy
+from .double_ring_optical_clear_probe import DoubleRingOpticalClearProbeStrategy
 from .early_stop import EarlyStopStrategy
 from .endgame_clear_probe import EndgameClearProbeStrategy
 from .early_optical_clear_probe import EarlyOpticalClearProbeStrategy
@@ -21,13 +23,15 @@ from .integrated_route import IntegratedRouteStrategy
 from .ida_heuristic_clear_probe import IDAHeuristicClearProbeStrategy
 from .geometry_aware_clear_probe import GeometryAwareClearProbeStrategy
 from .geometry_early_optical_clear_probe import GeometryEarlyOpticalClearProbeStrategy
+from .geometry_replacement_clear_probe import GeometryReplacementClearProbeStrategy
+from .guarded_ida_clear_probe import GuardedIDAClearProbeStrategy
 from .opportunistic import OpportunisticClearStrategy
 from .optimized_clear_probe import OptimizedClearProbeStrategy
 from .reacquire import ReacquireStrategy
 from .route_optimized import RouteOptimizedStrategy
 from .rejoin_clear import RejoinClearStrategy
 from .replacement_aware_clear_probe import ReplacementAwareClearProbeStrategy
-from .sequential_triangle_clear_19 import SequentialTriangleClear19Strategy
+from .relocate_geometry_clear_probe import RelocateGeometryClearProbeStrategy
 
 
 STRATEGIES: dict[str, Callable[..., BaseStrategy]] = {
@@ -35,6 +39,8 @@ STRATEGIES: dict[str, Callable[..., BaseStrategy]] = {
     "active": ActiveStrategy,
     "reacquire": ReacquireStrategy,
     "deferred": DeferredCoverageStrategy,
+    "double_ring_optical_clear_probe": DoubleRingOpticalClearProbeStrategy,
+    "adaptive_double_ring_clear_probe": AdaptiveDoubleRingClearProbeStrategy,
     "lattice": LatticeDeferredStrategy,
     "opportunistic": OpportunisticClearStrategy,
     "belief": BeliefSearchStrategy,
@@ -55,7 +61,9 @@ STRATEGIES: dict[str, Callable[..., BaseStrategy]] = {
     "early_optical_clear_probe": EarlyOpticalClearProbeStrategy,
     "ida_heuristic_clear_probe": IDAHeuristicClearProbeStrategy,
     "geometry_early_optical_clear_probe": GeometryEarlyOpticalClearProbeStrategy,
-    "sequential_triangle_clear_19": SequentialTriangleClear19Strategy,
+    "geometry_replacement_clear_probe": GeometryReplacementClearProbeStrategy,
+    "guarded_ida_clear_probe": GuardedIDAClearProbeStrategy,
+    "relocate_geometry_clear_probe": RelocateGeometryClearProbeStrategy,
 }
 
 

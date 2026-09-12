@@ -34,6 +34,9 @@ LATTICE_STRATEGIES = {
     "early_optical_clear_probe",
     "ida_heuristic_clear_probe",
     "geometry_early_optical_clear_probe",
+    "geometry_replacement_clear_probe",
+    "guarded_ida_clear_probe",
+    "relocate_geometry_clear_probe",
 }
 CLEAR_PROBE_STRATEGIES = {
     "clear_probe",
@@ -48,12 +51,20 @@ CLEAR_PROBE_STRATEGIES = {
     "early_optical_clear_probe",
     "ida_heuristic_clear_probe",
     "geometry_early_optical_clear_probe",
+    "geometry_replacement_clear_probe",
+    "guarded_ida_clear_probe",
+    "relocate_geometry_clear_probe",
+    "double_ring_optical_clear_probe",
+    "adaptive_double_ring_clear_probe",
 }
 RECOMMENDED_731_STRATEGIES = {
     "replacement_aware_clear_probe",
     "early_optical_clear_probe",
     "ida_heuristic_clear_probe",
     "geometry_early_optical_clear_probe",
+    "geometry_replacement_clear_probe",
+    "guarded_ida_clear_probe",
+    "relocate_geometry_clear_probe",
 }
 
 
@@ -83,22 +94,69 @@ def _config(args) -> dict:
             minimum_known_sources=args.minimum_known_sources,
         )
     if args.strategy in CLEAR_PROBE_STRATEGIES:
-        config["replacement_distance_m"] = args.replacement_distance
-        config["max_replaced_waypoints"] = args.max_replaced_waypoints
+        config["replacement_distance_m"] = (
+            (
+                550.0
+                if args.strategy
+                in {
+                    "geometry_early_optical_clear_probe",
+                    "geometry_replacement_clear_probe",
+                    "double_ring_optical_clear_probe",
+                    "adaptive_double_ring_clear_probe",
+                }
+                else 400.0
+            )
+            if args.replacement_distance is None
+            else args.replacement_distance
+        )
+        config["max_replaced_waypoints"] = (
+            (0 if args.strategy in {"double_ring_optical_clear_probe", "adaptive_double_ring_clear_probe"} else 2)
+            if args.max_replaced_waypoints is None
+            else args.max_replaced_waypoints
+        )
     if args.strategy == "geometry_aware_clear_probe":
         config["route_length_slack_m"] = args.route_length_slack
     if args.strategy == "early_optical_clear_probe":
-        config["early_clear_radius_m"] = args.early_clear_radius
+        config["early_clear_radius_m"] = (
+            30.0 if args.early_clear_radius is None else args.early_clear_radius
+        )
     if args.strategy == "ida_heuristic_clear_probe":
         config.update(
-            early_clear_radius_m=args.early_clear_radius,
+            early_clear_radius_m=(
+                30.0 if args.early_clear_radius is None else args.early_clear_radius
+            ),
             route_length_slack_m=args.route_length_slack,
             heuristic_depth=args.heuristic_depth,
             geometry_credit_s=args.geometry_credit,
         )
-    if args.strategy == "geometry_early_optical_clear_probe":
+    if args.strategy in {
+        "geometry_early_optical_clear_probe",
+        "geometry_replacement_clear_probe",
+        "double_ring_optical_clear_probe",
+        "adaptive_double_ring_clear_probe",
+    }:
         config.update(
-            early_clear_radius_m=args.early_clear_radius,
+            early_clear_radius_m=(
+                (50.0 if args.strategy == "adaptive_double_ring_clear_probe" else 35.0)
+                if args.early_clear_radius is None else args.early_clear_radius
+            ),
+            route_length_slack_m=args.route_length_slack,
+        )
+    if args.strategy == "guarded_ida_clear_probe":
+        config.update(
+            early_clear_radius_m=(
+                35.0 if args.early_clear_radius is None else args.early_clear_radius
+            ),
+            route_length_slack_m=args.route_length_slack,
+            heuristic_depth=args.heuristic_depth,
+            geometry_credit_s=args.geometry_credit,
+            geometry_floor_ratio=args.geometry_floor_ratio,
+        )
+    if args.strategy == "relocate_geometry_clear_probe":
+        config.update(
+            early_clear_radius_m=(
+                35.0 if args.early_clear_radius is None else args.early_clear_radius
+            ),
             route_length_slack_m=args.route_length_slack,
         )
     if args.strategy == "sequential_triangle_clear_19":
@@ -121,12 +179,25 @@ def _add_advanced_strategy_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--minimum-search-fraction", type=float, default=0.75)
     parser.add_argument("--discovery-patience", type=int, default=7)
     parser.add_argument("--minimum-known-sources", type=int, default=10)
-    parser.add_argument("--replacement-distance", type=float, default=400.0)
-    parser.add_argument("--max-replaced-waypoints", type=int, default=2)
+    parser.add_argument(
+        "--replacement-distance",
+        type=float,
+        help="default: 550 for geometry/early-optical double-ring strategies, otherwise 400",
+    )
+    parser.add_argument(
+        "--max-replaced-waypoints",
+        type=int,
+        help="default: 0 for double-ring (preserves its cover), otherwise 2",
+    )
     parser.add_argument("--route-length-slack", type=float, default=100.0)
-    parser.add_argument("--early-clear-radius", type=float, default=30.0)
+    parser.add_argument(
+        "--early-clear-radius",
+        type=float,
+        help="default: 50 for adaptive double-ring, 35 for geometry+early-optical, otherwise 30",
+    )
     parser.add_argument("--heuristic-depth", type=int, default=3)
     parser.add_argument("--geometry-credit", type=float, default=12.0)
+    parser.add_argument("--geometry-floor-ratio", type=float, default=1.0)
 
 
 def main() -> None:
@@ -136,7 +207,9 @@ def main() -> None:
     run = sub.add_parser("run", help="run one local or official case")
     run.add_argument("--mode", choices=("local", "remote"), required=True)
     run.add_argument(
-        "--strategy", choices=sorted(STRATEGIES), default="early_optical_clear_probe"
+        "--strategy",
+        choices=sorted(STRATEGIES),
+        default="geometry_early_optical_clear_probe",
     )
     run.add_argument("--seed", type=int, default=42)
     run.add_argument("--server")

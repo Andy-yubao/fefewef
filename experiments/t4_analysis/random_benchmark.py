@@ -63,6 +63,7 @@ def main() -> None:
     parser.add_argument("--route-length-slack", type=float)
     parser.add_argument("--heuristic-depth", type=int)
     parser.add_argument("--geometry-credit", type=float)
+    parser.add_argument("--geometry-floor-ratio", type=float)
     parser.add_argument(
         "--selected-seeds",
         type=Path,
@@ -119,6 +120,8 @@ def main() -> None:
         strategy_config["heuristic_depth"] = args.heuristic_depth
     if args.geometry_credit is not None:
         strategy_config["geometry_credit_s"] = args.geometry_credit
+    if args.geometry_floor_ratio is not None:
+        strategy_config["geometry_floor_ratio"] = args.geometry_floor_ratio
     base_summary = run_batch(
         args.strategy,
         selected_seeds,
