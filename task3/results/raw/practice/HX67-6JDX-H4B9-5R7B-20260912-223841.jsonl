@@ -1,0 +1,4 @@
+{"attempt": 1, "error": "URLError(TimeoutError('timed out'))", "event": "transport_retry", "path": "/enter", "request": {"arena_id": "default", "request_id": "enter-1-53950bb5a0b4", "robot_id": "<redacted>"}}
+{"attempt": 2, "error": "URLError(TimeoutError('timed out'))", "event": "transport_retry", "path": "/enter", "request": {"arena_id": "default", "request_id": "enter-1-53950bb5a0b4", "robot_id": "<redacted>"}}
+{"attempt": 3, "error": "URLError(TimeoutError('timed out'))", "event": "transport_retry", "path": "/enter", "request": {"arena_id": "default", "request_id": "enter-1-53950bb5a0b4", "robot_id": "<redacted>"}}
+{"attempt": 4, "error": "URLError(TimeoutError('timed out'))", "event": "transport_retry", "path": "/enter", "request": {"arena_id": "default", "request_id": "enter-1-53950bb5a0b4", "robot_id": "<redacted>"}}
