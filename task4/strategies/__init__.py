@@ -2,6 +2,7 @@
 
 from .active import ActiveStrategy
 from .active_clear_probe import ActiveClearProbeStrategy
+from .adaptive_double_ring_clear_probe import AdaptiveDoubleRingClearProbeStrategy
 from .base import BaseStrategy, ChannelBelief, StrategyResult
 from .belief import BeliefSearchStrategy
 from .coverage import CoverageStrategy
@@ -34,6 +35,7 @@ from .registry import STRATEGIES, make_strategy
 __all__ = [
     "ActiveStrategy",
     "ActiveClearProbeStrategy",
+    "AdaptiveDoubleRingClearProbeStrategy",
     "BaseStrategy",
     "BeliefSearchStrategy",
     "ChannelBelief",

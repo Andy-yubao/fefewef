@@ -55,6 +55,7 @@ CLEAR_PROBE_STRATEGIES = {
     "guarded_ida_clear_probe",
     "relocate_geometry_clear_probe",
     "double_ring_optical_clear_probe",
+    "adaptive_double_ring_clear_probe",
 }
 RECOMMENDED_731_STRATEGIES = {
     "replacement_aware_clear_probe",
@@ -101,6 +102,7 @@ def _config(args) -> dict:
                     "geometry_early_optical_clear_probe",
                     "geometry_replacement_clear_probe",
                     "double_ring_optical_clear_probe",
+                    "adaptive_double_ring_clear_probe",
                 }
                 else 400.0
             )
@@ -108,7 +110,7 @@ def _config(args) -> dict:
             else args.replacement_distance
         )
         config["max_replaced_waypoints"] = (
-            (0 if args.strategy == "double_ring_optical_clear_probe" else 2)
+            (0 if args.strategy in {"double_ring_optical_clear_probe", "adaptive_double_ring_clear_probe"} else 2)
             if args.max_replaced_waypoints is None
             else args.max_replaced_waypoints
         )
@@ -131,10 +133,12 @@ def _config(args) -> dict:
         "geometry_early_optical_clear_probe",
         "geometry_replacement_clear_probe",
         "double_ring_optical_clear_probe",
+        "adaptive_double_ring_clear_probe",
     }:
         config.update(
             early_clear_radius_m=(
-                35.0 if args.early_clear_radius is None else args.early_clear_radius
+                (50.0 if args.strategy == "adaptive_double_ring_clear_probe" else 35.0)
+                if args.early_clear_radius is None else args.early_clear_radius
             ),
             route_length_slack_m=args.route_length_slack,
         )
@@ -189,7 +193,7 @@ def _add_advanced_strategy_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--early-clear-radius",
         type=float,
-        help="default: 35 for geometry+early-optical, otherwise 30",
+        help="default: 50 for adaptive double-ring, 35 for geometry+early-optical, otherwise 30",
     )
     parser.add_argument("--heuristic-depth", type=int, default=3)
     parser.add_argument("--geometry-credit", type=float, default=12.0)

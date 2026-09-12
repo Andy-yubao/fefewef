@@ -4,6 +4,7 @@ from collections.abc import Callable
 
 from .active import ActiveStrategy
 from .active_clear_probe import ActiveClearProbeStrategy
+from .adaptive_double_ring_clear_probe import AdaptiveDoubleRingClearProbeStrategy
 from .base import BaseStrategy
 from .coverage import CoverageStrategy
 from .clear_probe import ClearProbeStrategy
@@ -39,6 +40,7 @@ STRATEGIES: dict[str, Callable[..., BaseStrategy]] = {
     "reacquire": ReacquireStrategy,
     "deferred": DeferredCoverageStrategy,
     "double_ring_optical_clear_probe": DoubleRingOpticalClearProbeStrategy,
+    "adaptive_double_ring_clear_probe": AdaptiveDoubleRingClearProbeStrategy,
     "lattice": LatticeDeferredStrategy,
     "opportunistic": OpportunisticClearStrategy,
     "belief": BeliefSearchStrategy,
