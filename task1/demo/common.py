@@ -109,4 +109,5 @@ def save(fig: plt.Figure, stem: str) -> None:
     fig.tight_layout()
     fig.savefig(FIGURE_DIR / f"{stem}.png", bbox_inches="tight")
     fig.savefig(FIGURE_DIR / f"{stem}.pdf", bbox_inches="tight")
+    fig.savefig(FIGURE_DIR / f"{stem}.svg", bbox_inches="tight")
     plt.close(fig)
