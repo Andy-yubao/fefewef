@@ -1,7 +1,8 @@
 import unittest
 
 from task4.strategies import STRATEGIES, make_strategy
-from task4.strategies.integrated_route import RouteNode, _plan_nodes_multistart
+from task4.strategies.integrated_route import RouteNode, _plan_nodes_multistart, _route_length
+from task4.strategies.relocate_geometry_clear_probe import _improve_open_route_relocate
 
 
 class StrategyPackageTests(unittest.TestCase):
@@ -33,7 +34,9 @@ class StrategyPackageTests(unittest.TestCase):
                 "early_optical_clear_probe",
                 "ida_heuristic_clear_probe",
                 "geometry_early_optical_clear_probe",
-                "sequential_triangle_clear_19",
+                "geometry_replacement_clear_probe",
+                "guarded_ida_clear_probe",
+                "relocate_geometry_clear_probe",
             },
         )
 
@@ -63,7 +66,9 @@ class StrategyPackageTests(unittest.TestCase):
             "early_optical_clear_probe": "task4.strategies.early_optical_clear_probe",
             "ida_heuristic_clear_probe": "task4.strategies.ida_heuristic_clear_probe",
             "geometry_early_optical_clear_probe": "task4.strategies.geometry_early_optical_clear_probe",
-            "sequential_triangle_clear_19": "task4.strategies.sequential_triangle_clear_19",
+            "geometry_replacement_clear_probe": "task4.strategies.geometry_replacement_clear_probe",
+            "guarded_ida_clear_probe": "task4.strategies.guarded_ida_clear_probe",
+            "relocate_geometry_clear_probe": "task4.strategies.relocate_geometry_clear_probe",
         }
         for name, module in expected_modules.items():
             with self.subTest(strategy=name):
@@ -95,8 +100,24 @@ class StrategyPackageTests(unittest.TestCase):
         self.assertEqual(heuristic.heuristic_depth, 3)
         self.assertEqual(heuristic.geometry_credit_s, 12.0)
         geometry_optical = make_strategy("geometry_early_optical_clear_probe")
-        self.assertEqual(geometry_optical.early_clear_radius_m, 30.0)
+        self.assertEqual(geometry_optical.early_clear_radius_m, 35.0)
+        self.assertEqual(geometry_optical.replacement_distance_m, 550.0)
         self.assertEqual(geometry_optical.route_length_slack_m, 100.0)
+        guarded = make_strategy("guarded_ida_clear_probe")
+        self.assertEqual(guarded.early_clear_radius_m, 35.0)
+        self.assertEqual(guarded.geometry_floor_ratio, 1.0)
+        relocate = make_strategy("relocate_geometry_clear_probe")
+        self.assertEqual(relocate.early_clear_radius_m, 35.0)
+        self.assertEqual(relocate.replacement_distance_m, 400.0)
+
+    def test_geometry_replacement_protects_high_value_probe(self):
+        strategy = make_strategy("geometry_replacement_clear_probe")
+        strategy._active_geometry_value = lambda point: 10.0 if point == (100.0, 0.0) else 0.0
+        selected = strategy._choose_replacements(
+            (0.0, 0.0),
+            [(100.0, 0.0), (200.0, 0.0), (300.0, 0.0)],
+        )
+        self.assertEqual(selected, [(200.0, 0.0), (300.0, 0.0)])
 
     def test_receiver_aware_channel_order_avoids_extra_switch(self):
         strategy = make_strategy("clear_probe")
@@ -135,6 +156,17 @@ class StrategyPackageTests(unittest.TestCase):
         self.assertIn(clear, route)
         self.assertIn(far, route)
         self.assertNotIn(near, route)
+
+    def test_relocate_improvement_preserves_nodes_and_length(self):
+        start = (0.0, 0.0)
+        route = [
+            RouteNode("measure", 0, (3.0, 0.0)),
+            RouteNode("measure", 1, (1.0, 0.0)),
+            RouteNode("measure", 2, (2.0, 0.0)),
+        ]
+        improved = _improve_open_route_relocate(route, start)
+        self.assertEqual(set(improved), set(route))
+        self.assertLessEqual(_route_length(improved, start), _route_length(route, start))
 
 
 if __name__ == "__main__":

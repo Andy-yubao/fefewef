@@ -20,12 +20,14 @@ from .integrated_route import IntegratedRouteStrategy
 from .ida_heuristic_clear_probe import IDAHeuristicClearProbeStrategy
 from .geometry_aware_clear_probe import GeometryAwareClearProbeStrategy
 from .geometry_early_optical_clear_probe import GeometryEarlyOpticalClearProbeStrategy
+from .geometry_replacement_clear_probe import GeometryReplacementClearProbeStrategy
+from .guarded_ida_clear_probe import GuardedIDAClearProbeStrategy
 from .opportunistic import OpportunisticClearStrategy
 from .optimized_clear_probe import OptimizedClearProbeStrategy
 from .route_optimized import RouteOptimizedStrategy
 from .rejoin_clear import RejoinClearStrategy
 from .replacement_aware_clear_probe import ReplacementAwareClearProbeStrategy
-from .sequential_triangle_clear_19 import SequentialTriangleClear19Strategy
+from .relocate_geometry_clear_probe import RelocateGeometryClearProbeStrategy
 from .registry import STRATEGIES, make_strategy
 
 __all__ = [
@@ -50,12 +52,14 @@ __all__ = [
     "IDAHeuristicClearProbeStrategy",
     "GeometryAwareClearProbeStrategy",
     "GeometryEarlyOpticalClearProbeStrategy",
+    "GeometryReplacementClearProbeStrategy",
+    "GuardedIDAClearProbeStrategy",
     "OpportunisticClearStrategy",
     "OptimizedClearProbeStrategy",
     "RouteOptimizedStrategy",
     "RejoinClearStrategy",
     "ReplacementAwareClearProbeStrategy",
-    "SequentialTriangleClear19Strategy",
+    "RelocateGeometryClearProbeStrategy",
     "STRATEGIES",
     "StrategyResult",
     "make_strategy",
