@@ -25,6 +25,7 @@ from .optimized_clear_probe import OptimizedClearProbeStrategy
 from .route_optimized import RouteOptimizedStrategy
 from .rejoin_clear import RejoinClearStrategy
 from .replacement_aware_clear_probe import ReplacementAwareClearProbeStrategy
+from .sequential_triangle_clear_19 import SequentialTriangleClear19Strategy
 from .registry import STRATEGIES, make_strategy
 
 __all__ = [
@@ -54,6 +55,7 @@ __all__ = [
     "RouteOptimizedStrategy",
     "RejoinClearStrategy",
     "ReplacementAwareClearProbeStrategy",
+    "SequentialTriangleClear19Strategy",
     "STRATEGIES",
     "StrategyResult",
     "make_strategy",

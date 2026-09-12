@@ -58,6 +58,9 @@ def run_local_case(
         "last_clear_time_s": truth["last_clear_time_s"],
         "measurements_before_first_clear": truth["measurements_before_first_clear"],
         "wall_time_s": wall,
+        "local_check_count": result.diagnostics.get("local_check_count"),
+        "local_detour_distance_m": result.diagnostics.get("local_detour_distance_m"),
+        "main_skeleton_distance_m": result.diagnostics.get("main_skeleton_distance_m"),
     }
     detail = {"metrics": row, "strategy_result": asdict(result), "truth": truth}
     if keep_log:
@@ -102,6 +105,9 @@ def summarize(rows: list[dict[str, Any]]) -> dict[str, Any]:
         "mean_channel_switch_count": statistics.fmean(float(r["channel_switch_count"]) for r in rows),
         "mean_optical_count": statistics.fmean(float(r["optical_count"]) for r in rows),
         "mean_clear_attempt_count": statistics.fmean(float(r["clear_attempt_count"]) for r in rows),
+        "mean_local_check_count": statistics.fmean(float(r["local_check_count"]) for r in rows if r["local_check_count"] is not None) if any(r["local_check_count"] is not None for r in rows) else None,
+        "mean_local_detour_distance_m": statistics.fmean(float(r["local_detour_distance_m"]) for r in rows if r["local_detour_distance_m"] is not None) if any(r["local_detour_distance_m"] is not None for r in rows) else None,
+        "mean_main_skeleton_distance_m": statistics.fmean(float(r["main_skeleton_distance_m"]) for r in rows if r["main_skeleton_distance_m"] is not None) if any(r["main_skeleton_distance_m"] is not None for r in rows) else None,
         "mean_directional_loss_count": statistics.fmean(float(r["directional_loss_count"]) for r in rows),
         "mean_directional_reacquisition_count": statistics.fmean(float(r["directional_reacquisition_count"]) for r in rows),
         "mean_first_seen_time_s": statistics.fmean(float(r["mean_first_seen_time_s"]) for r in rows if r["mean_first_seen_time_s"] is not None),

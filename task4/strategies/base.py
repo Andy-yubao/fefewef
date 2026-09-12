@@ -30,6 +30,7 @@ class StrategyResult:
     final_virtual_time_s: float
     action_count: int
     wall_time_s: float
+    diagnostics: dict[str, object] = field(default_factory=dict)
 
 
 class BaseStrategy:

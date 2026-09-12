@@ -101,6 +101,8 @@ def _config(args) -> dict:
             early_clear_radius_m=args.early_clear_radius,
             route_length_slack_m=args.route_length_slack,
         )
+    if args.strategy == "sequential_triangle_clear_19":
+        config["early_clear_radius_m"] = args.early_clear_radius
     return config
 
 

@@ -27,6 +27,7 @@ from .reacquire import ReacquireStrategy
 from .route_optimized import RouteOptimizedStrategy
 from .rejoin_clear import RejoinClearStrategy
 from .replacement_aware_clear_probe import ReplacementAwareClearProbeStrategy
+from .sequential_triangle_clear_19 import SequentialTriangleClear19Strategy
 
 
 STRATEGIES: dict[str, Callable[..., BaseStrategy]] = {
@@ -54,6 +55,7 @@ STRATEGIES: dict[str, Callable[..., BaseStrategy]] = {
     "early_optical_clear_probe": EarlyOpticalClearProbeStrategy,
     "ida_heuristic_clear_probe": IDAHeuristicClearProbeStrategy,
     "geometry_early_optical_clear_probe": GeometryEarlyOpticalClearProbeStrategy,
+    "sequential_triangle_clear_19": SequentialTriangleClear19Strategy,
 }
 
 

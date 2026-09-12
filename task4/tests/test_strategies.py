@@ -33,6 +33,7 @@ class StrategyPackageTests(unittest.TestCase):
                 "early_optical_clear_probe",
                 "ida_heuristic_clear_probe",
                 "geometry_early_optical_clear_probe",
+                "sequential_triangle_clear_19",
             },
         )
 
@@ -62,6 +63,7 @@ class StrategyPackageTests(unittest.TestCase):
             "early_optical_clear_probe": "task4.strategies.early_optical_clear_probe",
             "ida_heuristic_clear_probe": "task4.strategies.ida_heuristic_clear_probe",
             "geometry_early_optical_clear_probe": "task4.strategies.geometry_early_optical_clear_probe",
+            "sequential_triangle_clear_19": "task4.strategies.sequential_triangle_clear_19",
         }
         for name, module in expected_modules.items():
             with self.subTest(strategy=name):
