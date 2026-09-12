@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import numpy as np
+import pytest
 from types import SimpleNamespace
 
 from task3.src.channel_state import ChannelStatus
@@ -13,10 +14,13 @@ from task3.src.mock_simulator import MockSimulator, Scenario, Source
 from task3.src.policies import POLICIES
 from task3.src.route_planner import RoutePlanner
 from task3.src.short_horizon_sequencer import (
+    UNKNOWN_COMPLETION,
+    CompletionCertainty,
+    CompletionPreview,
     TaskPreview,
     choose_short_horizon_sequence,
 )
-from task3.src.task_driven_controller import TaskDrivenController
+from task3.src.task_driven_controller import SEQUENCING_HORIZON, TaskDrivenController
 from task3.src.task_queue import Task, TaskKind, TaskQueue
 from task3.src.task_sweep_planner import TaskSweepPlanner
 
@@ -336,39 +340,96 @@ def test_opportunistic_reverse_move_is_not_counted_as_local_retrace() -> None:
 
 
 def _sequence_decision(
-    previews: list[TaskPreview], required: set[tuple] | None = None
+    previews: list[TaskPreview],
+    required: set[tuple] | None = None,
+    *,
+    with_advance: bool = True,
+    switch_s: float = 0.0,
+    horizon: int = SEQUENCING_HORIZON,
 ):
     # Every production candidate carries the sweep planner's order_key; an empty
     # key would sort ahead of every real one.
-    advance = Task(TaskKind.ADVANCE_COVERAGE, vertex=2, order_key=(1, 2))
+    advance = (
+        Task(TaskKind.ADVANCE_COVERAGE, vertex=2, order_key=(1, 2))
+        if with_advance else None
+    )
     return choose_short_horizon_sequence(
         np.array([0.0, 0.0]),
         None,
         previews,
         advance,
-        np.array([10.0, 0.0]),
+        np.array([0.0, 1000.0]) if with_advance else None,
         required or set(),
         speed_mps=1.0,
-        switch_s=0.0,
+        switch_s=switch_s,
+        horizon=horizon,
     )
 
 
-def _preview(task: Task, x: float) -> TaskPreview:
+def _completion(
+    endpoint: tuple[float, float] | None,
+    operation_s: float = 0.0,
+    certainty: CompletionCertainty = CompletionCertainty.ESTIMATED,
+    requires_measure: bool = True,
+    uncertainty_m: float = 0.0,
+) -> CompletionPreview:
+    return CompletionPreview(
+        certainty if endpoint is not None else CompletionCertainty.UNKNOWN,
+        endpoint=None if endpoint is None else np.array(endpoint, float),
+        operation_s=operation_s,
+        requires_measure=requires_measure,
+        endpoint_uncertainty_m=uncertainty_m,
+        reason="test",
+    )
+
+
+def _preview(
+    task: Task,
+    x: float,
+    completion: CompletionPreview | None = None,
+    switch: bool = True,
+) -> TaskPreview:
     return TaskPreview(
         task=task,
         immediate_action="MEASURE",
         immediate_reason="test_measurement",
         immediate_operation_time_s=0.0,
         immediate_end_position=np.array([x, 0.0]),
+        requires_channel_switch=switch,
+        completion=completion if completion is not None else UNKNOWN_COMPLETION,
     )
 
 
-def test_single_step_selection_keeps_one_task_sequences() -> None:
-    near = Task(TaskKind.RESOLVE_SOURCE, channel=1, order_key=(0, 1))
-    far = Task(TaskKind.RESOLVE_SOURCE, channel=2, order_key=(0, 2))
-    decision = _sequence_decision([_preview(far, 9.0), _preview(near, 1.0)])
-    assert decision.chosen_task == near
-    assert all(len(sequence.tasks) == 1 for sequence in decision.sequences)
+def _ordering(decision, *tasks):
+    """The candidate ordering whose first legs are exactly ``tasks``."""
+    for sequence in decision.sequences:
+        if sequence.tasks[:len(tasks)] == tuple(tasks):
+            return sequence
+    raise AssertionError(f"no ordering starting with {[task.label for task in tasks]}")
+
+
+def test_unpriced_completion_falls_back_to_order_key() -> None:
+    forward = Task(TaskKind.RESOLVE_SOURCE, channel=7, order_key=(0, 7))
+    in_place = Task(TaskKind.RESOLVE_SOURCE, channel=3, order_key=(2, 3))
+    decision = _sequence_decision([
+        TaskPreview(
+            task=in_place,
+            immediate_action="MEASURE",
+            immediate_reason="current_position_information",
+            immediate_operation_time_s=5.0,
+            immediate_end_position=np.array([0.0, 0.0]),
+        ),
+        _preview(forward, 900.0),
+    ])
+    # The zero-travel 5 s measure costs 5 while its rival costs 900, yet neither
+    # completion is knowable, so commitment falls back to the geometric order.
+    assert decision.basis == "order_key"
+    assert decision.chosen_task == forward
+    assert decision.chosen_sequence is not None
+    assert decision.chosen_sequence.immediate_cost_s == 900.0
+    assert {task.label for task in decision.unpriced} == {
+        in_place.label, forward.label
+    }
 
 
 def test_advance_does_not_claim_a_known_completion() -> None:
@@ -380,62 +441,108 @@ def test_advance_does_not_claim_a_known_completion() -> None:
     assert decision.chosen_task == advance
     sequence = decision.chosen_sequence
     assert sequence is not None
-    assert not sequence.completion_known
-    assert sequence.estimated_completion_cost_s is None
-    assert sequence.estimated_completion_end_position is None
-    # The vertex and the immediate movement cost are still known and reported;
-    # only the whole-task completion claim is withdrawn.
-    assert np.allclose(sequence.decision_end_position, [10.0, 0.0])
-    assert np.isclose(sequence.estimated_immediate_cost_s, 10.0)
+    # The vertex and the movement cost are still known and reported; only the
+    # whole-task completion claim is withdrawn.
+    assert np.allclose(sequence.end_position, [10.0, 0.0])
+    assert np.isclose(sequence.immediate_cost_s, 10.0)
+    assert not sequence.legs[0].completion.known
+    assert sequence.legs[0].completion.certainty is CompletionCertainty.UNKNOWN
 
 
-def test_cheap_intermediate_action_cannot_win_task_commitment() -> None:
-    forward = Task(TaskKind.RESOLVE_SOURCE, channel=7, order_key=(0, 7))
-    in_place = Task(TaskKind.RESOLVE_SOURCE, channel=3, order_key=(2, 3))
+def test_unknown_completion_never_enters_a_multi_step_rollout() -> None:
+    priced = Task(TaskKind.RESOLVE_SOURCE, channel=1, order_key=(0, 1))
+    unpriced = Task(TaskKind.RESOLVE_SOURCE, channel=2, order_key=(0, 2))
     decision = _sequence_decision([
-        TaskPreview(
-            task=in_place,
-            immediate_action="MEASURE",
-            immediate_reason="current_position_information",
-            immediate_operation_time_s=5.0,
-            immediate_end_position=np.array([0.0, 0.0]),
-        ),
-        TaskPreview(
-            task=forward,
-            immediate_action="CLEAR",
-            immediate_reason="certified_clear_point",
-            immediate_operation_time_s=5.0,
-            immediate_end_position=np.array([900.0, 0.0]),
-        ),
+        _preview(priced, 5.0, _completion((5.0, 0.0))),
+        _preview(unpriced, 5.0),
     ])
-    assert decision.chosen_task == forward
-    assert decision.chosen_sequence is not None
-    assert decision.chosen_sequence.estimated_immediate_cost_s > 180.0
+    assert decision.basis == "order_key"
+    assert all(len(sequence.tasks) == 1 for sequence in decision.sequences)
+    assert [task.label for task in decision.unpriced] == [unpriced.label]
+    assert [task.label for task in decision.sequenced] == [priced.label]
 
 
-def test_known_completion_is_retained_without_a_price_race() -> None:
-    certified = Task(TaskKind.RESOLVE_SOURCE, channel=9, order_key=(2, 9))
-    pending = Task(TaskKind.RESOLVE_SOURCE, channel=4, order_key=(0, 4))
+def test_ordering_prefers_the_nearer_completion_over_order_key() -> None:
+    # ch1 sorts first by order key and by label, but finishes 900 m away.
+    far = Task(TaskKind.RESOLVE_SOURCE, channel=1, order_key=(0, 1))
+    near = Task(TaskKind.RESOLVE_SOURCE, channel=2, order_key=(0, 2))
     decision = _sequence_decision([
-        TaskPreview(
-            task=certified,
-            immediate_action="CLEAR",
-            immediate_reason="certified_clear_point",
-            immediate_operation_time_s=5.0,
-            immediate_end_position=np.array([1.0, 0.0]),
-            completion_known=True,
-            estimated_completion_cost_s=6.0,
-            estimated_completion_end_position=np.array([1.0, 0.0]),
-        ),
-        _preview(pending, 800.0),
+        _preview(far, 0.0, _completion((900.0, 0.0))),
+        _preview(near, 0.0, _completion((100.0, 0.0))),
     ])
-    assert decision.chosen_task == pending
-    certified_sequence = next(
-        sequence for sequence in decision.sequences
-        if sequence.tasks[0] == certified
+    assert decision.basis == "completion_sequence"
+    assert decision.chosen_task == near
+    far_first = _ordering(decision, far, near)
+    near_first = _ordering(decision, near, far)
+    assert near_first.cost_s < far_first.cost_s
+
+
+def test_second_leg_is_recomputed_from_the_first_end_state() -> None:
+    first = Task(TaskKind.RESOLVE_SOURCE, channel=1, order_key=(0, 1))
+    second = Task(TaskKind.RESOLVE_SOURCE, channel=2, order_key=(0, 2))
+    decision = _sequence_decision(
+        [
+            _preview(first, 0.0, _completion((10.0, 0.0))),
+            _preview(second, 0.0, _completion((100.0, 0.0))),
+        ],
+        switch_s=1.0,
     )
-    assert certified_sequence.completion_known
-    assert certified_sequence.estimated_completion_cost_s == 6.0
+    pair = _ordering(decision, first, second)
+    # 90 m from the first completion point, not 100 m from the planning pose,
+    # plus one channel switch because the second task re-measures its channel.
+    assert np.isclose(pair.legs[1].cost_s, 91.0)
+    # The first leg is entered holding no channel, so it pays a switch as well.
+    assert np.isclose(pair.legs[0].cost_s, 11.0)
+
+
+def test_advance_terminator_prices_reaching_the_next_milestone() -> None:
+    first = Task(TaskKind.RESOLVE_SOURCE, channel=1, order_key=(0, 1))
+    second = Task(TaskKind.RESOLVE_SOURCE, channel=2, order_key=(0, 2))
+    decision = _sequence_decision([
+        _preview(first, 0.0, _completion((10.0, 0.0))),
+        _preview(second, 0.0, _completion((100.0, 0.0))),
+    ])
+    pair = _ordering(decision, first, second)
+    terminator = pair.legs[-1]
+    assert terminator.task.kind == TaskKind.ADVANCE_COVERAGE
+    assert not terminator.completion.known
+    # The positional term is real travel from the second completion point to the
+    # milestone vertex, priced at speed_mps = 1.0.
+    expected = float(np.linalg.norm(
+        np.array([100.0, 0.0]) - np.array([0.0, 1000.0])
+    ))
+    assert np.isclose(terminator.cost_s, expected)
+    assert np.allclose(terminator.endpoint, [0.0, 1000.0])
+    assert np.isclose(pair.cost_s, pair.legs[0].cost_s + pair.legs[1].cost_s + expected)
+
+
+def test_reordering_is_refused_when_belief_error_exceeds_the_advantage() -> None:
+    far = Task(TaskKind.RESOLVE_SOURCE, channel=1, order_key=(0, 1))
+    near = Task(TaskKind.RESOLVE_SOURCE, channel=2, order_key=(0, 2))
+    # The same 800 m advantage that ordered the pair a moment ago is now inside
+    # the certificates that produced it, so nothing is reordered.
+    decision = _sequence_decision([
+        _preview(far, 0.0, _completion((900.0, 0.0), uncertainty_m=600.0)),
+        _preview(near, 0.0, _completion((100.0, 0.0), uncertainty_m=600.0)),
+    ])
+    assert decision.basis == "order_key_uncertain_completion"
+    assert decision.chosen_task == far
+    # The rejected comparison is still reported, but nothing is committed from it.
+    assert decision.chosen_sequence is None
+    assert decision.sequences and all(len(sequence.tasks) >= 2 for sequence in decision.sequences)
+
+
+def test_sequencing_caps_at_the_horizon_and_reports_the_cap() -> None:
+    tasks = [
+        Task(TaskKind.RESOLVE_SOURCE, channel=channel, order_key=(0, channel))
+        for channel in range(1, 6)
+    ]
+    decision = _sequence_decision([
+        _preview(task, 0.0, _completion((float(10 * task.channel), 0.0)))
+        for task in tasks
+    ], horizon=3)
+    assert [task.channel for task in decision.sequenced] == [1, 2, 3]
+    assert all(len(sequence.legs) == 4 for sequence in decision.sequences)
 
 
 def test_ready_required_resolve_gates_advance_one_step_at_a_time() -> None:
@@ -445,11 +552,25 @@ def test_ready_required_resolve_gates_advance_one_step_at_a_time() -> None:
         [_preview(required_a, 2.0), _preview(required_b, 3.0)],
         {required_a.identity, required_b.identity},
     )
+    assert decision.basis.startswith("required_")
     assert decision.chosen_task == required_a
     assert all(
         sequence.tasks[0].kind == TaskKind.RESOLVE_SOURCE
         for sequence in decision.sequences
     )
+
+
+def test_resolves_behind_advance_are_never_sequenced_ahead_of_it() -> None:
+    behind = Task(TaskKind.RESOLVE_SOURCE, channel=1, order_key=(2, 1))
+    ahead = Task(TaskKind.RESOLVE_SOURCE, channel=2, order_key=(0, 2))
+    decision = _sequence_decision([
+        _preview(behind, 0.0, _completion((5.0, 0.0))),
+        _preview(ahead, 0.0, _completion((900.0, 0.0))),
+    ])
+    # Only one Resolve precedes Advance, so no rollout is built and the sweep
+    # keeps control of the Advance decision.
+    assert decision.basis == "order_key"
+    assert [task.channel for task in decision.sequenced] == [2]
 
 
 def test_in_place_measure_does_not_award_task_commitment(monkeypatch) -> None:
@@ -503,7 +624,7 @@ def test_all_ready_required_tasks_bypass_top_three(monkeypatch) -> None:
     )
     controller._sequence_waiting(required + [optional, advance], "test")
     decision = controller.diagnostics[-1]
-    assert decision["planning_horizon"] == 1
+    assert decision["sequencing_horizon"] == SEQUENCING_HORIZON
     assert set(decision["required_before_advance"]) == {task.label for task in required}
     labels = {item["sequence"] for item in decision["candidate_sequences"]}
     assert labels == {task.label for task in required}
@@ -517,11 +638,14 @@ def test_intermediate_resolve_preview_does_not_claim_completion(monkeypatch) -> 
         "_normal_resolve_action",
         lambda channel: ("MEASURE", point, "current_position_information", False),
     )
+    monkeypatch.setattr(
+        controller.sweep_planner, "is_forward_compatible", lambda point, rank: False
+    )
     preview = controller._resolve_preview(Task(TaskKind.RESOLVE_SOURCE, channel=1))
     assert preview is not None
-    assert not preview.completion_known
-    assert preview.estimated_completion_cost_s is None
-    assert preview.estimated_completion_end_position is None
+    assert preview.completion.certainty is CompletionCertainty.UNKNOWN
+    assert preview.completion.endpoint is None
+    assert not preview.completion.known
 
 
 def test_certified_clear_preview_has_reliable_completion_fields(monkeypatch) -> None:
@@ -533,14 +657,45 @@ def test_certified_clear_preview_has_reliable_completion_fields(monkeypatch) -> 
         lambda channel: ("CLEAR", point, "certified_clear_point", True),
     )
     preview = controller._resolve_preview(Task(TaskKind.RESOLVE_SOURCE, channel=1))
-    assert preview is not None and preview.completion_known
-    assert np.allclose(preview.estimated_completion_end_position, point)
-    expected = (
-        10.0 / controller.physical.speed_mps
-        + controller.physical.optical_s
-        + controller.physical.laser_s
+    assert preview is not None
+    assert preview.completion.certainty is CompletionCertainty.EXACT
+    assert np.allclose(preview.completion.endpoint, point)
+    expected = controller.physical.optical_s + controller.physical.laser_s
+    assert np.isclose(preview.completion.operation_s, expected)
+    assert not preview.completion.requires_measure
+
+
+def test_reachable_certificate_center_is_estimated_not_exact(monkeypatch) -> None:
+    controller = _found_controller()
+    point = np.asarray(controller.client.position, float)
+    monkeypatch.setattr(
+        controller,
+        "_normal_resolve_action",
+        lambda channel: ("MEASURE", point, "forward_route_measurement", False),
     )
-    assert np.isclose(preview.estimated_completion_cost_s, expected)
+    monkeypatch.setattr(
+        controller.sweep_planner, "is_forward_compatible", lambda point, rank: True
+    )
+    preview = controller._resolve_preview(Task(TaskKind.RESOLVE_SOURCE, channel=1))
+    assert preview is not None
+    assert preview.completion.certainty is CompletionCertainty.ESTIMATED
+    assert preview.completion.requires_measure
+    assert np.allclose(
+        preview.completion.endpoint, controller.channels[1].certificate().center
+    )
+    assert np.isclose(
+        preview.completion.operation_s,
+        controller.physical.measure_s
+        + controller.physical.optical_s
+        + controller.physical.laser_s,
+    )
+
+
+def test_completion_preview_rejects_an_unpriced_endpoint() -> None:
+    with pytest.raises(ValueError):
+        CompletionPreview(CompletionCertainty.ESTIMATED, endpoint=None)
+    with pytest.raises(ValueError):
+        CompletionPreview(CompletionCertainty.UNKNOWN, endpoint=np.zeros(2))
 
 
 def test_controller_sequences_waiting_without_preempting_active(monkeypatch) -> None:

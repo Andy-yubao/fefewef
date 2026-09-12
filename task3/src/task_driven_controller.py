@@ -14,9 +14,19 @@ from .controller import ActionClient, RunResult, SearchController
 from .opportunistic_observer import OpportunisticObserver
 from .opportunity_planner import EmbeddedEventKind
 from .route_planner import RoutePlanner
-from .short_horizon_sequencer import TaskPreview, choose_short_horizon_sequence
+from .short_horizon_sequencer import (
+    CompletionCertainty,
+    CompletionPreview,
+    TaskPreview,
+    choose_short_horizon_sequence,
+)
 from .task_queue import Task, TaskKind, TaskQueue
 from .task_sweep_planner import TaskSweepPlanner
+
+# At most this many priced Resolves are ordered against each other. The sweep
+# frontier still decides whether Advance precedes them; sequencing only decides
+# the order within the set that already precedes it.
+SEQUENCING_HORIZON = 3
 
 
 class TaskDrivenController(SearchController):
@@ -188,8 +198,52 @@ class TaskDrivenController(SearchController):
             **self._task_snapshot(),
         })
 
+    def _completion_preview(
+        self, task: Task, kind: str, point: np.ndarray, certified: bool
+    ) -> CompletionPreview:
+        """Predict where and at what cost this Resolve finishes, from belief alone.
+
+        The endpoint is the point the resolver itself drives to - the certified
+        clear point, or the belief certificate centre - so no ground truth and
+        no future observation is used. A candidate that the sweep would not let
+        the resolver reach carries no completion claim at all.
+        """
+        assert task.channel is not None and self.sweep_planner is not None
+        state = self.channels[task.channel]
+        certificate = state.certificate()
+        if kind == "CLEAR" and certified:
+            return CompletionPreview(
+                CompletionCertainty.EXACT,
+                endpoint=np.asarray(point, float).copy(),
+                operation_s=self.physical.optical_s + self.physical.laser_s,
+                requires_measure=False,
+                endpoint_uncertainty_m=0.0,
+                reason="certified_clear_point",
+            )
+        safe = state.safe_clear_point()
+        endpoint = safe if safe is not None else np.asarray(certificate.center, float)
+        if not self.sweep_planner.is_forward_compatible(endpoint, self._frontier_rank()):
+            return CompletionPreview(
+                CompletionCertainty.UNKNOWN,
+                reason="completion_endpoint_not_forward",
+            )
+        return CompletionPreview(
+            CompletionCertainty.ESTIMATED,
+            endpoint=np.asarray(endpoint, float).copy(),
+            operation_s=(
+                self.physical.measure_s
+                + self.physical.optical_s
+                + self.physical.laser_s
+            ),
+            requires_measure=True,
+            # The source lies somewhere inside the certificate and the terminal
+            # clear may sit a further clear radius away from it.
+            endpoint_uncertainty_m=certificate.radius_m + self.physical.clear_radius_m,
+            reason="certified_clear_point" if safe is not None else "certificate_center",
+        )
+
     def _resolve_preview(self, task: Task) -> TaskPreview | None:
-        """Describe the next action without implying that it completes Resolve."""
+        """Describe the next action, plus the completion when that is predictable."""
         assert task.channel is not None
         action = self._normal_resolve_action(task.channel)
         if action is None:
@@ -201,25 +255,14 @@ class TaskDrivenController(SearchController):
             if kind == "MEASURE"
             else self.physical.optical_s + self.physical.laser_s
         )
-        requires_switch = kind == "MEASURE"
-        immediate_cost_s = (
-            float(np.linalg.norm(point - np.asarray(self.client.position, float)))
-            / self.physical.speed_mps
-            + (self.physical.switch_s if requires_switch
-               and task.channel != self.client.current_channel else 0.0)
-            + operation_s
-        )
-        completion_known = kind == "CLEAR" and certified
         return TaskPreview(
             task=task,
             immediate_action=kind,
             immediate_reason=reason,
             immediate_operation_time_s=operation_s,
             immediate_end_position=point,
-            requires_channel_switch=requires_switch,
-            completion_known=completion_known,
-            estimated_completion_cost_s=immediate_cost_s if completion_known else None,
-            estimated_completion_end_position=point.copy() if completion_known else None,
+            requires_channel_switch=kind == "MEASURE",
+            completion=self._completion_preview(task, kind, point, certified),
         )
 
     def _sequence_waiting(self, tasks: list[Task], event: str) -> list[Task]:
@@ -267,33 +310,45 @@ class TaskDrivenController(SearchController):
             required,
             self.physical.speed_mps,
             self.physical.switch_s,
-            horizon=1,
+            horizon=SEQUENCING_HORIZON,
         )
         if decision.sequences:
             self.diagnostics.append({
                 "type": "route_sequence_decision",
                 "event": event,
-                "planning_horizon": 1,
-                # Commitment order; the immediate costs below are recorded only.
-                "selection_basis": (
-                    "required_order_key" if required else "order_key"
-                ),
+                "sequencing_horizon": SEQUENCING_HORIZON,
+                "selection_basis": decision.basis,
                 "required_before_advance": [task.label for task in required_tasks],
+                "sequenced_tasks": [task.label for task in decision.sequenced],
+                "unpriced_tasks": [task.label for task in decision.unpriced],
                 "candidate_sequences": [
                     {
                         "sequence": sequence.label,
-                        "order_key": list(sequence.tasks[0].order_key),
-                        "estimated_immediate_cost_s": sequence.estimated_immediate_cost_s,
-                        "decision_end_position": sequence.decision_end_position.tolist(),
-                        "immediate_action": sequence.immediate_action,
-                        "completion_known": sequence.completion_known,
-                        "estimated_completion_cost_s": sequence.estimated_completion_cost_s,
-                        "estimated_completion_end_position": (
-                            sequence.estimated_completion_end_position.tolist()
-                            if sequence.estimated_completion_end_position is not None else None
+                        # immediate_cost_s is the known price of the first leg's
+                        # next action; it is recorded, never used to rank.
+                        "immediate_cost_s": sequence.immediate_cost_s,
+                        "predicted_cost_s": sequence.cost_s,
+                        "uncertainty_s": sequence.uncertainty_s,
+                        "end_position": (
+                            sequence.end_position.tolist()
+                            if sequence.end_position is not None else None
                         ),
                         "feasible": sequence.feasible,
                         "reason": sequence.reason,
+                        "legs": [
+                            {
+                                "task": leg.task.label,
+                                "order_key": list(leg.task.order_key),
+                                "action": leg.action,
+                                "cost_s": leg.cost_s,
+                                "completion_certainty": leg.completion.certainty.value,
+                                "completion_endpoint": (
+                                    leg.endpoint.tolist()
+                                    if leg.endpoint is not None else None
+                                ),
+                            }
+                            for leg in sequence.legs
+                        ],
                     }
                     for sequence in decision.sequences
                 ],
