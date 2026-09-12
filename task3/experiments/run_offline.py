@@ -16,6 +16,7 @@ from task3.src.controller import SearchController
 from task3.src.mock_simulator import MockSimulator, random_scenario
 from task3.src.policies import POLICIES, select_policy_ids
 from task3.src.task_driven_controller import TaskDrivenController
+from task3.src.dynamic_open_route_controller import DynamicOpenRouteController
 
 
 def repository_version() -> dict[str, str | bool]:
@@ -42,6 +43,10 @@ def run_case(args: tuple[int, int, float, bool, int | None, list[str]]) -> list[
         mock = MockSimulator(scenario, physical)
         if spec.controller == "task_queue":
             result = TaskDrivenController(
+                mock, physical, planner, scenario.total
+            ).run()
+        elif spec.controller == "dynamic_open_route":
+            result = DynamicOpenRouteController(
                 mock, physical, planner, scenario.total
             ).run()
         else:

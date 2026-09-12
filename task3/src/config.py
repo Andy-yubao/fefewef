@@ -48,10 +48,30 @@ class PlannerConfig:
     risk_quantile: float = 0.90
     route_insert_limit_m: float = 300.0
     rotation_deg: float = 0.0
+    orientation_strategy: str = "transverse"
+    preplanned_cross_view: bool = False
+    preplanned_collinear_angle_deg: float = 12.0
+    preplanned_cross_view_fraction: float = 0.50
     seed: int = 20260911
     real_time_reserve_s: float = 10.0
     max_actions: int = 30_000
     focus_after_upper_bound_discovered: bool = False
+    open_route_exact_node_limit: int = 12
+    max_small_detour_m: float = 100.0
+    guard_candidate_count: int = 72
+    min_opportunistic_event_distance_m: float = 15.0
+    opportunistic_replan_radius_m: float = 25.0
+    rough_localization_diameter_m: float = 100.0
+    edge_localization_diameter_m: float = 1000.0
+    edge_localization_forward_diameter_m: float = 1200.0
+    coverage_revisit_limit: int = 3
+    minimum_view_baseline_m: float = 100.0
+    minimum_view_angle_gain_deg: float = 10.0
+    edge_target_angle_deg: float = 45.0
+    opportunity_target_angle_deg: float = 45.0
+    tsp_window_forward_deg: float = 90.0
+    tsp_window_backward_deg: float = 30.0
+    possible_opportunity_limit_per_source: int = 3
 
 
 @dataclass(frozen=True)

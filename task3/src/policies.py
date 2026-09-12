@@ -252,6 +252,40 @@ POLICIES: dict[str, PolicySpec] = {
         ),
         controller="task_queue",
     ),
+    "candidate_039_dynamic_open_route": PolicySpec(
+        "dynamic_open_route", "center_approach",
+        {"grid_step_m": 5.0, "local_channel_limit": 20},
+        parent_id="candidate_038_task_queue_sweep",
+        description=(
+            "Dynamic open route from the physical position with two ordered "
+            "coverage anchors, single-step source service, arbitrary-segment "
+            "opportunities, and a hard angular crossing guard."
+        ),
+        controller="dynamic_open_route",
+    ),
+    "candidate_040_dynamic_open_route_sparse_six": PolicySpec(
+        "dynamic_open_route", "center_approach",
+        {"grid_step_m": 5.0, "local_channel_limit": 20,
+         "orientation_strategy": "sparse_six"},
+        parent_id="candidate_039_dynamic_open_route",
+        description=(
+            "Candidate 039 with a six-vertex sparse radial orientation: all "
+            "coverage rays jointly avoid origin bearings before traversal."
+        ),
+        controller="dynamic_open_route",
+    ),
+    "candidate_041_dynamic_open_route_deferred_cross_view": PolicySpec(
+        "dynamic_open_route", "center_approach",
+        {"grid_step_m": 5.0, "local_channel_limit": 20,
+         "orientation_strategy": "sparse_six",
+         "preplanned_cross_view": True},
+        parent_id="candidate_040_dynamic_open_route_sparse_six",
+        description=(
+            "Candidate 040 plus cancellable midpoint cross-view tasks on the "
+            "coverage edge preceding an origin-radial risk vertex."
+        ),
+        controller="dynamic_open_route",
+    ),
 }
 
 

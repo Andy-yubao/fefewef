@@ -54,10 +54,77 @@ def analytic_certificate(
     )
 
 
-def choose_orientation(first_bearings_deg: list[float], base_rotation_deg: float = 0.0) -> tuple[float, bool]:
-    """Choose among 12 rotations and two traversal directions without changing coverage."""
+def _choose_sparse_orientation(
+    bearings_deg: list[float], base_rotation_deg: float,
+) -> tuple[float, bool]:
+    """Choose a hexagon whose six radial rays avoid all origin bearings.
+
+    Rotations separated by 60 degrees have the same covering set, so the
+    sparse strategy keeps the canonical 12 rotation representatives used by
+    the existing route interface.  The lexicographic score first protects
+    against radial collinearity, then balances density over all six vertices,
+    and finally keeps the initial search window light.
+    """
+    candidates: list[tuple[tuple[float, ...], float, bool]] = []
+    for step in range(12):
+        rotation = (base_rotation_deg + 5.0 * step) % 60.0
+        angles = (rotation + np.arange(6) * 60.0) % 360.0
+        distances = np.asarray([
+            min(abs(((bearing - angle + 180.0) % 360.0) - 180.0) for angle in angles)
+            for bearing in bearings_deg
+        ])
+        per_vertex = np.asarray([
+            sum(max(0.0, 1.0 - abs(((bearing - angle + 180.0) % 360.0) - 180.0) / 30.0) ** 2
+                for bearing in bearings_deg)
+            for angle in angles
+        ])
+        for reverse in (False, True):
+            first = float(angles[0] if not reverse else angles[-1])
+            signed = np.asarray([
+                ((bearing - first) % 360.0) if not reverse else ((first - bearing) % 360.0)
+                for bearing in bearings_deg
+            ])
+            window_load = float(np.count_nonzero((signed <= 90.0) | (signed >= 330.0)))
+            # A bearing outside [-30, +90] is not admitted until the sweep
+            # reaches it.  Prefer the direction with fewer such delayed
+            # bearings; the previous sparse-start version minimized
+            # ``window_load`` and could strand a source for almost a full turn.
+            delayed = (signed > 90.0) & (signed < 330.0)
+            delayed_count = float(np.count_nonzero(delayed))
+            delayed_angle = float(np.sum(np.maximum(0.0, signed[delayed] - 90.0)))
+            first_density = float(per_vertex[0] if not reverse else per_vertex[-1])
+            transverse_quality = float(sum(
+                abs(math.sin(math.radians(first - bearing)))
+                for bearing in bearings_deg
+            ))
+            score = (
+                round(float(np.min(distances)), 9),
+                -round(float(np.max(per_vertex)), 9),
+                -round(float(np.sum(per_vertex)), 9),
+                transverse_quality,
+                -delayed_count,
+                -delayed_angle,
+                window_load,
+                -first_density,
+                -rotation,
+                -float(reverse),
+            )
+            candidates.append((score, rotation, reverse))
+    _score, rotation, reverse = max(candidates, key=lambda item: item[0])
+    return rotation, reverse
+
+
+def choose_orientation(
+    first_bearings_deg: list[float], base_rotation_deg: float = 0.0,
+    strategy: str = "transverse",
+) -> tuple[float, bool]:
+    """Choose a legal orientation without changing the coverage guarantee."""
     if not first_bearings_deg:
         return base_rotation_deg, False
+    if strategy == "sparse_six":
+        return _choose_sparse_orientation(first_bearings_deg, base_rotation_deg)
+    if strategy != "transverse":
+        raise ValueError(f"unknown orientation strategy: {strategy}")
     best: tuple[float, float, bool] | None = None
     for offset in np.linspace(0.0, 55.0, 12):
         rotation = (base_rotation_deg + float(offset)) % 60.0
@@ -94,4 +161,3 @@ def covers_target_samples(points: np.ndarray, target_radius_m: float, receive_ra
     xy = np.column_stack(((rr * np.cos(aa)).ravel(), (rr * np.sin(aa)).ravel()))
     nearest = np.min(np.linalg.norm(xy[:, None, :] - points[None, :, :], axis=2), axis=1)
     return float(receive_radius_m - np.max(nearest))
-

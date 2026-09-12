@@ -1,0 +1,7 @@
+batch,seed_start,cases,source_mode,total_sources,successful_cases,cleared_sources,total_virtual_time_s,mean_case_time_s,total_time_per_source_s,notes
+fixed16_039_final,20260919,5,fixed_16,80,5,80,20449.512056,4089.902411,255.618901,candidate039
+fixed16_040_final,20260919,5,fixed_16,80,5,80,20327.427635,4065.485527,254.092845,candidate040
+fixed16_041_final,20260919,5,fixed_16,80,5,80,20009.354713,4001.870943,250.116934,candidate041
+random10_routes,20261006,10,random_10_16,133,10,133,36605.669371,3660.566937,275.230597,candidate041
+random20_final,20261016,20,random_10_16,266,20,266,72967.905250,3648.395263,274.315433,candidate041
+random30_combined,20261006,30,random_10_16,399,30,399,109573.574621,3652.452487,274.620488,candidate041 combined post-selection evidence

@@ -1,5 +1,11 @@
 # CUMCM B 题问题 3：自动搜索、定位与清除
 
+> **当前事实入口（2026-09-12）**：队内最终采用
+> `candidate_041_dynamic_open_route_deferred_cross_view`。论文写作、性能引用和
+> 策略说明以 [`task3/facts/README.md`](facts/README.md) 为唯一当前索引。
+> 本文件后续章节保留早期阶段的使用说明与历史数据，其中“当前冠军”“默认策略”
+> 等旧表述不再代表最终选型。
+
 本目录实现一只机器狗对未知数量全向干扰源的自动搜索、定位和清除。整体方法是“确定性保证层 + 时间优化层”：七点覆盖、分频道硬可行集、最小包围圆（MEC）清除证书和有限圆盘覆盖负责最终必发现、必清除；滚动调度、局部测点排序和顺路清除负责缩短虚拟时间。
 
 概率粒子只参与动作排序，不会删除硬可行位置、生成清除证书或决定任务完成。程序不宣称全局最短时间。
@@ -19,7 +25,7 @@ task3/.venv/bin/python -m pip install -r task3/requirements.txt
 task2/.venv/bin/python -m pytest task3/test -q
 ```
 
-当前回归结果为 33 项测试全部通过。
+当前回归结果为 112 项测试全部通过。
 
 ## 2. 代码是否按职责拆分
 
@@ -531,3 +537,22 @@ task2/.venv/bin/python -m task3.experiments.analyze_practice \
 
 本轮未完成完整 development/stability/final-holdout 协议，因此历史
 `champion_000_geometry_baseline` 仍是默认语义；smoke 最优候选不会被描述为稳定冠军。
+
+# Candidate 039: dynamic open route
+
+Candidate `candidate_039_dynamic_open_route` is intentionally separate from the
+historical candidate 038 task queue.  It treats the ordered coverage vertices
+as precedence obligations rather than a physical route backbone.  Every plan
+starts at the robot's actual position, includes the next two coverage anchors
+and every actionable source in the historical-current-progress horizon, and
+commits only the first target before replanning.
+
+Sweep progress is the historical maximum directed/unwrapped polar angle, so a
+local geometric rollback never rolls the horizon backward.  Each source
+resolver exposes exactly one current service target.  Straight movement
+segments of every type admit zero-extra-distance observations and clears.  A
+hard Angular Crossing Guard checks single-bearing sources before each segment,
+using zero-detour measurement first, then a detour of at most 100 m, and finally
+a forced second-bearing target.  The older sector/group,
+`required_before_advance`, and `AdvanceCoverage` rules remain available only to
+candidate 038 and are not imported by the new controller.

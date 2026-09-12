@@ -44,6 +44,20 @@ class ChannelState:
     fallback_queue: list[tuple[float, float]] = field(default_factory=list)
     first_found_virtual_time_s: float | None = None
     cleared_virtual_time_s: float | None = None
+    # Once a source enters directed localizing it remains service debt until
+    # its certificate becomes ROUGH/CLEARABLE.  This prevents a second bearing
+    # from dropping the source back into the generic BROAD state.
+    localization_debt: bool = False
+    localization_debt_direction: str | None = None
+    # Angular TSP/guard admission is latched.  A source must first have a
+    # reliable angular support intersect the directed search window.
+    tsp_window_armed: bool = False
+    tsp_window_entry_progress: float | None = None
+    # Optional one-shot observation scheduled on the edge immediately before
+    # a coverage vertex that is nearly radial with the origin bearing.
+    cross_view_point: tuple[float, float] | None = None
+    cross_view_edge: int | None = None
+    cross_view_armed: bool = False
     _certificate_cache: EnclosingCircle | None = field(default=None, init=False, repr=False)
 
     def __post_init__(self) -> None:

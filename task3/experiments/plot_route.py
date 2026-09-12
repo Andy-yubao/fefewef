@@ -94,21 +94,53 @@ def successful_clear_points(actions: Iterable[dict[str, Any]]) -> np.ndarray:
     return np.asarray(points, dtype=float).reshape((-1, 2))
 
 
-def source_points(sources: Iterable[dict[str, Any]]) -> tuple[np.ndarray, list[Any]]:
+def resolution_order(row: dict[str, Any]) -> dict[Any, int]:
+    """Return channel -> successful-clear rank, independent of channel ID."""
+    ranks: dict[Any, int] = {}
+    actions = row.get("actions")
+    if isinstance(actions, list):
+        for action in actions:
+            if action.get("path") != "/clear":
+                continue
+            if action.get("response", {}).get("clear_result") != "success":
+                continue
+            channel = action.get("channel")
+            if channel not in ranks:
+                ranks[channel] = len(ranks) + 1
+    diagnostics = row.get("result", {}).get("diagnostics", [])
+    if isinstance(diagnostics, list):
+        for item in diagnostics:
+            if item.get("type") != "dynamic_action" or item.get("action_kind") != "CLEAR":
+                continue
+            channel = item.get("channel")
+            rank = item.get("resolution_order")
+            if channel not in ranks and isinstance(rank, int):
+                ranks[channel] = rank
+    return ranks
+
+
+def source_points(
+    sources: Iterable[dict[str, Any]], ranks: dict[Any, int] | None = None
+) -> tuple[np.ndarray, list[str]]:
+    ranks = ranks or {}
     points: list[tuple[float, float]] = []
-    channels: list[Any] = []
+    labels: list[str] = []
     for source in sources:
         point = _position(source.get("position"))
         if point is not None:
             points.append(point)
-            channels.append(source.get("channel", "?"))
-    return np.asarray(points, dtype=float).reshape((-1, 2)), channels
+            channel = source.get("channel", "?")
+            labels.append(f"#{ranks[channel]}" if channel in ranks else f"ch{channel}")
+    return np.asarray(points, dtype=float).reshape((-1, 2)), labels
 
 
 def task_actions(diagnostics: Any) -> list[dict[str, Any]]:
     if not isinstance(diagnostics, list):
         return []
-    return [item for item in diagnostics if item.get("type") == "task_action"]
+    return [
+        item for item in diagnostics
+        if item.get("type") in {"task_action", "dynamic_action"}
+    ]
 
 
 def plot_record(row: dict[str, Any], output: Path) -> None:
@@ -120,7 +152,7 @@ def plot_record(row: dict[str, Any], output: Path) -> None:
 
     route = extract_route(actions)
     clears = successful_clear_points(actions)
-    sources, channels = source_points(row.get("sources", []))
+    sources, source_labels = source_points(row.get("sources", []), resolution_order(row))
     diagnostics = row.get("result", {}).get("diagnostics", [])
     semantic_actions = task_actions(diagnostics)
 
@@ -148,9 +180,18 @@ def plot_record(row: dict[str, Any], output: Path) -> None:
             end = _position(item.get("end"))
             if start is None or end is None or start == end:
                 continue
-            if item.get("opportunistic"):
+            if item.get("guard"):
+                color, style, width = "#7c3aed", "-.", 2.0
+            elif item.get("reason") == "coverage_found_revisit":
+                color, style, width = "#0f766e", ":", 1.8
+            elif item.get("opportunistic"):
                 color, style, width = "#d97706", ":", 1.8
-            elif item.get("active_task_type") == "ResolveSource":
+            elif (
+                item.get("active_task_type") == "ResolveSource"
+                or str(item.get("reason", "")).startswith(
+                    ("service_", "certified_", "conservative_")
+                )
+            ):
                 color, style, width = "#c2415d", "-", 1.8
             else:
                 color, style, width = "#1769aa", "--", 1.6
@@ -162,6 +203,10 @@ def plot_record(row: dict[str, Any], output: Path) -> None:
             _position(item.get("task_start_position")) for item in diagnostics
             if item.get("type") == "task_started"
         ]
+        starts.extend(
+            _position(item.get("robot_position")) for item in diagnostics
+            if item.get("type") == "dynamic_replan"
+        )
         starts = [point for point in starts if point is not None]
         if starts:
             start_array = np.asarray(starts, float)
@@ -174,9 +219,15 @@ def plot_record(row: dict[str, Any], output: Path) -> None:
             point = _position(item.get("end"))
             if point is None:
                 continue
-            marker = "*" if item.get("action_kind") == "CLEAR" else "^"
+            if item.get("guard"):
+                marker, color = "P", "#7c3aed"
+            elif item.get("reason") == "coverage_found_revisit":
+                marker, color = "s", "#0f766e"
+            else:
+                marker = "*" if item.get("action_kind") == "CLEAR" else "^"
+                color = "#d97706"
             ax.scatter([point[0]], [point[1]], marker=marker, s=38,
-                       color="#d97706", zorder=6)
+                       color=color, zorder=6)
     else:
         ax.plot(route[:, 0], route[:, 1], color="#1769aa", linewidth=1.5,
                 label="Robot route", zorder=2)
@@ -190,12 +241,12 @@ def plot_record(row: dict[str, Any], output: Path) -> None:
             marker="X",
             s=70,
             color="#d1495b",
-            label="True source",
+            label="True source (resolution order)",
             zorder=4,
         )
-        for point, channel in zip(sources, channels):
+        for point, label in zip(sources, source_labels):
             ax.annotate(
-                str(channel),
+                label,
                 xy=point,
                 xytext=(5, 5),
                 textcoords="offset points",
@@ -231,7 +282,8 @@ def plot_record(row: dict[str, Any], output: Path) -> None:
 
     if semantic_actions:
         milestone_items = [
-            item for item in diagnostics if item.get("type") == "coverage_unknown_scan"
+            item for item in diagnostics
+            if item.get("type") in {"coverage_unknown_scan", "coverage_completed"}
             and item.get("coverage_index", 0) > 0
         ]
         milestone_points = [
@@ -247,7 +299,11 @@ def plot_record(row: dict[str, Any], output: Path) -> None:
                 ax.annotate(f"V{item['coverage_index']}", point, xytext=(5, -12),
                             textcoords="offset points", fontsize=8, color="#603b82")
         selection = next(
-            (item for item in diagnostics if item.get("type") == "sweep_selected"), {}
+            (
+                item for item in diagnostics
+                if item.get("type") in {"sweep_selected", "dynamic_sweep_selected"}
+            ),
+            {},
         )
         direction = selection.get("sweep_direction", "?")
         ax.text(0.02, 0.98, f"Sweep: {direction}", transform=ax.transAxes,
@@ -259,10 +315,15 @@ def plot_record(row: dict[str, Any], output: Path) -> None:
             Line2D([0], [0], color="#d97706", lw=1.8, ls=":", label="Opportunistic movement"),
             Line2D([0], [0], marker="^", color="none", markerfacecolor="#d97706",
                    markeredgecolor="#d97706", label="Opportunistic measure"),
+            Line2D([0], [0], marker="s", color="none", markerfacecolor="#0f766e",
+                   markeredgecolor="#0f766e", label="Coverage revisit"),
+            Line2D([0], [0], marker="P", color="none", markerfacecolor="#7c3aed",
+                   markeredgecolor="#7c3aed", label="Guard measure"),
             Line2D([0], [0], marker="*", color="none", markerfacecolor="#d97706",
                    markeredgecolor="#d97706", label="Opportunistic clear"),
             Line2D([0], [0], marker="D", color="none", markerfacecolor="white",
-                   markeredgecolor="#333333", label="Task switch"),
+                   markeredgecolor="#333333", label="Replan position"),
+            Line2D([0], [0], color="#7c3aed", lw=2.0, ls="-.", label="Guard measurement"),
         ]
         handles, labels = ax.get_legend_handles_labels()
         ax.legend(handles + semantic_legend, labels + [item.get_label() for item in semantic_legend],

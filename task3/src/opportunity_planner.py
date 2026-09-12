@@ -25,6 +25,9 @@ class EmbeddedEvent:
     kind: EmbeddedEventKind
     reason: str
     leg_fraction: float
+    reception_class: str = "guaranteed"
+    baseline_m: float = 0.0
+    view_angle_gain_deg: float = 0.0
 
 
 def segment_disk_entry(
@@ -113,6 +116,16 @@ class OpportunityPlanner:
     def measurement_region_radius(self, state: ChannelState) -> float:
         return max(0.0, self.physical.reception_min_m - state.certificate().radius_m)
 
+    def reception_class(self, state: ChannelState, point: np.ndarray) -> str:
+        """Classify a candidate using conservative certificate/reception geometry."""
+        distance = float(np.linalg.norm(np.asarray(point, float) - state.certificate().center))
+        radius = float(state.certificate().radius_m)
+        if distance + radius <= self.physical.reception_min_m + self.planner.numeric_distance_tol_m:
+            return "guaranteed"
+        if distance - radius > self.physical.reception_max_m + self.planner.numeric_distance_tol_m:
+            return "impossible"
+        return "possible"
+
     def clear_region_radius(self, state: ChannelState) -> float:
         return max(
             0.0,
@@ -147,8 +160,20 @@ class OpportunityPlanner:
             best_sine = max(best_sine, abs(cross) / denominator)
         return best_sine
 
+    def measurement_geometry(self, state: ChannelState, point: np.ndarray) -> tuple[float, float]:
+        """Return baseline to the nearest bearing and maximum angular gain."""
+        center = state.certificate().center
+        candidate = np.asarray(point, float)
+        sensors = [np.asarray(o.position, float) for o in state.history if o.result == "direction"]
+        if not sensors:
+            return float("inf"), 180.0
+        baseline = min(float(np.linalg.norm(candidate - sensor)) for sensor in sensors)
+        gain = math.degrees(math.asin(min(1.0, max(0.0, self._measurement_quality(state, candidate)))))
+        return baseline, gain
+
     def _measurement_point(
-        self, state: ChannelState, leg: RouteLeg, radius_m: float
+        self, state: ChannelState, leg: RouteLeg, radius_m: float,
+        *, possible: bool = False,
     ) -> tuple[np.ndarray, float] | None:
         interval = segment_disk_interval(
             leg.start,
@@ -160,29 +185,39 @@ class OpportunityPlanner:
         if interval is None:
             return None
         low, high = interval
-        # This tiny deterministic set searches the whole zero-detour feasible
-        # interval, avoiding the false rejection caused by checking only entry.
+        # Search from the start of the leg and accept the first sufficiently
+        # informative viewpoint.  An opportunity is a zero-detour measurement,
+        # not a reason to keep travelling toward a nearly perpendicular view.
         fractions = np.linspace(low, high, 9)
         delta = leg.end - leg.start
-        candidates: list[tuple[float, float, np.ndarray]] = []
+        required_gain = max(
+            self.planner.opportunity_target_angle_deg,
+            self.planner.minimum_view_angle_gain_deg,
+        )
+        required_quality = max(
+            self.planner.shared_min_sin_angle,
+            math.sin(math.radians(required_gain)),
+        )
         for fraction in fractions:
             point = leg.start + float(fraction) * delta
             if state.already_measured(point):
                 continue
             quality = self._measurement_quality(state, point)
-            candidates.append((quality, -float(fraction), point))
-        if not candidates:
-            return None
-        quality, negative_fraction, point = max(candidates, key=lambda item: (item[0], item[1]))
-        if quality < self.planner.shared_min_sin_angle:
-            return None
-        return point, -negative_fraction
+            baseline, gain = self.measurement_geometry(state, point)
+            if quality + 1e-12 < required_quality:
+                continue
+            if baseline < self.planner.minimum_view_baseline_m:
+                continue
+            return point, float(fraction)
+        return None
 
     def events(
         self,
         leg: RouteLeg,
         channels: dict[int, ChannelState],
         excluded: set[tuple[EmbeddedEventKind, int]] | None = None,
+        *,
+        allow_possible: bool = False,
     ) -> list[EmbeddedEvent]:
         excluded = excluded or set()
         result: list[EmbeddedEvent] = []
@@ -206,7 +241,7 @@ class OpportunityPlanner:
                 point, fraction = clear_hit
                 result.append(EmbeddedEvent(
                     point, state.channel, EmbeddedEventKind.CLEAR,
-                    "certified_clear_region", fraction,
+                    "certified_clear_region", fraction, "guaranteed",
                 ))
                 # A channel that can be cleared on this leg never receives an
                 # extra measurement merely for information gathering.
@@ -215,15 +250,25 @@ class OpportunityPlanner:
             measure_key = (EmbeddedEventKind.MEASURE, state.channel)
             if measure_key in excluded:
                 continue
-            measure_hit = self._measurement_point(
-                state, leg, self.measurement_region_radius(state)
-            )
+            measure_hit = self._measurement_point(state, leg, self.measurement_region_radius(state))
+            reception = "guaranteed"
+            reason = "guaranteed_reception_useful_geometry"
+            # Possible-reception opportunities are primarily a BROAD-stage
+            # localization tool.  Once the certificate is ROUGH, guaranteed
+            # geometry remains sufficient and avoids repeated low-value hits.
+            broad = 2.0 * certificate.radius_m > self.planner.rough_localization_diameter_m
+            if measure_hit is None and allow_possible and broad:
+                possible_radius = self.physical.reception_max_m + certificate.radius_m
+                measure_hit = self._measurement_point(state, leg, possible_radius, possible=True)
+                reception = "possible"
+                reason = "possible_reception_useful_geometry"
             if measure_hit is None:
                 continue
             point, fraction = measure_hit
+            baseline, gain = self.measurement_geometry(state, point)
             result.append(EmbeddedEvent(
                 point, state.channel, EmbeddedEventKind.MEASURE,
-                "guaranteed_reception_useful_geometry", fraction,
+                reason, fraction, reception, baseline, gain,
             ))
         return sorted(
             result,

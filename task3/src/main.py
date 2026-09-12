@@ -13,6 +13,7 @@ from .config import ClientConfig, PhysicalConfig, PlannerConfig, config_dict
 from .controller import SearchController
 from .policies import POLICIES
 from .task_driven_controller import TaskDrivenController
+from .dynamic_open_route_controller import DynamicOpenRouteController
 from .scheduler import Scheduler
 
 
@@ -76,6 +77,10 @@ def main(argv: list[str] | None = None) -> int:
     client = SimulatorClient(client_cfg, args.log)
     if controller_kind == "task_queue":
         controller = TaskDrivenController(
+            client, PhysicalConfig(), planner, args.known_total
+        )
+    elif controller_kind == "dynamic_open_route":
+        controller = DynamicOpenRouteController(
             client, PhysicalConfig(), planner, args.known_total
         )
     else:

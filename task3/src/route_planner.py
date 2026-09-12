@@ -58,7 +58,8 @@ class RoutePlanner:
 
     def plan(self, origin_bearings_deg: list[float]) -> RoutePlan:
         rotation, reverse = choose_orientation(
-            origin_bearings_deg, self.planner.rotation_deg
+            origin_bearings_deg, self.planner.rotation_deg,
+            self.planner.orientation_strategy,
         )
         coverage = ordered_points(
             rotation, reverse, self.planner.ring_radius_m
