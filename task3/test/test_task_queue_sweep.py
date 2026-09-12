@@ -351,49 +351,113 @@ def _sequence_decision(
     )
 
 
-def test_short_horizon_selects_order_with_shorter_total_route() -> None:
-    a = Task(TaskKind.RESOLVE_SOURCE, channel=1)
-    b = Task(TaskKind.RESOLVE_SOURCE, channel=2)
-    decision = _sequence_decision([
-        TaskPreview(a, 0.0, np.array([9.0, 0.0])),
-        TaskPreview(b, 0.0, np.array([1.0, 0.0])),
-    ], {a.identity, b.identity})
-    assert decision.chosen_sequence is not None
-    assert [task.channel for task in decision.chosen_sequence.tasks[:2]] == [2, 1]
-
-
-def test_short_horizon_uses_end_position_not_only_first_distance() -> None:
-    near_bad_end = Task(TaskKind.RESOLVE_SOURCE, channel=1)
-    farther_good_end = Task(TaskKind.RESOLVE_SOURCE, channel=2)
-    decision = _sequence_decision([
-        TaskPreview(near_bad_end, 0.0, np.array([5.0, 0.0])),
-        TaskPreview(farther_good_end, 0.0, np.array([0.0, 6.0])),
-    ], {near_bad_end.identity, farther_good_end.identity})
-    assert decision.chosen_task == farther_good_end
-
-
-def test_advance_cannot_strand_required_resolve() -> None:
-    required = Task(TaskKind.RESOLVE_SOURCE, channel=1)
-    optional = Task(TaskKind.RESOLVE_SOURCE, channel=2)
-    decision = _sequence_decision([
-        TaskPreview(optional, 0.0, np.array([9.0, 0.0])),
-        TaskPreview(required, 0.0, np.array([2.0, 0.0])),
-    ], {required.identity})
-    direct = next(
-        sequence for sequence in decision.sequences
-        if sequence.tasks == (optional, Task(TaskKind.ADVANCE_COVERAGE, vertex=2))
+def _preview(task: Task, x: float) -> TaskPreview:
+    return TaskPreview(
+        task=task,
+        immediate_action="MEASURE",
+        immediate_reason="test_measurement",
+        immediate_operation_time_s=0.0,
+        immediate_end_position=np.array([x, 0.0]),
     )
-    assert not direct.feasible
-    assert "strand" in (direct.reason or "")
-    assert decision.chosen_task == required
+
+
+def test_single_step_selection_ignores_stale_second_task_geometry() -> None:
+    near = Task(TaskKind.RESOLVE_SOURCE, channel=1)
+    far = Task(TaskKind.RESOLVE_SOURCE, channel=2)
+    decision = _sequence_decision([_preview(far, 9.0), _preview(near, 1.0)])
+    assert decision.chosen_task == near
+    assert all(len(sequence.tasks) == 1 for sequence in decision.sequences)
+
+
+def test_ready_required_resolve_gates_advance_one_step_at_a_time() -> None:
+    required_a = Task(TaskKind.RESOLVE_SOURCE, channel=1)
+    required_b = Task(TaskKind.RESOLVE_SOURCE, channel=2)
+    decision = _sequence_decision(
+        [_preview(required_a, 2.0), _preview(required_b, 3.0)],
+        {required_a.identity, required_b.identity},
+    )
+    assert decision.chosen_task == required_a
+    assert all(
+        sequence.tasks[0].kind == TaskKind.RESOLVE_SOURCE
+        for sequence in decision.sequences
+    )
+
+
+def test_non_ready_resolve_does_not_gate_advance_in_controller(monkeypatch) -> None:
+    controller = _found_controller()
+    resolve = Task(
+        TaskKind.RESOLVE_SOURCE, channel=1, ready=False,
+        source_sector_rank=-1, order_key=(0,),
+    )
+    advance = Task(TaskKind.ADVANCE_COVERAGE, vertex=1, order_key=(1,))
+    ordered = controller._sequence_waiting([resolve, advance], "test")
+    controller.task_queue.rebuild(ordered)
+    assert controller.task_queue.select_active() == advance
+
+
+def test_all_ready_required_tasks_bypass_top_three(monkeypatch) -> None:
+    controller = _found_controller()
+    required = [
+        Task(
+            TaskKind.RESOLVE_SOURCE, channel=channel, ready=True,
+            source_sector_rank=-1, order_key=(0, channel),
+        )
+        for channel in range(1, 5)
+    ]
+    optional = Task(
+        TaskKind.RESOLVE_SOURCE, channel=5, ready=True,
+        source_sector_rank=0, order_key=(2, 5),
+    )
+    advance = Task(TaskKind.ADVANCE_COVERAGE, vertex=1, order_key=(1,))
+    monkeypatch.setattr(
+        controller, "_resolve_preview", lambda task: _preview(task, float(task.channel))
+    )
+    controller._sequence_waiting(required + [optional, advance], "test")
+    decision = controller.diagnostics[-1]
+    assert decision["planning_horizon"] == 1
+    assert set(decision["required_before_advance"]) == {task.label for task in required}
+    labels = {item["sequence"] for item in decision["candidate_sequences"]}
+    assert labels == {task.label for task in required}
+
+
+def test_intermediate_resolve_preview_does_not_claim_completion(monkeypatch) -> None:
+    controller = _found_controller()
+    point = np.asarray(controller.client.position, float)
+    monkeypatch.setattr(
+        controller,
+        "_normal_resolve_action",
+        lambda channel: ("MEASURE", point, "current_position_information", False),
+    )
+    preview = controller._resolve_preview(Task(TaskKind.RESOLVE_SOURCE, channel=1))
+    assert preview is not None
+    assert not preview.completion_known
+    assert preview.estimated_completion_cost_s is None
+    assert preview.estimated_completion_end_position is None
+
+
+def test_certified_clear_preview_has_reliable_completion_fields(monkeypatch) -> None:
+    controller = _found_controller()
+    point = np.asarray(controller.client.position, float) + np.array([10.0, 0.0])
+    monkeypatch.setattr(
+        controller,
+        "_normal_resolve_action",
+        lambda channel: ("CLEAR", point, "certified_clear_point", True),
+    )
+    preview = controller._resolve_preview(Task(TaskKind.RESOLVE_SOURCE, channel=1))
+    assert preview is not None and preview.completion_known
+    assert np.allclose(preview.estimated_completion_end_position, point)
+    expected = (
+        10.0 / controller.physical.speed_mps
+        + controller.physical.optical_s
+        + controller.physical.laser_s
+    )
+    assert np.isclose(preview.estimated_completion_cost_s, expected)
 
 
 def test_controller_sequences_waiting_without_preempting_active(monkeypatch) -> None:
     controller = _found_controller()
     active = Task(TaskKind.RESOLVE_SOURCE, channel=1)
     controller.task_queue.active = active
-    monkeypatch.setattr(controller, "_resolve_preview", lambda task: TaskPreview(
-        task, 0.0, np.asarray(controller.client.position, float)
-    ))
+    monkeypatch.setattr(controller, "_resolve_preview", lambda task: _preview(task, 0.0))
     controller._refresh_waiting("opportunistic_observation")
     assert controller.task_queue.active == active

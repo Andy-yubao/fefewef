@@ -189,22 +189,37 @@ class TaskDrivenController(SearchController):
         })
 
     def _resolve_preview(self, task: Task) -> TaskPreview | None:
-        """Approximate completion by the next deterministic service action."""
+        """Describe the next action without implying that it completes Resolve."""
         assert task.channel is not None
         action = self._normal_resolve_action(task.channel)
         if action is None:
             return None
-        kind, point, _, _ = action
+        kind, point, reason, certified = action
+        point = np.asarray(point, float).copy()
         operation_s = (
             self.physical.measure_s
             if kind == "MEASURE"
             else self.physical.optical_s + self.physical.laser_s
         )
+        requires_switch = kind == "MEASURE"
+        immediate_cost_s = (
+            float(np.linalg.norm(point - np.asarray(self.client.position, float)))
+            / self.physical.speed_mps
+            + (self.physical.switch_s if requires_switch
+               and task.channel != self.client.current_channel else 0.0)
+            + operation_s
+        )
+        completion_known = kind == "CLEAR" and certified
         return TaskPreview(
-            task,
-            operation_s,
-            np.asarray(point, float).copy(),
-            requires_channel_switch=kind == "MEASURE",
+            task=task,
+            immediate_action=kind,
+            immediate_reason=reason,
+            immediate_operation_time_s=operation_s,
+            immediate_end_position=point,
+            requires_channel_switch=requires_switch,
+            completion_known=completion_known,
+            estimated_completion_cost_s=immediate_cost_s if completion_known else None,
+            estimated_completion_end_position=point.copy() if completion_known else None,
         )
 
     def _sequence_waiting(self, tasks: list[Task], event: str) -> list[Task]:
@@ -213,24 +228,30 @@ class TaskDrivenController(SearchController):
             return tasks
         advance = next((task for task in tasks if task.kind == TaskKind.ADVANCE_COVERAGE), None)
         frontier_rank = self._frontier_rank()
-        ready_resolves = [
+        required_tasks = [
             task for task in tasks
             if task.kind == TaskKind.RESOLVE_SOURCE
             and task.ready
             and task.source_sector_rank is not None
+            and task.source_sector_rank <= frontier_rank
+        ]
+        required_tasks.sort(key=lambda task: task.order_key)
+        required = {task.identity for task in required_tasks}
+        ordinary_ready = [
+            task for task in tasks
+            if task.kind == TaskKind.RESOLVE_SOURCE
+            and task.ready
+            and task.identity not in required
+            and task.source_sector_rank is not None
             and task.source_sector_rank in {max(0, frontier_rank), frontier_rank + 1}
         ]
-        ready_resolves.sort(key=lambda task: task.order_key)
+        ordinary_ready.sort(key=lambda task: task.order_key)
+        # Required READY obligations bypass the ordinary top-3 prefilter.
+        candidate_tasks = required_tasks + ordinary_ready[:max(0, 3 - len(required_tasks))]
         previews = [
-            preview for task in ready_resolves[:3]
+            preview for task in candidate_tasks
             if (preview := self._resolve_preview(task)) is not None
         ]
-        required = {
-            task.identity for task in tasks
-            if task.kind == TaskKind.RESOLVE_SOURCE
-            and task.source_sector_rank is not None
-            and task.source_sector_rank <= frontier_rank
-        }
         decision = choose_short_horizon_sequence(
             np.asarray(self.client.position, float),
             self.client.current_channel,
@@ -240,16 +261,26 @@ class TaskDrivenController(SearchController):
             required,
             self.physical.speed_mps,
             self.physical.switch_s,
+            horizon=1,
         )
         if decision.sequences:
             self.diagnostics.append({
                 "type": "route_sequence_decision",
                 "event": event,
+                "planning_horizon": 1,
+                "required_before_advance": [task.label for task in required_tasks],
                 "candidate_sequences": [
                     {
                         "sequence": sequence.label,
-                        "estimated_cost_s": sequence.estimated_cost_s,
-                        "estimated_end_position": sequence.estimated_end_position.tolist(),
+                        "estimated_immediate_cost_s": sequence.estimated_immediate_cost_s,
+                        "decision_end_position": sequence.decision_end_position.tolist(),
+                        "immediate_action": sequence.immediate_action,
+                        "completion_known": sequence.completion_known,
+                        "estimated_completion_cost_s": sequence.estimated_completion_cost_s,
+                        "estimated_completion_end_position": (
+                            sequence.estimated_completion_end_position.tolist()
+                            if sequence.estimated_completion_end_position is not None else None
+                        ),
                         "feasible": sequence.feasible,
                         "reason": sequence.reason,
                     }

@@ -1,10 +1,8 @@
-"""Small deterministic route sequencer for READY resolve tasks."""
+"""Honest single-step selection for READY resolve and coverage tasks."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass
-from itertools import permutations
-
 import numpy as np
 
 from .task_queue import Task
@@ -12,20 +10,41 @@ from .task_queue import Task
 
 @dataclass(frozen=True)
 class TaskPreview:
-    """Deterministic proxy for the next useful action of a resolve task."""
+    """Known effects of one immediate action, with explicit completion semantics."""
 
     task: Task
-    operation_time_s: float
-    end_position: np.ndarray
+    immediate_action: str
+    immediate_reason: str
+    immediate_operation_time_s: float
+    immediate_end_position: np.ndarray
     requires_channel_switch: bool = True
+    completion_known: bool = False
+    estimated_completion_cost_s: float | None = None
+    estimated_completion_end_position: np.ndarray | None = None
+
+    def __post_init__(self) -> None:
+        completion_fields_known = (
+            self.estimated_completion_cost_s is not None
+            and self.estimated_completion_end_position is not None
+        )
+        if self.completion_known != completion_fields_known:
+            raise ValueError(
+                "completion estimates must be present exactly when completion_known is true"
+            )
 
 
 @dataclass(frozen=True)
 class SequencePreview:
+    """A production decision candidate containing exactly one next task."""
+
     tasks: tuple[Task, ...]
-    estimated_cost_s: float | None
-    estimated_end_position: np.ndarray
+    estimated_immediate_cost_s: float
+    decision_end_position: np.ndarray
     feasible: bool
+    immediate_action: str
+    completion_known: bool
+    estimated_completion_cost_s: float | None = None
+    estimated_completion_end_position: np.ndarray | None = None
     reason: str | None = None
 
     @property
@@ -49,85 +68,64 @@ def choose_short_horizon_sequence(
     required_before_advance: set[tuple],
     speed_mps: float,
     switch_s: float,
-    horizon: int = 2,
+    horizon: int = 1,
 ) -> SequenceDecision:
-    """Choose the cheapest at-most-two-resolve route using time as its cost.
+    """Choose one task, then let execution update belief before replanning.
 
-    A resolve preview represents the deterministic next useful service action under
-    current belief.  If not every required current-sector task fits in the horizon,
-    Advance is deliberately deferred and the best resolve prefix is selected.
+    Resolve candidates are priced only as their known immediate action. If any
+    READY resolve is required before Advance, only those obligations are eligible.
     """
-    if horizon < 1:
-        raise ValueError("horizon must be positive")
+    if horizon != 1:
+        raise ValueError("production sequencer currently supports only horizon=1")
     if speed_mps <= 0.0:
         raise ValueError("speed_mps must be positive")
 
     start = np.asarray(current_position, float)
-    previews = resolves[:3]
-    by_identity = {preview.task.identity: preview for preview in previews}
     sequences: list[SequencePreview] = []
+    eligible_resolves = [
+        preview for preview in resolves
+        if not required_before_advance or preview.task.identity in required_before_advance
+    ]
+    for preview in eligible_resolves:
+        target = np.asarray(preview.immediate_end_position, float)
+        cost = float(np.linalg.norm(target - start)) / speed_mps
+        if preview.requires_channel_switch and preview.task.channel != current_channel:
+            cost += switch_s
+        cost += preview.immediate_operation_time_s
+        sequences.append(SequencePreview(
+            tasks=(preview.task,),
+            estimated_immediate_cost_s=cost,
+            decision_end_position=target.copy(),
+            feasible=True,
+            immediate_action=preview.immediate_action,
+            completion_known=preview.completion_known,
+            estimated_completion_cost_s=preview.estimated_completion_cost_s,
+            estimated_completion_end_position=(
+                None
+                if preview.estimated_completion_end_position is None
+                else np.asarray(preview.estimated_completion_end_position, float).copy()
+            ),
+        ))
 
-    def evaluate(order: tuple[TaskPreview, ...], include_advance: bool) -> SequencePreview:
-        position = start.copy()
-        channel = current_channel
-        cost = 0.0
-        tasks: list[Task] = []
-        for preview in order:
-            target = np.asarray(preview.end_position, float)
-            cost += float(np.linalg.norm(target - position)) / speed_mps
-            if preview.requires_channel_switch and preview.task.channel != channel:
-                cost += switch_s
-            cost += preview.operation_time_s
-            position = target.copy()
-            channel = preview.task.channel
-            tasks.append(preview.task)
-        if include_advance:
-            assert advance is not None and advance_position is not None
-            tasks.append(advance)
-            covered = {preview.task.identity for preview in order}
-            missing = required_before_advance - covered
-            if missing:
-                labels = ", ".join(
-                    by_identity[item].task.label if item in by_identity else str(item)
-                    for item in sorted(missing, key=str)
-                )
-                return SequencePreview(
-                    tuple(tasks), None, position, False,
-                    f"would strand required task(s): {labels}",
-                )
-            target = np.asarray(advance_position, float)
-            cost += float(np.linalg.norm(target - position)) / speed_mps
-            position = target.copy()
-        return SequencePreview(tuple(tasks), cost, position, True)
+    if not required_before_advance and advance is not None and advance_position is not None:
+        target = np.asarray(advance_position, float)
+        cost = float(np.linalg.norm(target - start)) / speed_mps
+        sequences.append(SequencePreview(
+            tasks=(advance,),
+            estimated_immediate_cost_s=cost,
+            decision_end_position=target.copy(),
+            feasible=True,
+            immediate_action="ADVANCE",
+            completion_known=True,
+            estimated_completion_cost_s=cost,
+            estimated_completion_end_position=target.copy(),
+        ))
 
-    max_length = min(horizon, len(previews))
-    include_advance = advance is not None and advance_position is not None
-    if include_advance and not required_before_advance:
-        sequences.append(evaluate((), True))
-    for length in range(1, max_length + 1):
-        for order in permutations(previews, length):
-            sequences.append(evaluate(order, include_advance))
-
-    feasible = [sequence for sequence in sequences if sequence.feasible and sequence.tasks]
-    if not feasible and required_before_advance and previews:
-        # More required work than fits in the horizon: compare resolve-only prefixes
-        # and replan after the selected committed task completes.
-        for length in range(1, max_length + 1):
-            for order in permutations(previews, length):
-                sequences.append(evaluate(order, False))
-        feasible = [sequence for sequence in sequences if sequence.feasible and sequence.tasks]
-    if not feasible:
-        return SequenceDecision(None, None, tuple(sequences))
+    if not sequences:
+        return SequenceDecision(None, None, ())
 
     chosen = min(
-        feasible,
-        key=lambda sequence: (
-            float(sequence.estimated_cost_s),
-            sequence.label,
-        ),
+        sequences,
+        key=lambda sequence: (sequence.estimated_immediate_cost_s, sequence.label),
     )
-    chosen_task = next(
-        (task for task in chosen.tasks if task.identity in by_identity),
-        chosen.tasks[0] if chosen.tasks else None,
-    )
-    return SequenceDecision(chosen_task, chosen, tuple(sequences))
+    return SequenceDecision(chosen.tasks[0], chosen, tuple(sequences))
