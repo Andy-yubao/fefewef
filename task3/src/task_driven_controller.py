@@ -223,7 +223,13 @@ class TaskDrivenController(SearchController):
         )
 
     def _sequence_waiting(self, tasks: list[Task], event: str) -> list[Task]:
-        """Reorder only WAITING; TaskQueue preserves any ACTIVE commitment."""
+        """Reorder only WAITING; TaskQueue preserves any ACTIVE commitment.
+
+        Commitment follows the sweep planner's ``order_key``. The immediate
+        preview is still built for every candidate - it is what execution does
+        next, and it is logged - but a 5-6 s in-place MEASURE is not treated as
+        evidence that its task is the cheapest one to commit to.
+        """
         if self.sweep_planner is None:
             return tasks
         advance = next((task for task in tasks if task.kind == TaskKind.ADVANCE_COVERAGE), None)
@@ -268,10 +274,15 @@ class TaskDrivenController(SearchController):
                 "type": "route_sequence_decision",
                 "event": event,
                 "planning_horizon": 1,
+                # Commitment order; the immediate costs below are recorded only.
+                "selection_basis": (
+                    "required_order_key" if required else "order_key"
+                ),
                 "required_before_advance": [task.label for task in required_tasks],
                 "candidate_sequences": [
                     {
                         "sequence": sequence.label,
+                        "order_key": list(sequence.tasks[0].order_key),
                         "estimated_immediate_cost_s": sequence.estimated_immediate_cost_s,
                         "decision_end_position": sequence.decision_end_position.tolist(),
                         "immediate_action": sequence.immediate_action,
