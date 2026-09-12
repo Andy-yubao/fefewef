@@ -82,6 +82,15 @@ class TaskDrivenController(SearchController):
             self._progress_frontier_rank = frontier_rank
             self._leg_progress_fraction = 0.0
 
+    def _update_leg_progress_from_point(self, point: np.ndarray) -> None:
+        """Monotonically record real forward progress on the current sweep leg."""
+        progress = self._route_progress(point)
+        if progress is None or self.sweep_planner is None:
+            return
+        if not self.sweep_planner.is_forward_compatible(point, self._frontier_rank()):
+            return
+        self._leg_progress_fraction = max(self._leg_progress_fraction, progress[1])
+
     def _task_snapshot(self) -> dict[str, Any]:
         active = self.task_queue.active
         active_source_rank = None
@@ -263,6 +272,8 @@ class TaskDrivenController(SearchController):
                 macro_backward = not self.sweep_planner.is_forward_compatible(
                     end, self._frontier_rank()
                 )
+                if movement_m > self.planner.numeric_distance_tol_m:
+                    self._update_leg_progress_from_point(end)
             angular_backward = macro_backward
             if angular_backward:
                 self.angular_backward_movement_count += 1
@@ -568,13 +579,7 @@ class TaskDrivenController(SearchController):
                 self._do_clear(point, channel, reason, certified)
             else:
                 self._do_measure(point, channel, reason)
-                if reason in {"forward_route_measurement", "forward_service_approach"}:
-                    progress = self._route_progress(point)
-                    if progress is not None:
-                        self._leg_progress_fraction = max(
-                            self._leg_progress_fraction, progress[1]
-                        )
-                elif reason == "final_transverse_measurement":
+                if reason == "final_transverse_measurement":
                     self._final_transverse_attempted.add(channel)
         else:
             point = self._fallback_clear_point(channel)

@@ -217,3 +217,58 @@ def test_completed_rank_is_rejected_as_normal_resolve_candidate() -> None:
     assert not sweep.is_forward_compatible(route.coverage[1], frontier_rank)
     assert sweep.is_forward_compatible(route.coverage[2], frontier_rank)
     assert sweep.is_forward_compatible(route.coverage[3], frontier_rank)
+
+
+def test_active_resolve_movement_monotonically_updates_leg_progress() -> None:
+    controller = _found_controller()
+    controller.coverage_completed.add(1)
+    controller.task_queue.active = Task(TaskKind.RESOLVE_SOURCE, channel=1)
+    start = controller.coverage[1]
+    end = controller.coverage[2]
+
+    quarter = start + 0.25 * (end - start)
+    controller._record_action(
+        "MEASURE", 1, start, quarter, "forward_center_measurement"
+    )
+    assert np.isclose(controller._leg_progress_fraction, 0.25)
+
+    three_quarters = start + 0.75 * (end - start)
+    controller._record_action(
+        "CLEAR", 1, quarter, three_quarters, "certified_clear_point"
+    )
+    assert np.isclose(controller._leg_progress_fraction, 0.75)
+
+    controller._record_action(
+        "MEASURE", 1, three_quarters, quarter, "another_dedicated_action"
+    )
+    assert np.isclose(controller._leg_progress_fraction, 0.75)
+
+
+def test_forward_route_does_not_reselect_reached_leg_prefix(monkeypatch) -> None:
+    controller = _found_controller()
+    controller.coverage_completed.add(1)
+    controller.task_queue.active = Task(TaskKind.RESOLVE_SOURCE, channel=1)
+    start = controller.coverage[1]
+    passed = start + 0.3 * (controller.coverage[2] - start)
+    controller._record_action(
+        "CLEAR", 1, start, passed, "certified_clear_point"
+    )
+    monkeypatch.setattr(controller, "_measurement_useful_at", lambda channel, point: True)
+
+    point = controller._forward_route_measurement(1)
+    assert point is not None
+    _, fraction = controller._route_progress(point)
+    assert fraction > 0.3
+
+
+def test_radial_detour_does_not_advance_leg_progress() -> None:
+    controller = _found_controller()
+    controller.coverage_completed.add(1)
+    controller.task_queue.active = Task(TaskKind.RESOLVE_SOURCE, channel=1)
+    start = controller.coverage[1]
+    radial = 1.1 * start
+
+    controller._record_action(
+        "MEASURE", 1, start, radial, "forward_center_measurement"
+    )
+    assert controller._leg_progress_fraction == 0.0
