@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections import Counter, defaultdict
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import math
 import time
 
@@ -13,13 +13,13 @@ from task4.geometry import (
     clip_convex,
     distance,
     enclosing_center_radius,
-    polygon_centroid,
 )
 
 from .base import BaseStrategy, ChannelBelief, StrategyResult
 from .triangle_cells import (
     TriangleCell,
     cells_closed_at,
+    fixed_start_open_route,
     fixed_start_end_route,
     main_points,
     triangle_cells,
@@ -29,10 +29,11 @@ from .triangle_cells import (
 SAFE_CLEAR_RADIUS_M = 19.5
 EARLY_CLEAR_RADIUS_M = 30.0
 FAILED_TARGET_SHIFT_M = 5.0
-SINGLE_VISIBLE_MAX_CHECKS = 3
-CROSS_VIEW_MAX_CHECKS = 2
-RESIDUAL_MAX_CHECKS = 4
+FORWARD_MAX_CHECKS = 2
+LATERAL_MAX_CHECKS = 2
+RESIDUAL_MAX_CHECKS = 5
 MIN_CHECK_SEPARATION_M = 20.0
+LOCAL_CHECK_MAX_DETOUR_M = 350.0
 
 
 @dataclass(frozen=True)
@@ -55,6 +56,29 @@ class CellAssessment:
     signature_complete: bool
     outcome: str
     local_polygon: tuple[Point, ...]
+
+
+@dataclass(frozen=True)
+class CheckCandidate:
+    point: Point
+    mode: str
+
+
+@dataclass
+class ChannelServiceObligation:
+    channel: int
+    kind: str
+    supporting_cells: set[int] = field(default_factory=set)
+    forward_attempts: int = 0
+    lateral_attempts: int = 0
+    positive_stations: list[tuple[Point, float]] = field(default_factory=list)
+    last_useful_geometry: float = 0.0
+    status: str = "active"
+    episode_count: int = 1
+
+    @property
+    def attempt_count(self) -> int:
+        return self.forward_attempts + self.lateral_attempts
 
 
 class SequentialTriangleClear19Strategy(BaseStrategy):
@@ -86,13 +110,20 @@ class SequentialTriangleClear19Strategy(BaseStrategy):
         self._cell_by_id = {cell.cell_id: cell for cell in self.cells}
         self._vertex_results: dict[tuple[int, int], str] = {}
         self._excluded_cells: dict[int, set[int]] = defaultdict(set)
-        self._local_checks: Counter[tuple[int, int, str]] = Counter()
+        self._obligations: dict[int, ChannelServiceObligation] = {}
         self._residual_checks: Counter[int] = Counter()
         self._failed_optical_targets: dict[int, list[Point]] = defaultdict(list)
         self._signature_recorded: set[tuple[int, int]] = set()
         self._current_main_index = 0
         self._measuring_main = False
+        self._movement_phase = "main_leg"
+        self._movement_channel: int | None = None
         self._movement_distance_m = 0.0
+        self._movement_by_phase: Counter[str] = Counter()
+        self._per_channel_local_checks: Counter[int] = Counter()
+        self._per_channel_cells_triggered: dict[int, set[int]] = defaultdict(set)
+        self._per_channel_service_attempts: Counter[int] = Counter()
+        self._per_channel_detour_distance: Counter[int] = Counter()
         self._stats: dict[str, object] = {
             "visited_main_points": 0,
             "closed_cells": 0,
@@ -106,8 +137,14 @@ class SequentialTriangleClear19Strategy(BaseStrategy):
             "cross_view_check_count": 0,
             "clear_attempts": 0,
             "early_optical_failures": 0,
-            "main_skeleton_distance_m": 0.0,
-            "local_detour_distance_m": 0.0,
+            "main_skeleton_nominal_distance_m": 0.0,
+            "main_leg_distance_m": 0.0,
+            "settlement_check_distance_m": 0.0,
+            "settlement_clear_distance_m": 0.0,
+            "residual_check_distance_m": 0.0,
+            "residual_clear_distance_m": 0.0,
+            "local_check_detour_rejections": 0,
+            "service_fallback_count": 0,
             "total_movement_distance_m": 0.0,
             "cleared_before_p7": 0,
             "cleared_before_p19": 0,
@@ -116,11 +153,18 @@ class SequentialTriangleClear19Strategy(BaseStrategy):
             "per_cell_local_task_count": {},
         }
 
+    def _record_movement(self, before: Point, after: Point) -> None:
+        movement = distance(before, after)
+        self._movement_distance_m += movement
+        self._movement_by_phase[self._movement_phase] += movement
+        if self._movement_channel is not None and self._movement_phase != "main_leg":
+            self._per_channel_detour_distance[self._movement_channel] += movement
+
     def _measure(self, api: RobotAPI, position: Point, channel: int) -> dict:
         before = self.position
         prior_status = self.beliefs[channel].status
         response = super()._measure(api, position, channel)
-        self._movement_distance_m += distance(before, position)
+        self._record_movement(before, position)
         if self._measuring_main:
             self._stats["main_grid_measurements"] = int(self._stats["main_grid_measurements"]) + 1
             key = "unseen_channel_measurements" if prior_status == "unseen" else "active_channel_measurements"
@@ -131,7 +175,7 @@ class SequentialTriangleClear19Strategy(BaseStrategy):
         before = self.position
         self._stats["clear_attempts"] = int(self._stats["clear_attempts"]) + 1
         success = super()._clear(api, position, channel)
-        self._movement_distance_m += distance(before, position)
+        self._record_movement(before, position)
         if success:
             if self._current_main_index < 7:
                 self._stats["cleared_before_p7"] = int(self._stats["cleared_before_p7"]) + 1
@@ -222,67 +266,182 @@ class SequentialTriangleClear19Strategy(BaseStrategy):
             default=0.0,
         )
 
-    def _cell_check_point(
+    def _detour(self, point: Point, next_fixed: Point) -> float:
+        return (
+            distance(self.position, point)
+            + distance(point, next_fixed)
+            - distance(self.position, next_fixed)
+        )
+
+    def _select_admissible_candidate(
         self,
+        candidates: list[CheckCandidate],
         belief: ChannelBelief,
-        assessment: CellAssessment,
+        target: Point,
         next_fixed: Point,
-    ) -> Point | None:
-        cell = self._cell_by_id[assessment.cell_id]
-        local = list(assessment.local_polygon)
-        if not local:
-            return None
-        center, _ = enclosing_center_radius(local)
-        centroid = polygon_centroid(local)
-        vertices = list(cell.polygon)
-        candidates: list[Point] = [center, centroid]
-        candidates.extend(((a[0] + b[0]) / 2.0, (a[1] + b[1]) / 2.0) for a, b in zip(vertices, vertices[1:] + vertices[:1]))
-        if assessment.positive_count == 1:
-            positive_vertex = next(
-                self.points[vertex - 1]
-                for vertex in cell.vertex_ids
-                if self._vertex_results.get((vertex, belief.channel)) in {"direction", "near"}
+        *,
+        record_rejections: bool = True,
+    ) -> CheckCandidate | None:
+        usable = [
+            candidate
+            for candidate in candidates
+            if all(
+                distance(candidate.point, attempted) >= MIN_CHECK_SEPARATION_M
+                for attempted in belief.attempted_positions
             )
-            candidates.extend(
-                (
-                    positive_vertex[0] * weight + centroid[0] * (1.0 - weight),
-                    positive_vertex[1] * weight + centroid[1] * (1.0 - weight),
-                )
-                for weight in (0.35, 0.55, 0.75)
-            )
-        attempted = belief.attempted_positions
-        candidates = [
-            point
-            for point in candidates
-            if all(distance(point, old) >= MIN_CHECK_SEPARATION_M for old in attempted)
         ]
-        if not candidates:
+        admissible = [
+            candidate
+            for candidate in usable
+            if self._detour(candidate.point, next_fixed) <= LOCAL_CHECK_MAX_DETOUR_M + 1e-9
+        ]
+        if record_rejections:
+            self._stats["local_check_detour_rejections"] = int(
+                self._stats["local_check_detour_rejections"]
+            ) + len(usable) - len(admissible)
+        if not admissible:
             return None
+        if all(candidate.mode == "forward" for candidate in admissible):
+            return min(
+                admissible,
+                key=lambda candidate: (
+                    distance(candidate.point, target),
+                    self._detour(candidate.point, next_fixed),
+                    candidate.point,
+                ),
+            )
         return max(
-            candidates,
-            key=lambda point: (
-                1200.0 * self._crossing_value(point, center, belief)
-                - distance(self.position, point)
-                - distance(point, next_fixed),
-                -point[0],
-                -point[1],
+            admissible,
+            key=lambda candidate: (
+                self._crossing_value(candidate.point, target, belief),
+                -self._detour(candidate.point, next_fixed),
+                -candidate.point[0],
+                -candidate.point[1],
             ),
         )
 
+    def _update_obligations(self, cell_ids: tuple[int, ...]) -> None:
+        for belief in self.beliefs.values():
+            if belief.status != "active":
+                continue
+            assessments = [self.assess_cell(belief.channel, cell_id) for cell_id in cell_ids]
+            relevant = [
+                assessment
+                for assessment in assessments
+                if assessment.outcome in {"single_visible", "multi_visible"}
+            ]
+            if not relevant:
+                continue
+            obligation = self._obligations.get(belief.channel)
+            if obligation is None:
+                obligation = ChannelServiceObligation(
+                    belief.channel,
+                    "cross_view" if any(item.positive_count >= 2 for item in relevant) else "single_visible",
+                )
+                self._obligations[belief.channel] = obligation
+            new_cells = {item.cell_id for item in relevant} - obligation.supporting_cells
+            if new_cells and obligation.status == "fallback":
+                obligation.status = "active"
+                obligation.episode_count += 1
+            obligation.supporting_cells.update(item.cell_id for item in relevant)
+            self._per_channel_cells_triggered[belief.channel].update(
+                item.cell_id for item in relevant
+            )
+            if any(item.positive_count >= 2 for item in relevant):
+                obligation.kind = "cross_view"
+            for assessment in relevant:
+                cell = self._cell_by_id[assessment.cell_id]
+                for vertex in cell.vertex_ids:
+                    station = self.points[vertex - 1]
+                    if self._vertex_results.get((vertex, belief.channel)) != "direction":
+                        continue
+                    observation = next(
+                        (
+                            item
+                            for item in reversed(belief.observations)
+                            if distance(item[0], station) < 1e-7
+                        ),
+                        None,
+                    )
+                    if observation is not None and observation not in obligation.positive_stations:
+                        obligation.positive_stations.append(observation)
+
+    def _obligation_assessment(
+        self, obligation: ChannelServiceObligation
+    ) -> CellAssessment | None:
+        assessments = [
+            self.assess_cell(obligation.channel, cell_id)
+            for cell_id in sorted(obligation.supporting_cells)
+        ]
+        relevant = [
+            item
+            for item in assessments
+            if item.outcome in {"single_visible", "multi_visible"}
+            and item.local_polygon
+        ]
+        return min(relevant, key=lambda item: (-item.positive_count, item.cell_id)) if relevant else None
+
+    def _obligation_check_candidate(
+        self,
+        obligation: ChannelServiceObligation,
+        belief: ChannelBelief,
+        assessment: CellAssessment,
+        next_fixed: Point,
+    ) -> CheckCandidate | None:
+        local = list(assessment.local_polygon)
+        center, _ = enclosing_center_radius(local)
+        positive = obligation.positive_stations or list(belief.observations)
+        if obligation.kind == "single_visible" and obligation.forward_attempts < FORWARD_MAX_CHECKS:
+            station, theta = positive[-1]
+            angle = math.radians(theta)
+            direction = (math.cos(angle), math.sin(angle))
+            span = distance(station, center)
+            steps = sorted(
+                {
+                    max(80.0, min(220.0, 0.45 * span)),
+                    max(120.0, min(350.0, 0.70 * span)),
+                }
+            )
+            candidates = [
+                CheckCandidate(
+                    (station[0] + step * direction[0], station[1] + step * direction[1]),
+                    "forward",
+                )
+                for step in steps
+            ]
+            return self._select_admissible_candidate(
+                candidates, belief, center, next_fixed
+            )
+        if obligation.lateral_attempts >= LATERAL_MAX_CHECKS:
+            return None
+        station, theta = belief.observations[-1]
+        angle = math.radians(theta)
+        forward = (math.cos(angle), math.sin(angle))
+        lateral = (-forward[1], forward[0])
+        span = distance(station, center)
+        advance = max(30.0, min(120.0, 0.40 * span))
+        first_offset = max(60.0, min(180.0, 0.50 * span))
+        second_offset = max(90.0, min(280.0, 0.75 * span))
+        candidates = [
+            CheckCandidate(
+                (
+                    station[0] + advance * forward[0] + offset * lateral[0],
+                    station[1] + advance * forward[1] + offset * lateral[1],
+                ),
+                "lateral",
+            )
+            for offset in (first_offset, -first_offset, second_offset, -second_offset)
+        ]
+        return self._select_admissible_candidate(candidates, belief, center, next_fixed)
+
     def _build_cell_tasks(self, cell_ids: tuple[int, ...], next_fixed: Point) -> list[LocalTask]:
+        self._update_obligations(cell_ids)
         tasks: list[LocalTask] = []
         for belief in self.beliefs.values():
             if belief.status in {"unseen", "cleared"}:
                 continue
-            assessments = [self.assess_cell(belief.channel, cell_id) for cell_id in cell_ids]
+            obligation = self._obligations.get(belief.channel)
             clear_target = self._clear_candidate(belief)
-            clearable_here = [
-                assessment
-                for assessment in assessments
-                if assessment.local_polygon
-                and assessment.outcome != "excluded"
-                and (assessment.positive_count > 0 or not assessment.signature_complete)
-            ]
             located_cells = [
                 cell_id
                 for cell_id in cell_ids
@@ -290,41 +449,56 @@ class SequentialTriangleClear19Strategy(BaseStrategy):
                 and belief.status == "located"
                 and self._point_in_cell(clear_target, self._cell_by_id[cell_id])
             ]
-            if clear_target is not None and (clearable_here or located_cells):
-                cell_id = (
-                    min(clearable_here, key=lambda item: (-item.positive_count, item.cell_id)).cell_id
-                    if clearable_here
-                    else min(located_cells)
-                )
+            if clear_target is not None and (obligation is not None or located_cells):
+                cell_id = min(obligation.supporting_cells) if obligation and obligation.supporting_cells else min(located_cells)
                 tasks.append(LocalTask("clear", belief.channel, cell_id, clear_target))
                 continue
-            relevant = [a for a in assessments if a.outcome in {"single_visible", "multi_visible"}]
-            if not relevant:
+            if obligation is None or obligation.status != "active":
                 continue
-            assessment = min(relevant, key=lambda item: (-item.positive_count, item.cell_id))
-            if assessment.outcome == "single_visible":
-                kind = "single_visible"
-                maximum = SINGLE_VISIBLE_MAX_CHECKS
-            else:
-                kind = "cross_view"
-                maximum = CROSS_VIEW_MAX_CHECKS
-            if self._local_checks[(belief.channel, assessment.cell_id, kind)] >= maximum:
+            assessment = self._obligation_assessment(obligation)
+            if assessment is None:
+                obligation.status = "settled"
                 continue
-            point = self._cell_check_point(belief, assessment, next_fixed)
-            if point is not None:
-                tasks.append(LocalTask(kind, belief.channel, assessment.cell_id, point))
+            candidate = self._obligation_check_candidate(
+                obligation, belief, assessment, next_fixed
+            )
+            if candidate is None:
+                obligation.status = "fallback"
+                self._stats["service_fallback_count"] = int(
+                    self._stats["service_fallback_count"]
+                ) + 1
+                continue
+            kind = "single_visible" if candidate.mode == "forward" else "cross_view"
+            tasks.append(LocalTask(kind, belief.channel, assessment.cell_id, candidate.point))
         return tasks
 
-    def _execute_task(self, api: RobotAPI, task: LocalTask) -> None:
+    def _execute_task(self, api: RobotAPI, task: LocalTask, *, residual: bool = False) -> None:
+        self._movement_channel = task.channel
         if task.kind == "clear":
+            self._movement_phase = "residual_clear" if residual else "settlement_clear"
             belief = self.beliefs[task.channel]
             if not self._clear(api, task.point, task.channel):
                 belief.status = "active"
                 belief.clear_target = None
+                obligation = self._obligations.get(task.channel)
+                if obligation is not None:
+                    obligation.status = "active"
+            else:
+                obligation = self._obligations.get(task.channel)
+                if obligation is not None:
+                    obligation.status = "completed"
             return
+        self._movement_phase = "residual_check" if residual else "settlement_check"
         belief = self.beliefs[task.channel]
         belief.attempted_positions.append(task.point)
-        self._local_checks[(task.channel, task.cell_id, task.kind)] += 1
+        obligation = self._obligations.get(task.channel)
+        if obligation is not None and not residual:
+            if task.kind == "single_visible":
+                obligation.forward_attempts += 1
+            else:
+                obligation.lateral_attempts += 1
+        self._per_channel_service_attempts[task.channel] += 1
+        self._per_channel_local_checks[task.channel] += 1
         self._stats["local_check_count"] = int(self._stats["local_check_count"]) + 1
         if task.kind == "single_visible":
             self._stats["single_visible_check_count"] = int(self._stats["single_visible_check_count"]) + 1
@@ -335,6 +509,18 @@ class SequentialTriangleClear19Strategy(BaseStrategy):
         key = str(task.cell_id)
         per_cell[key] = int(per_cell.get(key, 0)) + 1
         response = self._measure(api, task.point, task.channel)
+        if response["measure_result"] == "direction" and obligation is not None:
+            observation = belief.observations[-1]
+            if observation not in obligation.positive_stations:
+                obligation.positive_stations.append(observation)
+            region = self._global_region(belief)
+            if region:
+                center, _ = enclosing_center_radius(region)
+                obligation.last_useful_geometry = self._crossing_value(
+                    task.point, center, belief
+                )
+            if task.kind == "single_visible":
+                obligation.kind = "cross_view"
         if response["measure_result"] == "near":
             belief.status = "located"
             belief.clear_target = task.point
@@ -358,7 +544,7 @@ class SequentialTriangleClear19Strategy(BaseStrategy):
                 point=lambda task: task.point,
                 tie_key=lambda task: task.key,
             )
-            self._execute_task(api, route[0])
+            self._execute_task(api, route[0], residual=False)
         self._stats["cell_settlements"] = int(self._stats["cell_settlements"]) + len(cell_ids)
         self._stats["channel_cell_assessments"] = int(self._stats["channel_cell_assessments"]) + len(assessed_pairs)
 
@@ -382,7 +568,7 @@ class SequentialTriangleClear19Strategy(BaseStrategy):
         order = self._channel_scan_order({"located", "cleared"})
         return [channel for channel in order if channel in channels]
 
-    def _residual_check_point(self, belief: ChannelBelief, anchor: Point) -> Point | None:
+    def _residual_check_point(self, belief: ChannelBelief) -> Point | None:
         region = self._global_region(belief)
         if not region:
             return None
@@ -412,38 +598,77 @@ class SequentialTriangleClear19Strategy(BaseStrategy):
             angle = math.radians(theta)
             forward = (math.cos(angle), math.sin(angle))
             lateral = (-forward[1], forward[0])
-            for advance, offset in ((300.0, 0.0), (520.0, 0.0), (300.0, 260.0), (300.0, -260.0), (520.0, 320.0), (520.0, -320.0)):
+            residual_index = self._residual_checks[belief.channel]
+            if residual_index == 1:
+                cautious = (
+                    station[0] + 60.0 * forward[0],
+                    station[1] + 60.0 * forward[1],
+                )
+                if all(
+                    distance(cautious, old) >= MIN_CHECK_SEPARATION_M
+                    for old in belief.attempted_positions
+                ):
+                    return cautious
+            if residual_index in {2, 3}:
+                side = 1.0 if residual_index == 2 else -1.0
+                cautious = (
+                    station[0] + 20.0 * forward[0] + side * 60.0 * lateral[0],
+                    station[1] + 20.0 * forward[1] + side * 60.0 * lateral[1],
+                )
+                if all(
+                    distance(cautious, old) >= MIN_CHECK_SEPARATION_M
+                    for old in belief.attempted_positions
+                ):
+                    return cautious
+            if residual_index == 4:
+                final_forward = (
+                    station[0] + 300.0 * forward[0],
+                    station[1] + 300.0 * forward[1],
+                )
+                if all(
+                    distance(final_forward, old) >= MIN_CHECK_SEPARATION_M
+                    for old in belief.attempted_positions
+                ):
+                    return final_forward
+            for forward_step, offset in (
+                (300.0, 0.0),
+                (520.0, 0.0),
+                (300.0, 260.0),
+                (300.0, -260.0),
+                (520.0, 320.0),
+                (520.0, -320.0),
+            ):
                 candidates.append(
                     (
-                        station[0] + advance * forward[0] + offset * lateral[0],
-                        station[1] + advance * forward[1] + offset * lateral[1],
+                        station[0] + forward_step * forward[0] + offset * lateral[0],
+                        station[1] + forward_step * forward[1] + offset * lateral[1],
                     )
                 )
         ring = min(420.0, max(140.0, radius * 0.3))
         for index in range(8):
             angle = 2.0 * math.pi * index / 8.0
             candidates.append((center[0] + ring * math.cos(angle), center[1] + ring * math.sin(angle)))
-        bounded: list[Point] = []
-        for point in candidates:
-            norm = math.hypot(*point)
-            if norm > self.grid_half_extent:
-                point = (point[0] * self.grid_half_extent / norm, point[1] * self.grid_half_extent / norm)
-            if all(distance(point, old) >= MIN_CHECK_SEPARATION_M for old in belief.attempted_positions):
-                bounded.append(point)
-        if not bounded:
+        usable = [
+            point
+            for point in candidates
+            if all(
+                distance(point, old) >= MIN_CHECK_SEPARATION_M
+                for old in belief.attempted_positions
+            )
+        ]
+        if not usable:
             return None
         return max(
-            bounded,
+            usable,
             key=lambda point: (
-                1200.0 * self._crossing_value(point, center, belief)
-                - distance(self.position, point)
-                - distance(point, anchor),
+                self._crossing_value(point, center, belief),
+                -distance(self.position, point),
                 -point[0],
                 -point[1],
             ),
         )
 
-    def _build_residual_tasks(self, anchor: Point) -> list[LocalTask]:
+    def _build_residual_tasks(self) -> list[LocalTask]:
         tasks = []
         for belief in self.beliefs.values():
             if belief.status in {"unseen", "cleared"}:
@@ -452,37 +677,78 @@ class SequentialTriangleClear19Strategy(BaseStrategy):
             if target is not None:
                 tasks.append(LocalTask("clear", belief.channel, 0, target))
             elif belief.status == "active" and self._residual_checks[belief.channel] < RESIDUAL_MAX_CHECKS:
-                point = self._residual_check_point(belief, anchor)
+                point = self._residual_check_point(belief)
                 if point is not None:
                     tasks.append(LocalTask("residual", belief.channel, 0, point))
         return tasks
 
-    def _settle_residual(self, api: RobotAPI, anchor: Point) -> None:
+    def _settle_residual(self, api: RobotAPI) -> None:
         for _ in range(100):
-            tasks = self._build_residual_tasks(anchor)
+            tasks = self._build_residual_tasks()
             if not tasks:
                 break
-            route = fixed_start_end_route(
+            route = fixed_start_open_route(
                 tasks,
                 self.position,
-                anchor,
                 point=lambda task: task.point,
                 tie_key=lambda task: task.key,
             )
             task = route[0]
             if task.kind == "residual":
                 self._residual_checks[task.channel] += 1
-            self._execute_task(api, task)
+            self._execute_task(api, task, residual=True)
 
     def _diagnostics(self) -> dict[str, object]:
+        for phase in (
+            "main_leg",
+            "settlement_check",
+            "settlement_clear",
+            "residual_check",
+            "residual_clear",
+        ):
+            self._stats[f"{phase}_distance_m"] = self._movement_by_phase[phase]
+        self._stats["main_skeleton_distance_m"] = self._stats[
+            "main_skeleton_nominal_distance_m"
+        ]
         self._stats["total_movement_distance_m"] = self._movement_distance_m
-        self._stats["local_detour_distance_m"] = max(
-            0.0,
-            self._movement_distance_m - float(self._stats["main_skeleton_distance_m"]),
+        self._stats["local_detour_distance_m"] = sum(
+            self._movement_by_phase[phase]
+            for phase in (
+                "settlement_check",
+                "settlement_clear",
+                "residual_check",
+                "residual_clear",
+            )
         )
         self._stats["residual_active_channels_after_p19"] = sum(
             belief.status in {"active", "located"} for belief in self.beliefs.values()
         )
+        self._stats["unresolved_seen_channels"] = [
+            channel
+            for channel, belief in self.beliefs.items()
+            if belief.first_seen_virtual_s is not None
+            and belief.status in {"active", "located"}
+        ]
+        self._stats["per_channel_local_checks"] = {
+            str(channel): count
+            for channel, count in sorted(self._per_channel_local_checks.items())
+        }
+        self._stats["per_channel_cells_triggered"] = {
+            str(channel): sorted(cells)
+            for channel, cells in sorted(self._per_channel_cells_triggered.items())
+        }
+        self._stats["per_channel_service_attempts"] = {
+            str(channel): count
+            for channel, count in sorted(self._per_channel_service_attempts.items())
+        }
+        self._stats["per_channel_detour_distance_m"] = {
+            str(channel): distance_m
+            for channel, distance_m in sorted(self._per_channel_detour_distance.items())
+        }
+        self._stats["service_episode_count"] = {
+            str(channel): obligation.episode_count
+            for channel, obligation in sorted(self._obligations.items())
+        }
         return dict(self._stats)
 
     def run(self, api: RobotAPI) -> StrategyResult:
@@ -492,9 +758,13 @@ class SequentialTriangleClear19Strategy(BaseStrategy):
         for point_id, point in enumerate(self.points, start=1):
             self._current_main_index = point_id
             if point_id > 1:
-                self._stats["main_skeleton_distance_m"] = float(self._stats["main_skeleton_distance_m"]) + distance(self.points[point_id - 2], point)
+                self._stats["main_skeleton_nominal_distance_m"] = float(
+                    self._stats["main_skeleton_nominal_distance_m"]
+                ) + distance(self.points[point_id - 2], point)
             channels = self._main_scan_channels(point_id)
             self._measuring_main = True
+            self._movement_phase = "main_leg"
+            self._movement_channel = None
             for channel in channels:
                 response = self._measure(api, point, channel)
                 self._vertex_results[(point_id, channel)] = response["measure_result"]
@@ -512,7 +782,7 @@ class SequentialTriangleClear19Strategy(BaseStrategy):
                 break
 
         if visited == len(self.points):
-            self._settle_residual(api, self.points[-1])
+            self._settle_residual(api)
         result = self._finish(api, started)
         result.diagnostics = self._diagnostics()
         return result

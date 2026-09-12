@@ -61,6 +61,19 @@ def run_local_case(
         "local_check_count": result.diagnostics.get("local_check_count"),
         "local_detour_distance_m": result.diagnostics.get("local_detour_distance_m"),
         "main_skeleton_distance_m": result.diagnostics.get("main_skeleton_distance_m"),
+        "main_leg_distance_m": result.diagnostics.get("main_leg_distance_m"),
+        "settlement_check_distance_m": result.diagnostics.get("settlement_check_distance_m"),
+        "settlement_clear_distance_m": result.diagnostics.get("settlement_clear_distance_m"),
+        "residual_check_distance_m": result.diagnostics.get("residual_check_distance_m"),
+        "residual_clear_distance_m": result.diagnostics.get("residual_clear_distance_m"),
+        "unseen_source_count": sum(
+            int(emitter["channel"]) not in result.seen_channels
+            for emitter in truth["emitters"]
+        ),
+        "unresolved_seen_source_count": sum(
+            int(emitter["channel"]) in result.seen_channels and not emitter["cleared"]
+            for emitter in truth["emitters"]
+        ),
     }
     detail = {"metrics": row, "strategy_result": asdict(result), "truth": truth}
     if keep_log:
@@ -108,6 +121,13 @@ def summarize(rows: list[dict[str, Any]]) -> dict[str, Any]:
         "mean_local_check_count": statistics.fmean(float(r["local_check_count"]) for r in rows if r["local_check_count"] is not None) if any(r["local_check_count"] is not None for r in rows) else None,
         "mean_local_detour_distance_m": statistics.fmean(float(r["local_detour_distance_m"]) for r in rows if r["local_detour_distance_m"] is not None) if any(r["local_detour_distance_m"] is not None for r in rows) else None,
         "mean_main_skeleton_distance_m": statistics.fmean(float(r["main_skeleton_distance_m"]) for r in rows if r["main_skeleton_distance_m"] is not None) if any(r["main_skeleton_distance_m"] is not None for r in rows) else None,
+        "mean_main_leg_distance_m": statistics.fmean(float(r["main_leg_distance_m"]) for r in rows if r["main_leg_distance_m"] is not None) if any(r["main_leg_distance_m"] is not None for r in rows) else None,
+        "mean_settlement_check_distance_m": statistics.fmean(float(r["settlement_check_distance_m"]) for r in rows if r["settlement_check_distance_m"] is not None) if any(r["settlement_check_distance_m"] is not None for r in rows) else None,
+        "mean_settlement_clear_distance_m": statistics.fmean(float(r["settlement_clear_distance_m"]) for r in rows if r["settlement_clear_distance_m"] is not None) if any(r["settlement_clear_distance_m"] is not None for r in rows) else None,
+        "mean_residual_check_distance_m": statistics.fmean(float(r["residual_check_distance_m"]) for r in rows if r["residual_check_distance_m"] is not None) if any(r["residual_check_distance_m"] is not None for r in rows) else None,
+        "mean_residual_clear_distance_m": statistics.fmean(float(r["residual_clear_distance_m"]) for r in rows if r["residual_clear_distance_m"] is not None) if any(r["residual_clear_distance_m"] is not None for r in rows) else None,
+        "mean_unseen_source_count": statistics.fmean(float(r["unseen_source_count"]) for r in rows),
+        "mean_unresolved_seen_source_count": statistics.fmean(float(r["unresolved_seen_source_count"]) for r in rows),
         "mean_directional_loss_count": statistics.fmean(float(r["directional_loss_count"]) for r in rows),
         "mean_directional_reacquisition_count": statistics.fmean(float(r["directional_reacquisition_count"]) for r in rows),
         "mean_first_seen_time_s": statistics.fmean(float(r["mean_first_seen_time_s"]) for r in rows if r["mean_first_seen_time_s"] is not None),

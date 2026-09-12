@@ -3,10 +3,16 @@ import math
 import unittest
 
 from task4.geometry import bearing_deg, distance, enclosing_center_radius
-from task4.strategies.sequential_triangle_clear_19 import LocalTask, SequentialTriangleClear19Strategy
+from task4.strategies.sequential_triangle_clear_19 import (
+    CheckCandidate,
+    LOCAL_CHECK_MAX_DETOUR_M,
+    LocalTask,
+    SequentialTriangleClear19Strategy,
+)
 from task4.strategies.triangle_cells import (
     CELL_VERTEX_IDS,
     cells_closed_at,
+    fixed_start_open_route,
     fixed_start_end_route,
     main_points,
     route_length,
@@ -19,10 +25,16 @@ class TriangleTopologyTests(unittest.TestCase):
         points = main_points()
         self.assertEqual(len(points), 19)
         self.assertEqual(points[0], (0.0, 0.0))
-        self.assertEqual(points[1], (900.0, 0.0))
-        self.assertAlmostEqual(points[2][0], 450.0)
-        self.assertAlmostEqual(points[2][1], 450.0 * math.sqrt(3.0))
+        self.assertEqual(points[1], (1000.0, 0.0))
+        self.assertAlmostEqual(points[2][0], 500.0)
+        self.assertAlmostEqual(points[2][1], 500.0 * math.sqrt(3.0))
         self.assertEqual(len(set(points)), 19)
+
+    def test_six_outer_points_are_not_clamped_to_arena(self):
+        points = main_points()
+        outside = [index for index, point in enumerate(points, start=1) if math.hypot(*point) > 1800.0]
+        self.assertEqual(outside, [9, 11, 13, 15, 17, 19])
+        self.assertTrue(all(math.isclose(math.hypot(*points[index - 1]), 2000.0) for index in outside))
 
     def test_twenty_four_explicit_unit_triangles(self):
         cells = triangle_cells()
@@ -30,7 +42,7 @@ class TriangleTopologyTests(unittest.TestCase):
         self.assertEqual(tuple(cell.vertex_ids for cell in cells), CELL_VERTEX_IDS)
         for cell in cells:
             sides = [distance(a, b) for a, b in zip(cell.polygon, cell.polygon[1:] + cell.polygon[:1])]
-            self.assertTrue(all(abs(side - 900.0) < 1e-7 for side in sides))
+            self.assertTrue(all(abs(side - 1000.0) < 1e-7 for side in sides))
             self.assertEqual(cell.closed_at, max(cell.vertex_ids))
 
     def test_close_schedule_starts_at_p3_and_is_complete(self):
@@ -66,6 +78,15 @@ class FixedEndRouteTests(unittest.TestCase):
             self.assertAlmostEqual(route_length(route, start, end), optimum)
             self.assertEqual(end, (4.0, 0.0))
 
+    def test_open_end_route_does_not_pay_for_return_to_anchor(self):
+        start = (0.0, 0.0)
+        near = LocalTask("residual", 1, 0, (1.0, 0.0))
+        far = LocalTask("residual", 2, 0, (10.0, 0.0))
+        self.assertEqual(
+            fixed_start_open_route([far, near], start, tie_key=lambda task: task.key),
+            [near, far],
+        )
+
 
 class CellSettlementTests(unittest.TestCase):
     def setUp(self):
@@ -97,11 +118,15 @@ class CellSettlementTests(unittest.TestCase):
         self.assertIn(self.cell.cell_id, self.strategy._excluded_cells[1])
 
     def test_one_positive_creates_special_obligation(self):
-        self._observe(2, [1])
+        self._observe(2, [3])
+        self.strategy.position = self.strategy.points[2]
         assessment = self.strategy.assess_cell(2, self.cell.cell_id)
         self.assertEqual(assessment.outcome, "single_visible")
         tasks = self.strategy._build_cell_tasks((self.cell.cell_id,), self.strategy.points[3])
-        self.assertTrue(any(task.kind == "single_visible" and task.channel == 2 for task in tasks))
+        task = next(task for task in tasks if task.kind == "single_visible" and task.channel == 2)
+        station, theta = self.strategy.beliefs[2].observations[0]
+        self.assertAlmostEqual(bearing_deg(station, task.point), theta)
+        self.assertLessEqual(self.strategy._detour(task.point, self.strategy.points[3]), LOCAL_CHECK_MAX_DETOUR_M)
 
     def test_two_good_bearings_are_clearable_without_extra_check(self):
         belief = self._observe(3, [1, 2])
@@ -114,8 +139,34 @@ class CellSettlementTests(unittest.TestCase):
 
     def test_two_nearly_collinear_bearings_create_cross_view(self):
         self._observe(4, [1, 2], source=(450.0, 10.0))
-        tasks = self.strategy._build_cell_tasks((self.cell.cell_id,), self.strategy.points[3])
+        self.strategy.position = self.strategy.points[1]
+        tasks = self.strategy._build_cell_tasks((self.cell.cell_id,), self.strategy.points[2])
         self.assertTrue(any(task.kind == "cross_view" and task.channel == 4 for task in tasks))
+
+    def test_detour_cap_rejects_better_but_illegal_geometry(self):
+        belief = self.strategy.beliefs[7]
+        belief.status = "active"
+        belief.observations.append(((0.0, 0.0), 0.0))
+        self.strategy.position = (0.0, 0.0)
+        next_fixed = (1000.0, 0.0)
+        legal = CheckCandidate((300.0, 100.0), "lateral")
+        illegal = CheckCandidate((0.0, 1000.0), "lateral")
+        chosen = self.strategy._select_admissible_candidate(
+            [illegal, legal], belief, (500.0, 500.0), next_fixed
+        )
+        self.assertEqual(chosen, legal)
+        self.assertGreater(self.strategy._detour(illegal.point, next_fixed), LOCAL_CHECK_MAX_DETOUR_M)
+
+    def test_channel_obligation_merges_cells_without_resetting_attempts(self):
+        belief = self._observe(8, [1])
+        self.strategy._vertex_results[(4, 8)] = "no_signal"
+        self.strategy._update_obligations((1,))
+        obligation = self.strategy._obligations[8]
+        obligation.forward_attempts = 1
+        self.strategy._update_obligations((3,))
+        self.assertIs(self.strategy._obligations[8], obligation)
+        self.assertEqual(obligation.forward_attempts, 1)
+        self.assertEqual(obligation.supporting_cells, {1, 3})
 
     def test_outside_cell_history_is_reused_and_cleared_channels_retire(self):
         belief = self._observe(5, [1])
@@ -141,3 +192,4 @@ class CellSettlementTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+    fixed_start_open_route,

@@ -7,7 +7,7 @@ from typing import Sequence, TypeVar
 from task4.geometry import Point, distance
 
 
-TRIANGLE_SPACING_M = 900.0
+TRIANGLE_SPACING_M = 1000.0
 
 _AXIAL_POINTS: tuple[tuple[int, int], ...] = (
     (0, 0),
@@ -156,6 +156,58 @@ def fixed_start_end_route(
             route,
         )
         for (mask, last), (length, route, route_keys) in dp.items()
+        if mask == full
+    )
+    return [items[index] for index in best[2]]
+
+
+def fixed_start_open_route(
+    tasks: Sequence[T],
+    start: Point,
+    *,
+    point=lambda task: task.point,
+    tie_key=lambda task: repr(task),
+) -> list[T]:
+    """Exact shortest Hamiltonian path with a fixed start and free final task."""
+    items = list(tasks)
+    count = len(items)
+    if count == 0:
+        return []
+    coords = [point(item) for item in items]
+    keys = [tie_key(item) for item in items]
+    dp: dict[tuple[int, int], tuple[float, tuple[int, ...], tuple[object, ...]]] = {}
+    for index in range(count):
+        dp[(1 << index, index)] = (
+            distance(start, coords[index]),
+            (index,),
+            (keys[index],),
+        )
+    for mask in range(1, 1 << count):
+        for last in range(count):
+            state = dp.get((mask, last))
+            if state is None:
+                continue
+            length, route, route_keys = state
+            for nxt in range(count):
+                bit = 1 << nxt
+                if mask & bit:
+                    continue
+                candidate = (
+                    length + distance(coords[last], coords[nxt]),
+                    route + (nxt,),
+                    route_keys + (keys[nxt],),
+                )
+                state_key = (mask | bit, nxt)
+                previous = dp.get(state_key)
+                if previous is None or (candidate[0], candidate[2]) < (
+                    previous[0],
+                    previous[2],
+                ):
+                    dp[state_key] = candidate
+    full = (1 << count) - 1
+    best = min(
+        (length, route_keys, route)
+        for (mask, _), (length, route, route_keys) in dp.items()
         if mask == full
     )
     return [items[index] for index in best[2]]

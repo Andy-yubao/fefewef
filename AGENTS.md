@@ -21,6 +21,7 @@ Define the evidence boundary, compare defensible alternatives, check assumptions
 - `prompt/` is temporary user input: never track, commit, move, or delete it.
 - Record important experiment commands, configuration, seeds, and output locations.
 
+
 ## GitHub network access (required for push/fetch)
 
 GitHub over HTTPS is **not directly reachable from this machine**. Connecting to
@@ -70,3 +71,7 @@ Rules:
 - `docs/`: durable project and process documentation.
 
 Keep transient scratch files and caches out of formal directories.
+
+## 临时要求
+
+- 不使用本项目文件夹下的任何skills

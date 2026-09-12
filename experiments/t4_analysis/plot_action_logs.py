@@ -15,6 +15,8 @@ import math
 from pathlib import Path
 from typing import Any
 
+from task4.strategies.triangle_cells import main_points, triangle_cells
+
 
 def _position(action: dict[str, Any]) -> tuple[float, float] | None:
     value = action.get("request", {}).get("position")
@@ -30,13 +32,31 @@ def _same(a: tuple[float, float], b: tuple[float, float]) -> bool:
 def summarize(payload: dict[str, Any]) -> dict[str, Any]:
     actions = payload["actions"]
     route: list[tuple[float, float]] = [(0.0, 0.0)]
+    segments = []
+    skeleton = main_points()
+    reached_p19 = False
     measurements: dict[tuple[float, float], dict[str, int]] = {}
     clears = []
     result_counts = {"no_signal": 0, "direction": 0, "near": 0}
     for action_index, action in enumerate(actions, start=1):
         point = _position(action)
         if point is not None and not _same(route[-1], point):
+            if reached_p19:
+                phase = "residual_clear" if action.get("path") == "/clear" else "residual_check"
+            elif action.get("path") == "/clear":
+                phase = "settlement_clear"
+            elif any(_same(point, main_point) for main_point in skeleton):
+                phase = "main_leg"
+            else:
+                phase = "settlement_check"
+            segments.append({"start": route[-1], "end": point, "phase": phase})
             route.append(point)
+        if (
+            point is not None
+            and action.get("path") == "/measure"
+            and _same(point, skeleton[-1])
+        ):
+            reached_p19 = True
         if action.get("path") == "/measure" and point is not None:
             result = action.get("response", {}).get("measure_result")
             if result in result_counts:
@@ -76,6 +96,7 @@ def summarize(payload: dict[str, Any]) -> dict[str, Any]:
         "seed": truth.get("seed"),
         "strategy": strategy_result.get("strategy"),
         "route": route,
+        "segments": segments,
         "measurements": measurements,
         "clears": clears,
         "emitters": truth.get("emitters", []),
@@ -150,8 +171,38 @@ def render_svg(summary: dict[str, Any], path: Path) -> None:
         x2, y2 = screen((1800, coordinate))
         svg.append(f'<line x1="{x1:.2f}" y1="{y1:.2f}" x2="{x2:.2f}" y2="{y2:.2f}" stroke="#dce3ec" stroke-width="0.7"/>')
 
-    route_data = " ".join(f"{screen(point)[0]:.2f},{screen(point)[1]:.2f}" for point in summary["route"])
-    svg.append(f'<polyline points="{route_data}" fill="none" stroke="#2563eb" stroke-width="2.0" stroke-linejoin="round" stroke-linecap="round" opacity="0.72"/>')
+    if summary["strategy"] == "sequential_triangle_clear_19":
+        for cell in triangle_cells():
+            data = " ".join(
+                f"{screen(point)[0]:.2f},{screen(point)[1]:.2f}"
+                for point in (*cell.polygon, cell.polygon[0])
+            )
+            svg.append(
+                f'<polyline points="{data}" fill="none" stroke="#cbd5e1" '
+                'stroke-width="0.8" opacity="0.75"/>'
+            )
+        for point_id, point in enumerate(main_points(), start=1):
+            x, y = screen(point)
+            svg.append(circle(point, 3.5, "#ffffff", "#334155", 1.0, 0.95))
+            svg.append(
+                f'<text x="{x+5:.2f}" y="{y-5:.2f}" font-family="sans-serif" '
+                f'font-size="9" fill="#334155">P{point_id}</text>'
+            )
+
+    phase_colors = {
+        "main_leg": "#2563eb",
+        "settlement_check": "#f59e0b",
+        "settlement_clear": "#059669",
+        "residual_check": "#db2777",
+        "residual_clear": "#7c3aed",
+    }
+    for segment in summary["segments"]:
+        x1, y1 = screen(segment["start"])
+        x2, y2 = screen(segment["end"])
+        svg.append(
+            f'<line x1="{x1:.2f}" y1="{y1:.2f}" x2="{x2:.2f}" y2="{y2:.2f}" '
+            f'stroke="{phase_colors[segment["phase"]]}" stroke-width="2.0" opacity="0.76"/>'
+        )
 
     # Measurement sites with at least one positive observation are highlighted.
     for point, counts in summary["measurements"].items():
@@ -194,7 +245,11 @@ def render_svg(summary: dict[str, Any], path: Path) -> None:
     svg.append(f'<text x="{ex+8:.2f}" y="{ey-8:.2f}" font-family="sans-serif" font-size="10">END</text>')
 
     legend = [
-        ("#2563eb", "route"),
+        ("#2563eb", "main leg"),
+        ("#f59e0b", "settlement check movement"),
+        ("#059669", "settlement clear movement"),
+        ("#db2777", "post-P19 residual check"),
+        ("#7c3aed", "post-P19 residual clear"),
         ("#94a3b8", "no-signal-only measurement site"),
         ("#f59e0b", "site with >=1 signal"),
         ("#059669", "successful clear; Corder:channel"),
