@@ -1,0 +1,123 @@
+{
+  "seed": 3917738334,
+  "lattice_spacing_m": 731.0,
+  "measurement_position_count": 52,
+  "original_lattice_point_count": 37,
+  "skipped_lattice_point_count": 4,
+  "skipped_lattice_points": [
+    [
+      -365.5,
+      -1899.1937104992737
+    ],
+    [
+      -731.0,
+      -1266.1291403328491
+    ],
+    [
+      0.0,
+      -1266.1291403328491
+    ],
+    [
+      1827.5,
+      -633.0645701664246
+    ]
+  ],
+  "missed_emitters": [
+    {
+      "channel": 5,
+      "position": [
+        -232.5509464633643,
+        -1501.1566232616567
+      ],
+      "receive_radius_m": 1016.5575243463396,
+      "directional": true,
+      "direction_deg": 206.03263243434128,
+      "channel_measurement_count": 48,
+      "visible_measurement_points": 2,
+      "nearest_measurement_points": [
+        {
+          "point": [
+            -212.72232150327744,
+            -1517.499468427069
+          ],
+          "distance_m": 25.69558242010515,
+          "visible": false
+        },
+        {
+          "point": [
+            -236.83774882207848,
+            -1427.499468427069
+          ],
+          "distance_m": 73.78179404696743,
+          "visible": false
+        },
+        {
+          "point": [
+            -146.83774882207854,
+            -1583.3840411082679
+          ],
+          "distance_m": 118.77752521253886,
+          "visible": false
+        },
+        {
+          "point": [
+            -212.72232150327744,
+            -1337.499468427069
+          ],
+          "distance_m": 164.85399205466643,
+          "visible": false
+        },
+        {
+          "point": [
+            -56.8377488220785,
+            -1607.499468427069
+          ],
+          "distance_m": 205.38726480286064,
+          "visible": false
+        },
+        {
+          "point": [
+            -146.83774882207842,
+            -1271.61489574587
+          ],
+          "distance_m": 245.02276816823743,
+          "visible": false
+        }
+      ],
+      "nearest_skipped_lattice_points": [
+        {
+          "point": [
+            0.0,
+            -1266.1291403328491
+          ],
+          "distance_m": 330.63251569205573,
+          "visible": false
+        },
+        {
+          "point": [
+            -365.5,
+            -1899.1937104992737
+          ],
+          "distance_m": 419.6533970467695,
+          "visible": true
+        },
+        {
+          "point": [
+            -731.0,
+            -1266.1291403328491
+          ],
+          "distance_m": 551.0801908102112,
+          "visible": true
+        },
+        {
+          "point": [
+            1827.5,
+            -633.0645701664246
+          ],
+          "distance_m": 2235.485118418751,
+          "visible": false
+        }
+      ]
+    }
+  ]
+}

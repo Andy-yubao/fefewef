@@ -1,0 +1,35 @@
+# T4 本地批量实验汇总
+
+- strategy: `certified_geometry_clear_probe`
+- cases: `100`
+- aggregate_clear_rate: `1.0`
+- all_clear_case_rate: `1.0`
+- mean_average_localize_clear_time_s: `771.4987186793687`
+- p95_average_localize_clear_time_s: `969.1309632237301`
+- mean_virtual_time_s: `9659.1574465193`
+- p50_virtual_time_s: `9601.518246504713`
+- p90_virtual_time_s: `10242.697703284048`
+- p95_virtual_time_s: `10745.398940660023`
+- max_virtual_time_s: `11160.624146876638`
+- mean_movement_distance_m: `33268.487232596504`
+- mean_movement_time_s: `6653.6974465193`
+- mean_measure_time_s: `2481.55`
+- mean_measure_count: `496.31`
+- mean_no_signal_count: `453.27`
+- mean_no_signal_rate: `0.9115098885362094`
+- mean_direction_count: `43.04`
+- mean_channel_switch_count: `459.91`
+- mean_optical_count: `12.8`
+- mean_clear_attempt_count: `12.8`
+- mean_directional_loss_count: `12.71`
+- mean_directional_reacquisition_count: `12.71`
+- mean_first_seen_time_s: `2071.9418635560155`
+- mean_first_clear_time_s: `1063.6045993746566`
+- mean_measurements_before_first_clear: `83.45`
+- mean_wall_time_s: `1.364719113700121`
+- total_wall_time_s: `136.4719113700121`
+- failure_seeds: `[]`
+- seed_start: `3000`
+- seed_end: `3099`
+- strategy_config: `{'grid_spacing': 600.0, 'grid_half_extent': 1800.0, 'lattice_spacing': 735.0, 'replacement_distance_m': 400.0, 'max_replaced_waypoints': 2}`
+- simulator_config: `{'directional_probability': 1.0}`

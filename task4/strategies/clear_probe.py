@@ -26,18 +26,17 @@ class ClearProbeStrategy(IntegratedRouteStrategy):
     def _after_clear(self, api: RobotAPI, point, remaining) -> None:
         if not remaining:
             return
-        replaceable = sorted(remaining, key=lambda candidate: distance(point, candidate))
-        replaceable = [
-            candidate
-            for candidate in replaceable[: self.max_replaced_waypoints]
-            if distance(point, candidate) <= self.replacement_distance_m
-        ]
+        replaceable = self._choose_replacements(point, remaining)
         if not replaceable:
             return
         for candidate in replaceable:
             remaining.remove(candidate)
+        self._probe_channels_at_clear(
+            api, point, self._channel_scan_order({"located", "cleared"})
+        )
 
-        for channel in self._channel_scan_order({"located", "cleared"}):
+    def _probe_channels_at_clear(self, api: RobotAPI, point, channels) -> None:
+        for channel in channels:
             belief = self.beliefs[channel]
             response = self._measure(api, point, channel)
             if response["measure_result"] == "near":
@@ -45,3 +44,11 @@ class ClearProbeStrategy(IntegratedRouteStrategy):
                 belief.clear_target = point
             elif response["measure_result"] == "direction":
                 self._try_located(belief)
+
+    def _choose_replacements(self, point, remaining):
+        replaceable = sorted(remaining, key=lambda candidate: distance(point, candidate))
+        return [
+            candidate
+            for candidate in replaceable[: self.max_replaced_waypoints]
+            if distance(point, candidate) <= self.replacement_distance_m
+        ]

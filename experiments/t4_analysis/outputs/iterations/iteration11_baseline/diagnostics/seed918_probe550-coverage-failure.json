@@ -1,0 +1,155 @@
+{
+  "seed": 918,
+  "lattice_spacing_m": 735.0,
+  "measurement_position_count": 37,
+  "original_lattice_point_count": 37,
+  "skipped_lattice_point_count": 8,
+  "skipped_lattice_points": [
+    [
+      -735.0,
+      -1273.0573435631247
+    ],
+    [
+      0.0,
+      -1273.0573435631247
+    ],
+    [
+      735.0,
+      -1273.0573435631247
+    ],
+    [
+      367.5,
+      -636.5286717815624
+    ],
+    [
+      -1102.5,
+      636.5286717815624
+    ],
+    [
+      -367.5,
+      636.5286717815624
+    ],
+    [
+      367.5,
+      636.5286717815624
+    ],
+    [
+      1102.5,
+      636.5286717815624
+    ]
+  ],
+  "missed_emitters": [
+    {
+      "channel": 10,
+      "position": [
+        971.5364990789284,
+        -656.2928684533194
+      ],
+      "receive_radius_m": 1045.0388183043676,
+      "directional": true,
+      "direction_deg": 214.09652817874428,
+      "channel_measurement_count": 36,
+      "visible_measurement_points": 0,
+      "nearest_measurement_points": [
+        {
+          "point": [
+            959.1567771576385,
+            -539.1313822621515
+          ],
+          "distance_m": 117.81371465738484,
+          "visible": false
+        },
+        {
+          "point": [
+            1102.5,
+            -636.5286717815624
+          ],
+          "distance_m": 132.44644972056977,
+          "visible": false
+        },
+        {
+          "point": [
+            735.0,
+            0.0
+          ],
+          "distance_m": 697.6172622428447,
+          "visible": false
+        },
+        {
+          "point": [
+            1470.0,
+            -1273.0573435631247
+          ],
+          "distance_m": 793.0096339313695,
+          "visible": false
+        },
+        {
+          "point": [
+            1470.0,
+            0.0
+          ],
+          "distance_m": 824.1275331726135,
+          "visible": false
+        },
+        {
+          "point": [
+            1837.5,
+            -636.5286717815624
+          ],
+          "distance_m": 866.1890142443268,
+          "visible": false
+        }
+      ],
+      "nearest_skipped_lattice_points": [
+        {
+          "point": [
+            367.5,
+            -636.5286717815624
+          ],
+          "distance_m": 604.3597568415754,
+          "visible": true
+        },
+        {
+          "point": [
+            735.0,
+            -1273.0573435631247
+          ],
+          "distance_m": 660.566373011819,
+          "visible": true
+        },
+        {
+          "point": [
+            0.0,
+            -1273.0573435631247
+          ],
+          "distance_m": 1150.7743422582962,
+          "visible": false
+        },
+        {
+          "point": [
+            1102.5,
+            636.5286717815624
+          ],
+          "distance_m": 1299.4379452166218,
+          "visible": false
+        },
+        {
+          "point": [
+            367.5,
+            636.5286717815624
+          ],
+          "distance_m": 1426.9714878422838,
+          "visible": false
+        },
+        {
+          "point": [
+            -735.0,
+            -1273.0573435631247
+          ],
+          "distance_m": 1814.5702632981836,
+          "visible": false
+        }
+      ]
+    }
+  ]
+}

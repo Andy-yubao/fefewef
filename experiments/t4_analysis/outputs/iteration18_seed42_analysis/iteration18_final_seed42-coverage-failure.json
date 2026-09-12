@@ -1,0 +1,38 @@
+{
+  "seed": 42,
+  "lattice_spacing_m": 731.0,
+  "measurement_position_count": 36,
+  "original_lattice_point_count": 37,
+  "skipped_lattice_point_count": 7,
+  "skipped_lattice_points": [
+    [
+      -1462.0,
+      -1266.1291403328491
+    ],
+    [
+      731.0,
+      -1266.1291403328491
+    ],
+    [
+      731.0,
+      0.0
+    ],
+    [
+      1462.0,
+      0.0
+    ],
+    [
+      -365.5,
+      633.0645701664246
+    ],
+    [
+      -731.0,
+      1266.1291403328491
+    ],
+    [
+      0.0,
+      1266.1291403328491
+    ]
+  ],
+  "missed_emitters": []
+}

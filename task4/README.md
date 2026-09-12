@@ -26,7 +26,16 @@
 - `route_optimized`、`local_eig`、`rejoin_clear`：本轮保留的消融策略，分别测试固定2-opt回接、局部EIG、最优重入估价，均未超过最终方案。
 - `early_stop`：概率性提前停止实验；速度更快但发生漏清，禁止作为正式默认。
 - `integrated_route`：将未访问覆盖点和已定位清除点统一放入滚动开放TSP，避免清除后重复折返。
-- `clear_probe`：当前推荐；在 `integrated_route` 上复用清除位置探测其他频道，替代400 m内最多两个覆盖点，并从接收机当前频道开始交替扫描。
+- `clear_probe`：上一轮推荐；在 `integrated_route` 上复用清除位置探测其他频道，替代400 m内最多两个覆盖点，并从接收机当前频道开始交替扫描。
+- `clear_probe_multistart`：用多起点开放2-opt改进滚动联合路线。
+- `certified_clear_probe`：仅在清除点与六个保留邻点可重建边长均小于1000 m的三角扇时替代格点；速度略慢，但替代具有局部覆盖证明。
+- `active_clear_probe`、`endgame_clear_probe`、`optimized_clear_probe`：分别测试清除点 active 频道补测、残局频道排序及两者组合，作为尾部/消融策略保留。
+- `replacement_aware_clear_probe`：第18轮推荐；规划时计入成功清除后将被替代的格点，使用无强制回头的多起点滚动开放路线，默认参数为731/400/2。
+- `geometry_aware_clear_probe`：在近等长开放路线中用当前可见的示向交会几何打破平局；小样本更快，但 seed 257 漏清，禁止作为默认。
+- `certified_geometry_clear_probe`：把上述示向几何排序限制在六邻点覆盖认证替代上；目前是通过回归与四组100例的待扩测认证候选。
+- `early_optical_clear_probe`：当前本地推荐；在可行域半径30 m时提前安排光学尝试，失败后须估计中心移动至少5 m才重试。
+- `ida_heuristic_clear_probe`：在提前光学上增加深度3的IDA*式 `g+h` 路线评价；均值更快但全定向随机测试漏清，禁止作为默认。
+- `geometry_early_optical_clear_probe`：将提前光学与近等长路线的示向几何排序合并；35 m版本是当前扩测中的速度候选，仍只使用机器人可见信息。
 
 所有策略共享 HTTP、状态、计时、几何和清除逻辑。圆域与 1500 m 正信号距离约束使用外接正多边形，避免错误排除真值；示向误差额外留出 0.01° 以覆盖接口两位小数舍入。
 
@@ -53,7 +62,14 @@ task4/
 │   ├── rejoin_clear.py       # 清除后最优重入估价消融
 │   ├── early_stop.py         # 有漏清风险的提前停止实验
 │   ├── integrated_route.py   # 覆盖/清除节点联合滚动规划
-│   ├── clear_probe.py        # 清除点复用（当前推荐）
+│   ├── clear_probe.py        # 清除点复用（上一轮推荐）
+│   ├── replacement_aware_clear_probe.py # 替代感知滚动路线（当前推荐）
+│   ├── certified_clear_probe.py # 有局部覆盖证明的保守替代
+│   ├── geometry_aware_clear_probe.py # 近等长路线的示向几何排序实验
+│   ├── certified_geometry_clear_probe.py # 覆盖认证 + 示向几何候选
+│   ├── early_optical_clear_probe.py # 30 m提前光学（当前推荐）
+│   ├── ida_heuristic_clear_probe.py # IDA*式有界路线评价实验
+│   ├── geometry_early_optical_clear_probe.py # 示向几何 + 提前光学
 │   ├── registry.py           # 策略注册表和 make_strategy
 │   └── __init__.py           # 稳定的公共导入接口
 ├── cli.py                    # 单次、本地批量、远程安全入口
@@ -69,6 +85,8 @@ experiments/
     ├── compare_summaries.py  # 只读取持久化 summary.json 的公平比较
     ├── plot_action_logs.py   # 动作路径、探测点、清除点与本地真值 SVG
     ├── analyze_benchmark_features.py # 分布、分组、相关性和尾部特征
+    ├── analyze_coverage_failure.py # 本地运行结束后的覆盖失效诊断
+    ├── random_benchmark.py # 用操作系统熵选择不重复种子的随机大样本测试
     └── outputs/              # 调参、留出集、最终基准和压力测试结果
 ```
 
@@ -95,14 +113,16 @@ python3 -m experiments.t4_local.server --seed 42 --port 2027
 快速进程内测试（策略仍只经过四接口抽象）：
 
 ```bash
-python3 -m task4.cli run --mode local --strategy clear_probe --seed 42 --output task4/outputs/seed42.json
+python3 -m task4.cli run --mode local --strategy early_optical_clear_probe \
+  --seed 42 --output task4/outputs/seed42.json
 ```
 
 连接独立本地 HTTP 服务测试完整链路：
 
 ```bash
 python3 -m task4.cli run --mode local --server http://127.0.0.1:2027 \
-  --robot-id local-robot --strategy clear_probe --output task4/outputs/http-seed42.json
+  --robot-id local-robot --strategy early_optical_clear_probe \
+  --output task4/outputs/http-seed42.json
 ```
 
 若要验证真实 HTTP 链路，先启动上述服务，再用上面的 `--mode local --server ...` 形式连接；为防止误触官方次数，CLI 的 `remote` 模式有强制确认串，详见下节。
@@ -160,7 +180,7 @@ python3 -m task4.cli config-check --server http://127.0.0.1:2026 --robot-id '<�
 确认官方界面已经进入正确的“问题 4”测试、倒计时结束且接口就绪后，正式命令必须显式写出 `--mode remote` 和确认串：
 
 ```bash
-python3 -m task4.cli run --mode remote --strategy clear_probe \
+python3 -m task4.cli run --mode remote --strategy early_optical_clear_probe \
   --server http://127.0.0.1:2026 --robot-id '<实际参赛队号>' \
   --confirm-remote I_UNDERSTAND_THIS_USES_AN_OFFICIAL_TEST \
   --output task4/outputs/official-run.json
@@ -174,9 +194,11 @@ python3 -m task4.cli run --mode remote --strategy clear_probe \
 
 - `--grid-spacing`：仅旧方格策略使用，默认 600 m，小于 `1000/sqrt(2)`。
 - `--grid-half-extent`：默认 1800 m；`[-1800,1800]^2` 完整包含目标圆。策略允许在圆外移动和检测，与题目一致。
-- `--lattice-spacing`：新默认735 m，必须小于1000 m；联合规划下735 m优于旧760 m。
-- `--replacement-distance`：`clear_probe` 默认400 m；450、550、600 m以上均在扩大实验中出现漏清。
+- `--lattice-spacing`：当前推荐策略默认731 m，其他新策略的 CLI 默认735 m；必须小于1000 m。731 m位于格点数从43降至37的拓扑阈值上方，并在主集与留出集验证。
+- `--replacement-distance`：清除点替代策略默认400 m；450、550、600 m以上均在扩大实验中出现漏清。
 - `--max-replaced-waypoints`：一次清除点最多替代的覆盖点，默认2。
+- `--route-length-slack`：仅 `geometry_aware_clear_probe` 使用；允许在最短路线以上100 m内以当前示向交会几何选首点。该实验策略有回归失败，不是推荐参数。
+- `--early-clear-radius`：提前光学阈值；当前推荐严格使用30 m。40 m在 seed 257 漏清，不能使用。
 - `--clear-detour-threshold`：途中清除允许的路线插入代价，默认 1500 m；调参中 1500 m 的均值最好，3000 m 的 P95 略好，差异很小。
 - `--particle-count`：`belief` 可见性粒子数，默认 1600；粒子只属于策略内部近似，不是环境真值。
 - `--belief-travel-weight`：belief 航点评分的行程惩罚，默认 16。过低会为了信息增益频繁跨场移动。
@@ -198,15 +220,29 @@ python3 -m task4.cli run --mode remote --strategy clear_probe \
 
 压力测试使用 seed 2000–2499。`opportunistic` 在 500 个全定向和 500 个全向案例中均全清，平均总时间分别为 10682.0 s、9217.0 s；`belief` 同样均全清，分别为 10812.0 s、9192.5 s。结果在 `experiments/t4_analysis/outputs/stress500/`。
 
-最终默认策略还通过了独立本地 HTTP 端到端测试：seed 42 清除 15/15，466 个动作全部走 `/enter`、`/measure`、`/clear`、`/exit` HTTP 链路，虚拟时间 9245.44 s，与进程内运行一致。
+旧策略曾通过独立本地 HTTP 端到端测试。当前 `replacement_aware_clear_probe / 731 / 400 / 2` 也已完成同类测试：seed 42 清除15/15，435个动作全部走 `/enter`、`/measure`、`/clear`、`/exit` HTTP链路，虚拟时间8180.87 s，与进程内运行完全一致；客户端日志为 `experiments/t4_analysis/outputs/iteration18_http_seed42.json`。
 
-另用固定随机选择种子 `2026091103` 从 `[0,1000000)` 抽取 seed `869462、379913、24546`，运行三次当前推荐策略。三例共清除 38/38 个源，总时间分别为 9185.02、9594.36、9956.30 s，首次清除分别为 770.47、714.69、701.54 s；路径图和逐例数据位于 `experiments/t4_analysis/outputs/random3/figures/`。该三例用于可视化与人工核查，不作为替代 1000 案例统计的新性能结论。
+另用固定随机选择种子 `2026091103` 从 `[0,1000000)` 抽取 seed `869462、379913、24546`，运行三次当时推荐的旧 `opportunistic` 策略。三例共清除 38/38 个源，总时间分别为 9185.02、9594.36、9956.30 s；路径图和逐例数据位于 `experiments/t4_analysis/outputs/random3/figures/`。这些图不是当前策略的视觉证据。
 
 对最终 1000 案例的特征分析显示：总时间均值 10008.4 s、标准差 672.1 s、变异系数 6.72%；移动占虚拟时间 70.25%，移动距离与总时间相关系数为 0.856，是首要成本。无信号占测量约 90.33%；高定向源占比组比低占比组平均慢 592.7 s。完整分组、相关性和最慢案例表见 `experiments/t4_analysis/outputs/feature_analysis/feature_report.md`。
 
-最新十轮迭代的完整证据见 `experiments/t4_analysis/outputs/iterations/ITERATION_REPORT.md`。当前默认和正式测试首选已更新为 `clear_probe / lattice-spacing=735 / replacement-distance=400 / max-replaced-waypoints=2`。在 seed 0–999 上1000/1000全清，平均9135.6 s、P95 10113.2 s、平均移动30670 m；独立 seed 1000–1999 同一位置/探测逻辑也1000/1000全清。相对旧 `opportunistic`，均值缩短8.72%、P95缩短7.68%、移动减少12.76%；相对更早的 `deferred` 均值缩短23.48%。
+前十轮迭代把推荐推进到 `clear_probe / 735 / 400 / 2`：seed 0–999 上1000/1000全清，平均9135.59 s、P95 10113.22 s。第11–18轮的完整证据见 `experiments/t4_analysis/outputs/iterations/ITERATION_REPORT.md`。当前本地默认与推荐已更新为 `replacement_aware_clear_probe / lattice-spacing=731 / replacement-distance=400 / max-replaced-waypoints=2`。它在 seed 0–999 上1000/1000全清，平均8919.61 s、P95 9911.17 s、平均移动29679 m；在独立 seed 1000–1999 上也1000/1000全清，平均8905.56 s、P95 9946.97 s。相对上一轮推荐，主集均值缩短2.36%、P95缩短2.00%。
 
-全定向500例和全向500例均全清，平均分别为10052.9 s和8257.5 s。更大的替代半径和提前终止可以把均值推进到约8.9 ks，但450/550/600/800 m替代及多组提前停止参数都出现漏清，因此没有选为默认。当前未达到8000 s目标，文档明确报告可靠配置的实际9135.6 s，不把漏清方案的虚假低耗时当作提升。
+新推荐在 seed 3000–3499 的全定向500例和全向500例中均全清，平均分别为9778.72 s和7876.72 s，P95分别为10800.13 s和8604.61 s。全向本地压力均值已低于8000 s，但混合主集仍为8919.61 s，因此总体目标尚未达到。更大的替代半径和提前终止虽可能更快，但450/550/600/800 m替代及多组提前停止参数都出现漏清，不选为默认。
+
+已复现两个覆盖替代回归案例：旧激进配置在 seed 257（450 m）清除11/12、seed 918（550 m）清除15/16。离线脚本 `experiments/t4_analysis/analyze_coverage_failure.py` 表明，918是被删格点造成定向可见性空洞，257则是已发现频道缺少足够的定向交会几何。新推荐731/400/2分别清除12/12（8829.27 s）和16/16（8653.12 s）。该脚本只在运行结束后读本地真值，不被策略导入。
+
+第19--21轮又测试了示向几何路线排序。未认证的 `geometry_aware_clear_probe / 731` 在两组混合100例上分别达到8723.56 s和8614.81 s，但 seed 257 仅清除11/12；把路线余量从0扫到80 m仍未修复，故拒绝。随后 `certified_geometry_clear_probe / 735` 将同一排序与六邻点覆盖认证组合：seed 257、918均全清；seed 0--99、1000--1099以及同一组100例全定向、全向压力测试全部全清，均值分别为8916.14、8757.53、9659.16、8058.58 s。它是值得扩大验证的覆盖认证候选，但批量证据只有400例，暂不替换已验证3000例的当前默认。总体混合均值8000 s目标仍未达到。
+
+另对当前默认进行了一次不使用预设选择种子的随机1000例测试。`random_benchmark.py` 通过操作系统熵现场选择1000个互不重复的32位种子，并在运行前保存完整清单。实际结果为1000/1000全清：最少5527.82 s、均值8909.21 s、标准差611.80 s、中位数8908.40 s、P90/P95/P99为9622.82/9967.15/10467.40 s、最大11133.29 s。最快 seed `3581489261` 有16个源、5个定向源；最慢 seed `3266971321` 有11个源、6个定向源。清单、逐例CSV和汇总位于 `experiments/t4_analysis/outputs/random_large_1000_replacement_aware/`。
+
+第22轮把当前默认更新为 `early_optical_clear_probe / 731 / 400 / 2 / 30m`。在上述同一随机1000例中仍为1000/1000全清，均值降至8353.66 s、P95 9290.72 s、最大10261.54 s；平均移动28040.92 m、测量452.33次、光学尝试13.531次。另在同种子全定向、全向各200例中全部全清，均值分别为9075.41 s和7535.33 s；seed 257、918均通过。30 m提前尝试节省了后续探测和移动，而不是只把5秒无线测量机械替换成3秒失败光学。
+
+第23轮随机100例中，`certified_geometry_clear_probe / 735` 100/100全清、均值8744.85 s，是保留覆盖认证的备选，但慢于同批提前光学的8309.65 s。第24轮IDA*式深度3评价在随机300例达到8121.88 s且全清，却在全定向随机100例中于 seed `3917738334` 漏清1个定向源；第25轮把光学阈值放宽到40 m又使 seed 257 仅清除11/12。二者均已拒绝。当前可靠混合均值仍未低于8000 s。
+
+第26轮把示向几何路线排序与30 m提前光学合并为 `geometry_early_optical_clear_probe`。在配对随机100例和300例中均全清，均值分别为8041.52 s和8123.04 s；同种子全定向、全向各100例也全部全清，均值8939.45 s和7348.36 s，且 seed 257、918、3917738334 均通过。第27轮只把光学阈值调到35 m：配对随机100例和300例仍全部全清，均值8027.42 s和8095.16 s；全定向、全向各100例均全清，均值8881.02 s和7259.03 s。它是当前速度候选，但尚未把已确认的混合均值压到8000 s以下。
+
+第28--31轮逐次只改一个因素。40 m在随机100例虽100/100全清，但均值/P95恶化到8100.66/9179.47 s；路线余量从100 m收紧到60 m，以及深度1的 `行程时间 - 几何信用` 评分，均在全定向 seed `3917738334` 漏清频道5，离线诊断发现两个被替代格点本可见；路线余量放宽到120 m则在随机100例均值8038.20 s，慢于100 m的8027.42 s。因此保留35 m/100 m候选。所有诊断只在本地运行完成后读取真值，未反馈给策略。
 
 ## 在线评测机实测
 
@@ -219,5 +255,22 @@ python3 -m task4.cli run --mode remote --strategy clear_probe \
 - 官方案例生成分布未知；本地数量/位置/半径/类型/误差分布只是明确记录的实验假设。现有一次在线测试不足以代替多次官方演练。
 - 本地服务已覆盖主要字段、状态、错误码、幂等、重复 JSON 键、嵌套深度、Content-Type/Encoding、虚拟/现实超时规则；尚未完全模拟官方的并发新动作 409、429 流量保护、25 分钟界面窗口和连接直接关闭行为。
 - `belief` 的粒子先验采用本地假设（位置面积均匀、半径均匀、定向概率 0.5）；覆盖格仍是可靠性兜底，所以先验错配主要影响效率，但尚无新在线案例验证这一点。
-- 735 m三角格本身保留覆盖保证，但用清除探测点替代400 m内格点是经验启发式，不具备原三角格的严格最坏情况证明；目前证据是两个独立1000案例集合及两组500压力集零失败。
-- 正式测试前人工核对：官方界面必须选“问题 4”；参赛队号、案例码和端口正确；先运行 `config-check`；最好先做一次不消耗正式次数的官方演练；确认策略为 `clear_probe`，参数为 `735 / 400 / 2`；确认输出目录可写；倒计时结束后才运行带确认串的命令；结束后立即导出官方加密日志。不要把旧在线日志的11次成功自动解释为该案例全部源，必须看GUI完成状态。
+- 731 m三角格本身保留覆盖保证，但 `replacement_aware_clear_probe` 用清除探测点替代400 m内格点仍是经验启发式，不具备原三角格的严格最坏情况证明；当前证据是两个独立1000案例集合及两组500压力集零失败。若必须优先要替代证明，可用较慢的 `certified_clear_probe`。
+- 正式测试前人工核对：官方界面必须选“问题 4”；参赛队号、案例码和端口正确；先运行 `config-check`；最好先做一次不消耗正式次数的官方演练；确认策略为 `early_optical_clear_probe`，参数为 `731 / 400 / 2 / 30m`；确认输出目录可写；倒计时结束后才运行带确认串的命令；结束后立即导出官方加密日志。不要把旧在线日志的11次成功自动解释为该案例全部源，必须看GUI完成状态。
+
+## 当前结果复现
+
+```bash
+python3 -m task4.cli batch --strategy replacement_aware_clear_probe \
+  --seed-start 0 --cases 1000 --lattice-spacing 731 \
+  --output-dir experiments/t4_analysis/outputs/iteration18_final1000/replacement_aware_s731
+python3 -m task4.cli batch --strategy replacement_aware_clear_probe \
+  --seed-start 1000 --cases 1000 --lattice-spacing 731 \
+  --output-dir experiments/t4_analysis/outputs/iteration18_holdout1000/replacement_aware_s731
+python3 -m task4.cli batch --strategy replacement_aware_clear_probe \
+  --seed-start 3000 --cases 500 --directional-probability 1 --lattice-spacing 731 \
+  --output-dir experiments/t4_analysis/outputs/iteration18_stress500/replacement_aware_s731_dir
+python3 -m task4.cli batch --strategy replacement_aware_clear_probe \
+  --seed-start 3000 --cases 500 --directional-probability 0 --lattice-spacing 731 \
+  --output-dir experiments/t4_analysis/outputs/iteration18_stress500/replacement_aware_s731_omni
+```
