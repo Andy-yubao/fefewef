@@ -3,7 +3,7 @@ import random
 import unittest
 
 from task4.geometry import angle_delta_deg, clip_bearing_wedge, enclosing_center_radius, feasible_polygon, regular_circle_polygon, serpentine_grid
-from task4.search_patterns import triangular_lattice
+from task4.search_patterns import double_ring_cover, triangular_lattice
 
 
 class GeometryTests(unittest.TestCase):
@@ -73,6 +73,19 @@ class GeometryTests(unittest.TestCase):
                     for point in lattice
                 )
             )
+
+    def test_double_ring_cover_has_25_points_and_sub_1000m_edges(self):
+        points = double_ring_cover()
+        self.assertEqual(len(points), 25)
+        origin = points[0]
+        inner = points[1:13]
+        outer = points[13:25]
+        self.assertLess(math.dist(origin, inner[0]), 1000.0)
+        self.assertLess(math.dist(inner[0], inner[1]), 1000.0)
+        self.assertLess(math.dist(outer[0], outer[1]), 1000.0)
+        self.assertLess(math.dist(outer[0], inner[-1]), 1000.0)
+        self.assertLess(math.dist(outer[0], inner[0]), 1000.0)
+        self.assertGreaterEqual(math.hypot(*outer[0]) * math.cos(math.pi / 12), 1800.0)
 
 
 if __name__ == "__main__":

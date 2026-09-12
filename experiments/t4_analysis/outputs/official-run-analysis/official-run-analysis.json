@@ -1,0 +1,225 @@
+{
+  "strategy": "geometry_early_optical_clear_probe",
+  "total_actions": 534,
+  "accepted_actions": 534,
+  "measurements": 520,
+  "unique_measure_positions": 37,
+  "measure_result_counts": {
+    "direction": 31,
+    "no_signal": 489
+  },
+  "no_signal_rate": 0.9403846153846154,
+  "clear_attempts": 12,
+  "clear_successes": 11,
+  "first_clear_action": 102,
+  "last_measure_action": 532,
+  "all_clears_after_last_measure": false,
+  "discovered_channels": [
+    1,
+    3,
+    4,
+    5,
+    6,
+    7,
+    9,
+    11,
+    15,
+    16,
+    17
+  ],
+  "undiscovered_channels": [
+    2,
+    8,
+    10,
+    12,
+    13,
+    14,
+    18,
+    19,
+    20
+  ],
+  "no_signal_measurements_on_eventually_discovered_channels": 174,
+  "final_virtual_time_s": 9856.770075,
+  "channel_stats": {
+    "1": {
+      "measurements": 16,
+      "no_signal": 14,
+      "direction": 2,
+      "near": 0,
+      "first_signal_action": 2,
+      "first_signal_virtual_time_s": 5,
+      "last_measure_action": 300
+    },
+    "2": {
+      "measurements": 35,
+      "no_signal": 35,
+      "direction": 0,
+      "near": 0,
+      "first_signal_action": null,
+      "first_signal_virtual_time_s": null,
+      "last_measure_action": 521
+    },
+    "3": {
+      "measurements": 19,
+      "no_signal": 16,
+      "direction": 3,
+      "near": 0,
+      "first_signal_action": 231,
+      "first_signal_virtual_time_s": 3044.297476,
+      "last_measure_action": 496
+    },
+    "4": {
+      "measurements": 20,
+      "no_signal": 18,
+      "direction": 2,
+      "near": 0,
+      "first_signal_action": 304,
+      "first_signal_virtual_time_s": 4404.828329,
+      "last_measure_action": 359
+    },
+    "5": {
+      "measurements": 17,
+      "no_signal": 15,
+      "direction": 2,
+      "near": 0,
+      "first_signal_action": 37,
+      "first_signal_virtual_time_s": 360.2,
+      "last_measure_action": 305
+    },
+    "6": {
+      "measurements": 37,
+      "no_signal": 34,
+      "direction": 3,
+      "near": 0,
+      "first_signal_action": 126,
+      "first_signal_virtual_time_s": 1543.097476,
+      "last_measure_action": 532
+    },
+    "7": {
+      "measurements": 14,
+      "no_signal": 11,
+      "direction": 3,
+      "near": 0,
+      "first_signal_action": 222,
+      "first_signal_virtual_time_s": 2845.097476,
+      "last_measure_action": 258
+    },
+    "8": {
+      "measurements": 35,
+      "no_signal": 35,
+      "direction": 0,
+      "near": 0,
+      "first_signal_action": null,
+      "first_signal_virtual_time_s": null,
+      "last_measure_action": 523
+    },
+    "9": {
+      "measurements": 21,
+      "no_signal": 18,
+      "direction": 3,
+      "near": 0,
+      "first_signal_action": 33,
+      "first_signal_virtual_time_s": 336.2,
+      "last_measure_action": 365
+    },
+    "10": {
+      "measurements": 35,
+      "no_signal": 35,
+      "direction": 0,
+      "near": 0,
+      "first_signal_action": null,
+      "first_signal_virtual_time_s": null,
+      "last_measure_action": 524
+    },
+    "11": {
+      "measurements": 5,
+      "no_signal": 2,
+      "direction": 3,
+      "near": 0,
+      "first_signal_action": 12,
+      "first_signal_virtual_time_s": 65,
+      "last_measure_action": 92
+    },
+    "12": {
+      "measurements": 35,
+      "no_signal": 35,
+      "direction": 0,
+      "near": 0,
+      "first_signal_action": null,
+      "first_signal_virtual_time_s": null,
+      "last_measure_action": 525
+    },
+    "13": {
+      "measurements": 35,
+      "no_signal": 35,
+      "direction": 0,
+      "near": 0,
+      "first_signal_action": null,
+      "first_signal_virtual_time_s": null,
+      "last_measure_action": 526
+    },
+    "14": {
+      "measurements": 35,
+      "no_signal": 35,
+      "direction": 0,
+      "near": 0,
+      "first_signal_action": null,
+      "first_signal_virtual_time_s": null,
+      "last_measure_action": 527
+    },
+    "15": {
+      "measurements": 18,
+      "no_signal": 15,
+      "direction": 3,
+      "near": 0,
+      "first_signal_action": 16,
+      "first_signal_virtual_time_s": 89,
+      "last_measure_action": 323
+    },
+    "16": {
+      "measurements": 33,
+      "no_signal": 30,
+      "direction": 3,
+      "near": 0,
+      "first_signal_action": 481,
+      "first_signal_virtual_time_s": 8017.602639,
+      "last_measure_action": 506
+    },
+    "17": {
+      "measurements": 5,
+      "no_signal": 1,
+      "direction": 4,
+      "near": 0,
+      "first_signal_action": 25,
+      "first_signal_virtual_time_s": 288.2,
+      "last_measure_action": 98
+    },
+    "18": {
+      "measurements": 35,
+      "no_signal": 35,
+      "direction": 0,
+      "near": 0,
+      "first_signal_action": null,
+      "first_signal_virtual_time_s": null,
+      "last_measure_action": 528
+    },
+    "19": {
+      "measurements": 35,
+      "no_signal": 35,
+      "direction": 0,
+      "near": 0,
+      "first_signal_action": null,
+      "first_signal_virtual_time_s": null,
+      "last_measure_action": 529
+    },
+    "20": {
+      "measurements": 35,
+      "no_signal": 35,
+      "direction": 0,
+      "near": 0,
+      "first_signal_action": null,
+      "first_signal_virtual_time_s": null,
+      "last_measure_action": 530
+    }
+  }
+}

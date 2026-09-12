@@ -11,6 +11,7 @@ Deliver a runnable solution for CUMCM Problem B, Task 4: an official-compatible 
 - The implementation is runnable. There are 27 registered strategies, each with its own concrete strategy file, plus shared behavior in `base.py`.
 - The last executed full test suite had 26/26 unit and integration tests passing, including HTTP tests. The CLI-default seed-257 and seed-918 reruns cleared 12/12 in 6933.93 s and 16/16 in 8535.89 s.
 - The current CLI default and risk-budgeted local recommendation are `geometry_early_optical_clear_probe` with `lattice_spacing=731`, `replacement_distance_m=550`, `max_replaced_waypoints=2`, `early_clear_radius_m=35`, and `route_length_slack_m=100`.
+- A new CLI-registered candidate, `double_ring_optical_clear_probe`, uses a 25-point double-ring discovery cover with no waypoint replacement by default, a certified seven-disk fallback for 35 m feasible regions, and a full positive-bearing optical-strip endgame. A fresh mixed 1000 was 1000/1000 all-clear at mean/P95 6622.84/7716.41 s; a fresh all-directional 300 was 300/300 at 7486.88/8891.01 s. It is not the CLI default because it has not reached the 6000 s mixed mean and has no official run.
 - The older `replacement_aware_clear_probe / 731 / 400 / 2` setting was 1000/1000 all-clear on seeds 0--999, 1000/1000 on disjoint seeds 1000--1999, 500/500 in all-directional stress, and 500/500 in all-omnidirectional stress.
 - An additional 1000 unique 32-bit seeds selected at run time from operating-system entropy were 1000/1000 all-clear for that older setting: minimum/mean/median/P95/P99/maximum 5527.82/8909.21/8908.40/9967.15/10467.40/11133.29 s. The exact sampled seeds were persisted before execution.
 - On those same random 1000, 30 m early optical was also 1000/1000 and reduced mean/P95/maximum to 8353.66/9290.72/10261.54 s. Paired random all-directional and all-omni sets of 200 each were all clear at 9075.41 and 7535.33 s mean.
@@ -18,7 +19,7 @@ Deliver a runnable solution for CUMCM Problem B, Task 4: an official-compatible 
 - A fresh OS-entropy all-directional 300 also passed 300/300 at minimum/mean/median/P95/maximum 6552.27/8833.18/8799.38/9812.92/10727.76 s. With zero failures, its one-sided 95% binomial upper bound is about 0.994%; this is evidence only for the stated local distribution.
 - At 550 m, a new OS-entropy mixed 1000 was 999/1000 at minimum/mean/median/P95/P99/maximum 5252.97/7878.29/7910.04/8836.33/9343.67/9794.08 s. A new all-directional 1000 was 998/1000 at 6302.65/8674.85/8642.54/9792.46/10302.60/10891.37 s. Their exact one-sided 95% incomplete-case upper bounds are 0.4735% and 0.6282%, below the approved 1% boundary.
 - The historical iteration-18 seeds 0--999 mean is 8919.61 s with P95 9911.17 s. This is 2.36% below the prior `clear_probe / 735 / 400 / 2` recommendation, 10.88% below `opportunistic`, and 25.29% below `deferred`.
-- Only the old `deferred` strategy has been exercised against the official evaluator. None of the optimized strategies has official evidence yet. Never present the local numbers below as official scores.
+- One explicitly authorized official run now exists for the optimized default, in addition to the older `deferred` run. Never present local-batch numbers as official scores.
 - The official API never reveals the true emitter count. A list of successful clear calls does not prove full completion; the evaluator GUI must be checked.
 - The iteration-18--37 implementation, documents, and generated experiment outputs are currently uncommitted. Preserve the pre-existing user change in this handoff file and review `git status` before any commit.
 
@@ -102,6 +103,7 @@ Offline diagnosis is isolated in `experiments/t4_analysis/`. An analyzer may use
 - `guarded_ida_clear_probe`: applies depth-3 `g+h` only among routes meeting a first-step geometry gate; the safe 100% gate was slightly slower overall.
 - `relocate_geometry_clear_probe`: adds Or-opt-1 relocation after open 2-opt; rejected because rolling mean and wall time increased.
 - `geometry_replacement_clear_probe`: protects replacement candidates with high active-bearing geometry value; rejected after only a 2.67 s random-300 gain and no reduction in batch failures.
+- `double_ring_optical_clear_probe`: 25-point double-ring discovery cover with zero replacements by default, certified 35 m seven-disk clearing, and a full positive-bearing optical-strip fallback after radio reacquisition fails. It is the current sub-7000 candidate, not the CLI default.
 
 ## Current `geometry_early_optical_clear_probe` decision loop
 
@@ -127,7 +129,9 @@ Offline diagnosis is isolated in `experiments/t4_analysis/`. An analyzer may use
 
 ## Official online evidence
 
-The only official run used `deferred` with a 600 m grid and 1800 m half-extent on case `YJVS-K983-5KCS-NAX5` through the forwarded endpoint `http://172.26.112.1:2027` with team ID `202609001035`.
+With explicit user authorization on 2026-09-12, the current `geometry_early_optical_clear_probe / 731 / 550 / 2 / 35 m / 100 m` default completed one official run through `http://172.26.112.1:2027`. All 534 requests were accepted. The robot made 520 measurements at 37 distinct positions (31 directions and 489 no-signals), attempted 12 clears, and succeeded on 11 channels: 1, 3, 4, 5, 6, 7, 9, 11, 15, 16, and 17. First clear was at 1271.55 s, movement was 33568.85 m, and final virtual time was 9856.77 s. The API did not disclose the total emitter count, so only the GUI can establish whether the case was fully cleared. The log is `task4/outputs/official-run.json`; robot-visible analysis and the path SVG are under `experiments/t4_analysis/outputs/official-run-analysis/` and `experiments/t4_analysis/outputs/official-run-figures/`. The overwritten prior log was preserved as `task4/outputs/official-run.pre-test-20260912.json`.
+
+The earlier official run used `deferred` with a 600 m grid and 1800 m half-extent on case `YJVS-K983-5KCS-NAX5` through the forwarded endpoint `http://172.26.112.1:2027` with team ID `202609001035`.
 
 It produced 671 accepted actions, 658 measurements, 611 `no_signal` responses (92.86%), and 11 successful clears. There were 49 unique measurement positions. The first clear was action 660 and the last measurement was action 659: every clear was end-loaded. There were 170 no-signals on channels that were eventually found. The API did not reveal total source count, so GUI confirmation is required before stating that this run fully cleared the case.
 
@@ -290,7 +294,7 @@ Emitter count is discrete uniform 10--16; channels are sampled without replaceme
 
 ## Next recommended optimization work
 
-1. Do not run any official action-producing command without fresh explicit user authorization. The current user explicitly requested no online evaluation; if later authorized, first use a rehearsal with the then-selected configuration and preserve both client and evaluator logs.
+1. Do not run another official action-producing command without fresh explicit user authorization. The 2026-09-12 run was individually authorized; that permission does not carry forward. Preserve both client and evaluator logs.
 2. Re-run random path visualizations with the current `geometry_early_optical_clear_probe`; the current figures show old `opportunistic` and are stale.
 3. Use saved OS-entropy manifests for paired A/B comparisons, then require fresh OS-entropy large batches for promotion. Prefer zero failures; if accepting a nonzero rate, require an estimated incomplete-case probability no greater than 1%, report uncertainty, and rerun both stress sets after any geometry/order change.
 4. Expand `certified_geometry_clear_probe / 735` to the full 1000 + 1000 + 500 + 500 protocol before considering promotion; then extend the certificate beyond the current single-clear six-neighbor fan if it remains competitive.

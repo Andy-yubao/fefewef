@@ -1,0 +1,10 @@
+{
+  "selection_seed": null,
+  "case_seeds": [
+    null
+  ],
+  "strategy": "geometry_early_optical_clear_probe",
+  "figures": [
+    "official-run_path.svg"
+  ]
+}

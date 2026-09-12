@@ -1,0 +1,2 @@
+seed,strategy,emitter_count,directional_count,cleared_count,all_cleared,virtual_time_s,movement_distance_m,measure_count,no_signal_count,direction_count,near_count,first_clear_time_s,distinct_measure_positions,source_log,figure
+,geometry_early_optical_clear_probe,,,11,,9856.770075,33568.85037632189,520,489,31,0,1271.548457,37,task4/outputs/official-run.json,official-run_path.svg

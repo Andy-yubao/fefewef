@@ -41,6 +41,7 @@
 - `guarded_ida_clear_probe`：只在满足首步几何门槛的路线内使用深度3 `g+h`；100%门槛可靠但总体略慢，作为消融保留。
 - `relocate_geometry_clear_probe`：在开放2-opt后增加单点重插入局部搜索；静态路线更强但滚动总时间和程序墙钟时间均变差。
 - `geometry_replacement_clear_probe`：在550 m候选中优先保留对 active 信道交会几何价值高的格点；300例仅快2.67 s且失败数未降，作为消融保留。
+- `double_ring_optical_clear_probe`：25点双环发现覆盖，默认不删除覆盖点；35 m七圆光学覆盖并在无线重捕获失败后覆盖完整正示向条带。新随机混合1000例1000/1000全清、均值6622.84 s、P95 7716.41 s；全定向300例300/300全清、均值7486.88 s。当前作为向6000 s推进的候选，尚未替换既有CLI默认。
 
 所有策略共享 HTTP、状态、计时、几何和清除逻辑。圆域与 1500 m 正信号距离约束使用外接正多边形，避免错误排除真值；示向误差额外留出 0.01° 以覆盖接口两位小数舍入。
 
@@ -75,6 +76,7 @@ task4/
 │   ├── early_optical_clear_probe.py # 30 m提前光学（保守回退）
 │   ├── ida_heuristic_clear_probe.py # IDA*式有界路线评价实验
 │   ├── geometry_early_optical_clear_probe.py # 示向几何 + 35 m提前光学（当前默认）
+│   ├── double_ring_optical_clear_probe.py # 25点双环 + 有界光学收尾候选
 │   ├── guarded_ida_clear_probe.py # 受首步几何门控的IDA*融合
 │   ├── relocate_geometry_clear_probe.py # Or-opt-1路线消融
 │   ├── geometry_replacement_clear_probe.py # 几何感知格点替代消融
@@ -123,6 +125,13 @@ python3 -m experiments.t4_local.server --seed 42 --port 2027
 ```bash
 python3 -m task4.cli run --mode local --strategy geometry_early_optical_clear_probe \
   --seed 42 --output task4/outputs/seed42.json
+```
+
+测试新的双环候选（CLI默认对该策略关闭覆盖点替代）：
+
+```bash
+python3 -m task4.cli run --mode local --strategy double_ring_optical_clear_probe \
+  --seed 42 --output task4/outputs/double-ring-seed42.json
 ```
 
 连接独立本地 HTTP 服务测试完整链路：
@@ -262,13 +271,15 @@ python3 -m task4.cli run --mode remote --strategy early_optical_clear_probe \
 
 ## 在线评测机实测
 
+2026-09-12 按用户明确授权，用当前风险默认 `geometry_early_optical_clear_probe / 731 / 550 / 2 / 35m / 100m` 完成一次正式在线运行。534个动作全部接受，520次测量中31次示向、489次无信号；12次光学尝试有11次成功，清除频道为 `1,3,4,5,6,7,9,11,15,16,17`。首次成功清除在1271.55 s，最终虚拟时间9856.77 s，移动33568.85 m，共37个不同测量位置。API不返回总源数，必须以GUI结果判断11个是否全清。原始日志为 `task4/outputs/official-run.json`，旧同名日志备份为 `task4/outputs/official-run.pre-test-20260912.json`；机器人可见分析和路径图位于 `experiments/t4_analysis/outputs/official-run-analysis/` 与 `experiments/t4_analysis/outputs/official-run-figures/`。
+
 2026-09-11 已对案例 `YJVS-K983-5KCS-NAX5` 运行一次在线测试，使用当时的 `deferred / 600 / 1800`。671 个动作全部被接受；658 次检测，11 次清除均成功，最终虚拟时间 12529.850766 s。完整自记录日志为 `task4/outputs/official/YJVS-K983-5KCS-NAX5.json`。离线分析程序 `experiments/t4_analysis/analyze_action_log.py` 只读取机器人可见日志，得到 611 次无信号、49 个测量位置、首次清除动作 660、全部清除位于最后一次测量之后，以及 170 次无信号发生在最终确实被发现的频道上。分析产物位于 `experiments/t4_analysis/outputs/YJVS-K983-5KCS-NAX5-analysis.{json,md}`。
 
 接口不会返回案例干扰源总数，因此仅凭 API 不能断言 11 个是否为该案例全部干扰源；需要人工查看模拟器测试结束页面中的总数/完成信息。本记录不是三次正式测试结果，也不能替代模拟器导出的官方加密日志。
 
 ## 已知问题与正式测试前检查
 
-- 官方案例生成分布未知；本地数量/位置/半径/类型/误差分布只是明确记录的实验假设。现有一次在线测试不足以代替多次官方演练。
+- 官方案例生成分布未知；本地数量/位置/半径/类型/误差分布只是明确记录的实验假设。现有两次不同策略的在线测试不足以代替系统验证。
 - 本地服务已覆盖主要字段、状态、错误码、幂等、重复 JSON 键、嵌套深度、Content-Type/Encoding、虚拟/现实超时规则；尚未完全模拟官方的并发新动作 409、429 流量保护、25 分钟界面窗口和连接直接关闭行为。
 - `belief` 的粒子先验采用本地假设（位置面积均匀、半径均匀、定向概率 0.5）；覆盖格仍是可靠性兜底，所以先验错配主要影响效率，但尚无新在线案例验证这一点。
 - 731 m三角格本身保留覆盖保证，但清除点替代仍是经验启发式，不具备原三角格的严格最坏情况证明。400 m旧方案有两组1000例及两组500例零失败；当前550 m风险方案已有明确漏清，只是统计上满足允许的1%边界。若必须优先要替代证明，可用较慢的 `certified_clear_probe`。

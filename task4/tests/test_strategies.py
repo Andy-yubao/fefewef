@@ -1,6 +1,9 @@
+import math
 import unittest
 
+from experiments.t4_local.benchmark import run_local_case
 from task4.strategies import STRATEGIES, make_strategy
+from task4.strategies.double_ring_optical_clear_probe import _NearOpticalReacquireStrategy
 from task4.strategies.integrated_route import RouteNode, _plan_nodes_multistart, _route_length
 from task4.strategies.relocate_geometry_clear_probe import _improve_open_route_relocate
 
@@ -14,6 +17,7 @@ class StrategyPackageTests(unittest.TestCase):
                 "active",
                 "reacquire",
                 "deferred",
+                "double_ring_optical_clear_probe",
                 "lattice",
                 "opportunistic",
                 "belief",
@@ -46,6 +50,7 @@ class StrategyPackageTests(unittest.TestCase):
             "active": "task4.strategies.active",
             "reacquire": "task4.strategies.reacquire",
             "deferred": "task4.strategies.deferred",
+            "double_ring_optical_clear_probe": "task4.strategies.double_ring_optical_clear_probe",
             "lattice": "task4.strategies.lattice",
             "opportunistic": "task4.strategies.opportunistic",
             "belief": "task4.strategies.belief",
@@ -103,6 +108,10 @@ class StrategyPackageTests(unittest.TestCase):
         self.assertEqual(geometry_optical.early_clear_radius_m, 35.0)
         self.assertEqual(geometry_optical.replacement_distance_m, 550.0)
         self.assertEqual(geometry_optical.route_length_slack_m, 100.0)
+        double_ring = make_strategy("double_ring_optical_clear_probe")
+        self.assertEqual(len(double_ring._search_waypoints()), 25)
+        self.assertEqual(double_ring.max_replaced_waypoints, 0)
+        self.assertEqual(double_ring.early_clear_radius_m, 35.0)
         guarded = make_strategy("guarded_ida_clear_probe")
         self.assertEqual(guarded.early_clear_radius_m, 35.0)
         self.assertEqual(guarded.geometry_floor_ratio, 1.0)
@@ -167,6 +176,28 @@ class StrategyPackageTests(unittest.TestCase):
         improved = _improve_open_route_relocate(route, start)
         self.assertEqual(set(improved), set(route))
         self.assertLessEqual(_route_length(improved, start), _route_length(route, start))
+
+    def test_double_ring_near_optical_fallback_clears_seed_12(self):
+        row, _ = run_local_case("double_ring_optical_clear_probe", seed=12)
+        self.assertTrue(row["all_cleared"])
+        self.assertEqual(row["cleared_count"], row["emitter_count"])
+
+    def test_optical_strip_covers_positive_bearing_wedge(self):
+        strategy = _NearOpticalReacquireStrategy()
+        station = (123.0, -456.0)
+        measured_angle = math.radians(37.0)
+        centers = strategy._optical_strip_points(station, measured_angle)
+        for distance_m in range(0, 1501, 5):
+            for error_deg in (-1.01, -0.5, 0.0, 0.5, 1.01):
+                actual = measured_angle + math.radians(error_deg)
+                source = (
+                    station[0] + distance_m * math.cos(actual),
+                    station[1] + distance_m * math.sin(actual),
+                )
+                self.assertLessEqual(
+                    min(math.dist(source, center) for center in centers),
+                    20.0,
+                )
 
 
 if __name__ == "__main__":

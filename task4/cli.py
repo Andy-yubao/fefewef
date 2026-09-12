@@ -54,6 +54,7 @@ CLEAR_PROBE_STRATEGIES = {
     "geometry_replacement_clear_probe",
     "guarded_ida_clear_probe",
     "relocate_geometry_clear_probe",
+    "double_ring_optical_clear_probe",
 }
 RECOMMENDED_731_STRATEGIES = {
     "replacement_aware_clear_probe",
@@ -99,13 +100,18 @@ def _config(args) -> dict:
                 in {
                     "geometry_early_optical_clear_probe",
                     "geometry_replacement_clear_probe",
+                    "double_ring_optical_clear_probe",
                 }
                 else 400.0
             )
             if args.replacement_distance is None
             else args.replacement_distance
         )
-        config["max_replaced_waypoints"] = args.max_replaced_waypoints
+        config["max_replaced_waypoints"] = (
+            (0 if args.strategy == "double_ring_optical_clear_probe" else 2)
+            if args.max_replaced_waypoints is None
+            else args.max_replaced_waypoints
+        )
     if args.strategy == "geometry_aware_clear_probe":
         config["route_length_slack_m"] = args.route_length_slack
     if args.strategy == "early_optical_clear_probe":
@@ -124,6 +130,7 @@ def _config(args) -> dict:
     if args.strategy in {
         "geometry_early_optical_clear_probe",
         "geometry_replacement_clear_probe",
+        "double_ring_optical_clear_probe",
     }:
         config.update(
             early_clear_radius_m=(
@@ -171,9 +178,13 @@ def _add_advanced_strategy_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--replacement-distance",
         type=float,
-        help="default: 550 for geometry+early-optical/replacement-geometry, otherwise 400",
+        help="default: 550 for geometry/early-optical double-ring strategies, otherwise 400",
     )
-    parser.add_argument("--max-replaced-waypoints", type=int, default=2)
+    parser.add_argument(
+        "--max-replaced-waypoints",
+        type=int,
+        help="default: 0 for double-ring (preserves its cover), otherwise 2",
+    )
     parser.add_argument("--route-length-slack", type=float, default=100.0)
     parser.add_argument(
         "--early-clear-radius",

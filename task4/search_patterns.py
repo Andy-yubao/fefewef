@@ -5,6 +5,64 @@ import math
 from .geometry import Point
 
 
+def double_ring_cover(
+    arena_radius: float = 1800.0,
+    inner_radius: float = 980.0,
+    boundary_margin: float = 0.25,
+    minimum_receive_radius: float = 1000.0,
+) -> list[Point]:
+    """A 25-point triangulation with a directional discovery certificate.
+
+    The outer regular dodecagon contains the arena disk.  Twelve inner-ring
+    vertices, rotated by 15 degrees, and the origin triangulate that polygon.
+    Every triangulation edge is shorter than ``minimum_receive_radius``; hence
+    every emitter is within range of all vertices of one containing triangle,
+    and every closed half-plane through it contains at least one such vertex.
+    """
+    if arena_radius <= 0:
+        raise ValueError("arena_radius must be positive")
+    if inner_radius <= 0:
+        raise ValueError("inner_radius must be positive")
+    if boundary_margin < 0:
+        raise ValueError("boundary_margin must be nonnegative")
+    if minimum_receive_radius <= 0:
+        raise ValueError("minimum_receive_radius must be positive")
+
+    half_step = math.pi / 12.0
+    step = math.pi / 6.0
+    outer_radius = arena_radius / math.cos(half_step) + boundary_margin
+    edge_lengths = (
+        inner_radius,
+        2.0 * inner_radius * math.sin(half_step),
+        2.0 * outer_radius * math.sin(half_step),
+        math.sqrt(
+            outer_radius**2
+            + inner_radius**2
+            - 2.0 * outer_radius * inner_radius * math.cos(half_step)
+        ),
+    )
+    if max(edge_lengths) >= minimum_receive_radius:
+        raise ValueError(
+            "double-ring triangulation edges must be shorter than the minimum receive radius"
+        )
+
+    inner = [
+        (
+            inner_radius * math.cos(half_step + index * step),
+            inner_radius * math.sin(half_step + index * step),
+        )
+        for index in range(12)
+    ]
+    outer = [
+        (
+            outer_radius * math.cos(index * step),
+            outer_radius * math.sin(index * step),
+        )
+        for index in range(12)
+    ]
+    return [(0.0, 0.0), *inner, *outer]
+
+
 def triangular_lattice(
     arena_radius: float = 1800.0,
     spacing: float = 900.0,

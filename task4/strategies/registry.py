@@ -11,6 +11,7 @@ from .clear_probe_multistart import ClearProbeMultistartStrategy
 from .certified_clear_probe import CertifiedClearProbeStrategy
 from .certified_geometry_clear_probe import CertifiedGeometryClearProbeStrategy
 from .deferred import DeferredCoverageStrategy
+from .double_ring_optical_clear_probe import DoubleRingOpticalClearProbeStrategy
 from .early_stop import EarlyStopStrategy
 from .endgame_clear_probe import EndgameClearProbeStrategy
 from .early_optical_clear_probe import EarlyOpticalClearProbeStrategy
@@ -37,6 +38,7 @@ STRATEGIES: dict[str, Callable[..., BaseStrategy]] = {
     "active": ActiveStrategy,
     "reacquire": ReacquireStrategy,
     "deferred": DeferredCoverageStrategy,
+    "double_ring_optical_clear_probe": DoubleRingOpticalClearProbeStrategy,
     "lattice": LatticeDeferredStrategy,
     "opportunistic": OpportunisticClearStrategy,
     "belief": BeliefSearchStrategy,
