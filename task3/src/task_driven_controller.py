@@ -51,6 +51,8 @@ class TaskDrivenController(SearchController):
         self.angular_backward_movement_count = 0
         self.completed_sector_return_count = 0
         self.macro_backward_move_count = 0
+        self.local_leg_retrace_count = 0
+        self.local_leg_retrace_m = 0.0
         self.fallback_action_count = 0
         self.fallback_movement_m = 0.0
         self.resolve_ready_count = 0
@@ -255,6 +257,8 @@ class TaskDrivenController(SearchController):
         completed_return = False
         angular_backward = False
         macro_backward = False
+        local_leg_retrace = False
+        local_leg_retrace_m = 0.0
         if self.sweep_planner is not None and movement_m > self.planner.numeric_distance_tol_m:
             completed_return = (
                 self.sweep_planner.sector_for_point(end) in self.completed_sectors
@@ -272,6 +276,19 @@ class TaskDrivenController(SearchController):
                 macro_backward = not self.sweep_planner.is_forward_compatible(
                     end, self._frontier_rank()
                 )
+                start_projection = self._current_leg_projection(start)
+                end_projection = self._current_leg_projection(end)
+                if start_projection is not None and end_projection is not None:
+                    start_fraction, leg_length_m = start_projection
+                    end_fraction, _ = end_projection
+                    reference_fraction = max(start_fraction, self._leg_progress_fraction)
+                    backward_fraction = reference_fraction - end_fraction
+                    fraction_tol = self.planner.numeric_distance_tol_m / leg_length_m
+                    if backward_fraction > fraction_tol:
+                        local_leg_retrace = True
+                        local_leg_retrace_m = backward_fraction * leg_length_m
+                        self.local_leg_retrace_count += 1
+                        self.local_leg_retrace_m += local_leg_retrace_m
                 if movement_m > self.planner.numeric_distance_tol_m:
                     self._update_leg_progress_from_point(end)
             angular_backward = macro_backward
@@ -293,6 +310,8 @@ class TaskDrivenController(SearchController):
             "completed_sector_return": completed_return,
             "angular_backward_movement": angular_backward,
             "macro_backward_movement": macro_backward,
+            "local_leg_retrace": local_leg_retrace,
+            "local_leg_retrace_m": local_leg_retrace_m,
             "active_task_type": active.kind.value if active else None,
             "active_channel": active.channel if active else None,
             "active_vertex": active.vertex if active else None,
@@ -417,28 +436,36 @@ class TaskDrivenController(SearchController):
         return self._measurement_useful_at(channel, np.asarray(self.client.position, float))
 
     def _route_progress(self, point: np.ndarray) -> tuple[float, float] | None:
+        projection = self._current_leg_projection(point)
+        if projection is None:
+            return None
+        self._sync_leg_progress()
+        return self._leg_progress_fraction, projection[0]
+
+    def _current_leg_projection(self, point: np.ndarray) -> tuple[float, float] | None:
         next_vertex = self._next_vertex()
         if next_vertex is None:
             return None
-        self._sync_leg_progress()
         frontier_rank = self._frontier_rank()
         start_index = max(0, frontier_rank + 1)
         start = self.coverage[start_index]
         end = self.coverage[next_vertex]
-        assert self.sweep_planner is not None
         delta = end - start
         length2 = float(np.dot(delta, delta))
         if length2 <= self.planner.numeric_distance_tol_m ** 2:
             return None
         point_fraction = float(np.dot(np.asarray(point, float) - start, delta) / length2)
-        return self._leg_progress_fraction, min(1.0, max(0.0, point_fraction))
+        return min(1.0, max(0.0, point_fraction)), length2 ** 0.5
 
-    def _service_target_is_ahead(self, point: np.ndarray) -> bool:
+    def _is_not_behind_current_leg_progress(self, point: np.ndarray) -> bool:
         progress = self._route_progress(point)
         if progress is None:
             return True
         current_fraction, target_fraction = progress
-        return target_fraction + 0.125 >= current_fraction
+        projection = self._current_leg_projection(point)
+        assert projection is not None
+        fraction_tol = self.planner.numeric_distance_tol_m / projection[1]
+        return target_fraction + fraction_tol >= current_fraction
 
     def _forward_route_measurement(
         self, channel: int, stop_before: np.ndarray | None = None
@@ -454,6 +481,7 @@ class TaskDrivenController(SearchController):
         length2 = float(np.dot(delta, delta))
         if length2 <= self.planner.numeric_distance_tol_m ** 2:
             return None
+        fraction_tol = self.planner.numeric_distance_tol_m / length2 ** 0.5
         current_fraction = self._leg_progress_fraction
         stop_fraction = 1.0
         if stop_before is not None:
@@ -462,9 +490,9 @@ class TaskDrivenController(SearchController):
                 float(np.dot(np.asarray(stop_before, float) - start, delta) / length2),
             ))
         for fraction in np.linspace(0.0, 1.0, 9):
-            if fraction + self.planner.numeric_distance_tol_m < current_fraction:
+            if fraction + fraction_tol < current_fraction:
                 continue
-            if fraction > stop_fraction + self.planner.numeric_distance_tol_m:
+            if fraction > stop_fraction + fraction_tol:
                 break
             point = start + float(fraction) * delta
             if not self.sweep_planner.is_forward_compatible(point, self._frontier_rank()):
@@ -479,7 +507,7 @@ class TaskDrivenController(SearchController):
         point = state.certificate().center.copy()
         if (
             not self.sweep_planner.is_forward_compatible(point, self._frontier_rank())
-            or not self._service_target_is_ahead(point)
+            or not self._is_not_behind_current_leg_progress(point)
             or state.already_measured(point)
         ):
             return None
@@ -495,7 +523,7 @@ class TaskDrivenController(SearchController):
         if (
             safe is not None
             and self.sweep_planner.is_forward_compatible(safe, frontier_rank)
-            and self._service_target_is_ahead(safe)
+            and self._is_not_behind_current_leg_progress(safe)
         ):
             approach = self._forward_route_measurement(channel, stop_before=safe)
             if approach is not None:
@@ -524,7 +552,7 @@ class TaskDrivenController(SearchController):
         assert self.sweep_planner is not None
         return any(
             self.sweep_planner.is_forward_compatible(np.asarray(point, float), self._frontier_rank())
-            and self._service_target_is_ahead(np.asarray(point, float))
+            and self._is_not_behind_current_leg_progress(np.asarray(point, float))
             for point in state.fallback_queue
         )
 
@@ -556,7 +584,7 @@ class TaskDrivenController(SearchController):
         forward = [
             (index, point) for index, point in enumerate(points)
             if self.sweep_planner.is_forward_compatible(point, self._frontier_rank())
-            and self._service_target_is_ahead(point)
+            and self._is_not_behind_current_leg_progress(point)
         ]
         if not forward:
             return None
@@ -608,6 +636,8 @@ class TaskDrivenController(SearchController):
             "angular_backward_movement_count": self.angular_backward_movement_count,
             "completed_sector_return_count": self.completed_sector_return_count,
             "macro_backward_move_count": self.macro_backward_move_count,
+            "local_leg_retrace_count": self.local_leg_retrace_count,
+            "local_leg_retrace_m": self.local_leg_retrace_m,
             "fallback_action_count": self.fallback_action_count,
             "fallback_movement_m": self.fallback_movement_m,
             "resolve_ready_count": self.resolve_ready_count,

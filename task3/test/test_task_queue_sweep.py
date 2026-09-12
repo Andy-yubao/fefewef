@@ -242,6 +242,43 @@ def test_active_resolve_movement_monotonically_updates_leg_progress() -> None:
         "MEASURE", 1, three_quarters, quarter, "another_dedicated_action"
     )
     assert np.isclose(controller._leg_progress_fraction, 0.75)
+    assert controller.local_leg_retrace_count == 1
+    assert np.isclose(controller.local_leg_retrace_m, 0.5 * np.linalg.norm(end - start))
+
+
+def test_resolve_target_must_not_fall_behind_current_leg_progress() -> None:
+    controller = _found_controller()
+    controller.coverage_completed.add(1)
+    start = controller.coverage[1]
+    end = controller.coverage[2]
+    controller._sync_leg_progress()
+    controller._leg_progress_fraction = 0.5
+
+    behind = start + 0.49 * (end - start)
+    current = start + 0.5 * (end - start)
+    ahead = start + 0.51 * (end - start)
+    assert not controller._is_not_behind_current_leg_progress(behind)
+    assert controller._is_not_behind_current_leg_progress(current)
+    assert controller._is_not_behind_current_leg_progress(ahead)
+
+
+def test_local_forward_tolerance_is_converted_from_metres() -> None:
+    controller = _found_controller()
+    controller.coverage_completed.add(1)
+    start = controller.coverage[1]
+    end = controller.coverage[2]
+    leg_length = float(np.linalg.norm(end - start))
+    controller._sync_leg_progress()
+    controller._leg_progress_fraction = 0.5
+
+    within_tol = start + (
+        0.5 - 0.5 * controller.planner.numeric_distance_tol_m / leg_length
+    ) * (end - start)
+    beyond_tol = start + (
+        0.5 - 2.0 * controller.planner.numeric_distance_tol_m / leg_length
+    ) * (end - start)
+    assert controller._is_not_behind_current_leg_progress(within_tol)
+    assert not controller._is_not_behind_current_leg_progress(beyond_tol)
 
 
 def test_forward_route_does_not_reselect_reached_leg_prefix(monkeypatch) -> None:
@@ -272,3 +309,23 @@ def test_radial_detour_does_not_advance_leg_progress() -> None:
         "MEASURE", 1, start, radial, "forward_center_measurement"
     )
     assert controller._leg_progress_fraction == 0.0
+    assert controller.local_leg_retrace_count == 0
+    assert controller.local_leg_retrace_m == 0.0
+
+
+def test_opportunistic_reverse_move_is_not_counted_as_local_retrace() -> None:
+    controller = _found_controller()
+    controller.coverage_completed.add(1)
+    controller.task_queue.active = Task(TaskKind.RESOLVE_SOURCE, channel=1)
+    start = controller.coverage[1]
+    end = controller.coverage[2]
+    three_quarters = start + 0.75 * (end - start)
+    quarter = start + 0.25 * (end - start)
+    controller._sync_leg_progress()
+    controller._leg_progress_fraction = 0.75
+
+    controller._record_action(
+        "MEASURE", 1, three_quarters, quarter, "test_opportunity", True
+    )
+    assert controller.local_leg_retrace_count == 0
+    assert controller._leg_progress_fraction == 0.75
