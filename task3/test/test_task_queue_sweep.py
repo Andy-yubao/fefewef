@@ -12,6 +12,10 @@ from task3.src.coverage import ordered_points
 from task3.src.mock_simulator import MockSimulator, Scenario, Source
 from task3.src.policies import POLICIES
 from task3.src.route_planner import RoutePlanner
+from task3.src.short_horizon_sequencer import (
+    TaskPreview,
+    choose_short_horizon_sequence,
+)
 from task3.src.task_driven_controller import TaskDrivenController
 from task3.src.task_queue import Task, TaskKind, TaskQueue
 from task3.src.task_sweep_planner import TaskSweepPlanner
@@ -329,3 +333,67 @@ def test_opportunistic_reverse_move_is_not_counted_as_local_retrace() -> None:
     )
     assert controller.local_leg_retrace_count == 0
     assert controller._leg_progress_fraction == 0.75
+
+
+def _sequence_decision(
+    previews: list[TaskPreview], required: set[tuple] | None = None
+):
+    advance = Task(TaskKind.ADVANCE_COVERAGE, vertex=2)
+    return choose_short_horizon_sequence(
+        np.array([0.0, 0.0]),
+        None,
+        previews,
+        advance,
+        np.array([10.0, 0.0]),
+        required or set(),
+        speed_mps=1.0,
+        switch_s=0.0,
+    )
+
+
+def test_short_horizon_selects_order_with_shorter_total_route() -> None:
+    a = Task(TaskKind.RESOLVE_SOURCE, channel=1)
+    b = Task(TaskKind.RESOLVE_SOURCE, channel=2)
+    decision = _sequence_decision([
+        TaskPreview(a, 0.0, np.array([9.0, 0.0])),
+        TaskPreview(b, 0.0, np.array([1.0, 0.0])),
+    ], {a.identity, b.identity})
+    assert decision.chosen_sequence is not None
+    assert [task.channel for task in decision.chosen_sequence.tasks[:2]] == [2, 1]
+
+
+def test_short_horizon_uses_end_position_not_only_first_distance() -> None:
+    near_bad_end = Task(TaskKind.RESOLVE_SOURCE, channel=1)
+    farther_good_end = Task(TaskKind.RESOLVE_SOURCE, channel=2)
+    decision = _sequence_decision([
+        TaskPreview(near_bad_end, 0.0, np.array([5.0, 0.0])),
+        TaskPreview(farther_good_end, 0.0, np.array([0.0, 6.0])),
+    ], {near_bad_end.identity, farther_good_end.identity})
+    assert decision.chosen_task == farther_good_end
+
+
+def test_advance_cannot_strand_required_resolve() -> None:
+    required = Task(TaskKind.RESOLVE_SOURCE, channel=1)
+    optional = Task(TaskKind.RESOLVE_SOURCE, channel=2)
+    decision = _sequence_decision([
+        TaskPreview(optional, 0.0, np.array([9.0, 0.0])),
+        TaskPreview(required, 0.0, np.array([2.0, 0.0])),
+    ], {required.identity})
+    direct = next(
+        sequence for sequence in decision.sequences
+        if sequence.tasks == (optional, Task(TaskKind.ADVANCE_COVERAGE, vertex=2))
+    )
+    assert not direct.feasible
+    assert "strand" in (direct.reason or "")
+    assert decision.chosen_task == required
+
+
+def test_controller_sequences_waiting_without_preempting_active(monkeypatch) -> None:
+    controller = _found_controller()
+    active = Task(TaskKind.RESOLVE_SOURCE, channel=1)
+    controller.task_queue.active = active
+    monkeypatch.setattr(controller, "_resolve_preview", lambda task: TaskPreview(
+        task, 0.0, np.asarray(controller.client.position, float)
+    ))
+    controller._refresh_waiting("opportunistic_observation")
+    assert controller.task_queue.active == active

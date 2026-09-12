@@ -247,7 +247,8 @@ POLICIES: dict[str, PolicySpec] = {
         parent_id="candidate_020_grid5_center_approach",
         description=(
             "Committed ResolveSource/AdvanceCoverage task queue with a fixed "
-            "directional sweep and zero-detour opportunistic observations."
+            "directional sweep, short-horizon route sequencing, and zero-detour "
+            "opportunistic observations."
         ),
         controller="task_queue",
     ),

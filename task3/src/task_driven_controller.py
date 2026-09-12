@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import time
+from dataclasses import replace
 from typing import Any
 
 import numpy as np
@@ -13,6 +14,7 @@ from .controller import ActionClient, RunResult, SearchController
 from .opportunistic_observer import OpportunisticObserver
 from .opportunity_planner import EmbeddedEventKind
 from .route_planner import RoutePlanner
+from .short_horizon_sequencer import TaskPreview, choose_short_horizon_sequence
 from .task_queue import Task, TaskKind, TaskQueue
 from .task_sweep_planner import TaskSweepPlanner
 
@@ -177,12 +179,102 @@ class TaskDrivenController(SearchController):
         return tasks
 
     def _refresh_waiting(self, event: str) -> None:
-        self.task_queue.rebuild(self._available_tasks())
+        tasks = self._available_tasks()
+        tasks = self._sequence_waiting(tasks, event)
+        self.task_queue.rebuild(tasks)
         self.diagnostics.append({
             "type": "waiting_rebuilt",
             "event": event,
             **self._task_snapshot(),
         })
+
+    def _resolve_preview(self, task: Task) -> TaskPreview | None:
+        """Approximate completion by the next deterministic service action."""
+        assert task.channel is not None
+        action = self._normal_resolve_action(task.channel)
+        if action is None:
+            return None
+        kind, point, _, _ = action
+        operation_s = (
+            self.physical.measure_s
+            if kind == "MEASURE"
+            else self.physical.optical_s + self.physical.laser_s
+        )
+        return TaskPreview(
+            task,
+            operation_s,
+            np.asarray(point, float).copy(),
+            requires_channel_switch=kind == "MEASURE",
+        )
+
+    def _sequence_waiting(self, tasks: list[Task], event: str) -> list[Task]:
+        """Reorder only WAITING; TaskQueue preserves any ACTIVE commitment."""
+        if self.sweep_planner is None:
+            return tasks
+        advance = next((task for task in tasks if task.kind == TaskKind.ADVANCE_COVERAGE), None)
+        frontier_rank = self._frontier_rank()
+        ready_resolves = [
+            task for task in tasks
+            if task.kind == TaskKind.RESOLVE_SOURCE
+            and task.ready
+            and task.source_sector_rank is not None
+            and task.source_sector_rank in {max(0, frontier_rank), frontier_rank + 1}
+        ]
+        ready_resolves.sort(key=lambda task: task.order_key)
+        previews = [
+            preview for task in ready_resolves[:3]
+            if (preview := self._resolve_preview(task)) is not None
+        ]
+        required = {
+            task.identity for task in tasks
+            if task.kind == TaskKind.RESOLVE_SOURCE
+            and task.source_sector_rank is not None
+            and task.source_sector_rank <= frontier_rank
+        }
+        decision = choose_short_horizon_sequence(
+            np.asarray(self.client.position, float),
+            self.client.current_channel,
+            previews,
+            advance,
+            self.coverage[advance.vertex] if advance is not None else None,
+            required,
+            self.physical.speed_mps,
+            self.physical.switch_s,
+        )
+        if decision.sequences:
+            self.diagnostics.append({
+                "type": "route_sequence_decision",
+                "event": event,
+                "candidate_sequences": [
+                    {
+                        "sequence": sequence.label,
+                        "estimated_cost_s": sequence.estimated_cost_s,
+                        "estimated_end_position": sequence.estimated_end_position.tolist(),
+                        "feasible": sequence.feasible,
+                        "reason": sequence.reason,
+                    }
+                    for sequence in decision.sequences
+                ],
+                "chosen_sequence": (
+                    decision.chosen_sequence.label if decision.chosen_sequence else None
+                ),
+                "chosen_next_task": (
+                    decision.chosen_task.label if decision.chosen_task else None
+                ),
+            })
+        if decision.chosen_task is None:
+            if required and advance is not None:
+                return [
+                    replace(task, ready=False)
+                    if task.identity == advance.identity else task
+                    for task in tasks
+                ]
+            return tasks
+        return [
+            replace(task, order_key=(-1,))
+            if task.identity == decision.chosen_task.identity else task
+            for task in tasks
+        ]
 
     def _select_active(self) -> Task | None:
         task = self.task_queue.select_active()
@@ -507,7 +599,6 @@ class TaskDrivenController(SearchController):
         point = state.certificate().center.copy()
         if (
             not self.sweep_planner.is_forward_compatible(point, self._frontier_rank())
-            or not self._is_not_behind_current_leg_progress(point)
             or state.already_measured(point)
         ):
             return None
@@ -523,7 +614,6 @@ class TaskDrivenController(SearchController):
         if (
             safe is not None
             and self.sweep_planner.is_forward_compatible(safe, frontier_rank)
-            and self._is_not_behind_current_leg_progress(safe)
         ):
             approach = self._forward_route_measurement(channel, stop_before=safe)
             if approach is not None:
@@ -552,7 +642,6 @@ class TaskDrivenController(SearchController):
         assert self.sweep_planner is not None
         return any(
             self.sweep_planner.is_forward_compatible(np.asarray(point, float), self._frontier_rank())
-            and self._is_not_behind_current_leg_progress(np.asarray(point, float))
             for point in state.fallback_queue
         )
 
@@ -584,7 +673,6 @@ class TaskDrivenController(SearchController):
         forward = [
             (index, point) for index, point in enumerate(points)
             if self.sweep_planner.is_forward_compatible(point, self._frontier_rank())
-            and self._is_not_behind_current_leg_progress(point)
         ]
         if not forward:
             return None
