@@ -161,7 +161,9 @@ def factorial_effect_sizes(rows: list[dict[str, Any]], strategy: str) -> dict[st
     }
 
 
-def svg_plot(path: Path, series: list[dict[str, Any]], y_label: str, horizontal: float | None = None) -> None:
+def svg_plot(path: Path, series: list[dict[str, Any]], y_label: str,
+             horizontal: float | None = None, legend_location: str = "upper-right") -> None:
+    """Write an SVG; the mean-time plot may move its legend inside the lower right."""
     width, height = 900, 560
     left, right, top, bottom = 90, 30, 35, 75
     xmin, xmax = 0.0, 1.0
@@ -189,23 +191,64 @@ def svg_plot(path: Path, series: list[dict[str, Any]], y_label: str, horizontal:
         points = " ".join(f"{sx(x):.1f},{sy(y):.1f}" for x, y in item["points"])
         parts.append(f'<polyline points="{points}" fill="none" stroke="{color}" stroke-width="2"/>')
         parts.extend(f'<circle cx="{sx(x):.1f}" cy="{sy(y):.1f}" r="4" fill="{color}"/>' for x, y in item["points"])
-        legend_y = top + 18 * index
-        parts += [f'<line x1="{width-270}" y1="{legend_y}" x2="{width-240}" y2="{legend_y}" stroke="{color}" stroke-width="2"/>',
-                  f'<text x="{width-230}" y="{legend_y+4}" font-size="12">{item["label"]}</text>']
+        if legend_location == "lower-right":
+            legend_x = width - 270
+            legend_y = height - bottom - 100 + 18 * index
+        elif legend_location == "upper-right":
+            legend_x = width - 270
+            legend_y = top + 18 * index
+        else:
+            raise ValueError(f"unsupported legend location: {legend_location}")
+        parts += [f'<line x1="{legend_x}" y1="{legend_y}" x2="{legend_x+30}" y2="{legend_y}" stroke="{color}" stroke-width="2"/>',
+                  f'<text x="{legend_x+40}" y="{legend_y+4}" font-size="12">{item["label"]}</text>']
     parts += [f'<text x="{(left+width-right)/2}" y="{height-20}" text-anchor="middle" font-size="14">Directional probability p</text>',
               f'<text x="20" y="{(top+height-bottom)/2}" text-anchor="middle" font-size="14" transform="rotate(-90 20 {(top+height-bottom)/2})">{y_label}</text>', '</svg>']
     path.write_text("\n".join(parts) + "\n", encoding="utf-8")
 
 
+def render_response_figures(figures: Path, cells: list[dict[str, Any]], strategy_effects: list[dict[str, Any]],
+                            render_existing_figures: bool = True) -> None:
+    """Render the revised first figure and, when requested, the unchanged companion figures."""
+    time_series, target_series, gain_series = [], [], []
+    for strategy in STRATEGIES:
+        short = "baseline" if strategy == STRATEGIES[0] else "adaptive"
+        for n in COUNTS:
+            selected = [row for row in cells if row["strategy"] == strategy and row["emitter_count"] == n]
+            if len(selected) != len(PROBABILITIES):
+                raise ValueError("factor_cell_summary.csv is incomplete")
+            time_series.append({"label": f"{short}, N={n}", "points": [(row["directional_probability"], row["mean_time_s"]) for row in selected]})
+            target_series.append({"label": f"{short}, N={n}", "points": [(row["directional_probability"], 100 * row["within_6000_rate"]) for row in selected]})
+    for n in COUNTS:
+        selected = [row for row in strategy_effects if row["emitter_count"] == n]
+        if len(selected) != len(PROBABILITIES):
+            raise ValueError("strategy_effect_by_cell.csv is incomplete")
+        gain_series.append({"label": f"N={n}", "points": [(row["directional_probability"], -row["mean_time_difference_s"]) for row in selected]})
+    svg_plot(figures / "mean_time_response_v2.svg", time_series, "Mean virtual time (s)",
+             horizontal=6000, legend_location="lower-right")
+    if render_existing_figures:
+        svg_plot(figures / "within_6000_response.svg", target_series, "Fully cleared within 6000 s (%)")
+        svg_plot(figures / "adaptive_time_saving.svg", gain_series, "Adaptive time saving vs baseline (s)", horizontal=0)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--experiment-dir", type=Path, default=EXPERIMENT)
+    parser.add_argument("--render-mean-time-v2-only", action="store_true",
+                        help="render only the revised mean-time figure from audited aggregate tables")
     args = parser.parse_args()
     experiment = args.experiment_dir
     tables = experiment / "tables"
     figures = experiment / "figures"
     tables.mkdir(parents=True, exist_ok=True)
     figures.mkdir(parents=True, exist_ok=True)
+    if args.render_mean_time_v2_only:
+        render_response_figures(
+            figures,
+            load_rows(tables / "factor_cell_summary.csv"),
+            load_rows(tables / "strategy_effect_by_cell.csv"),
+            render_existing_figures=False,
+        )
+        return
     rows = load_rows(experiment / "raw_cases.csv")
     rng = random.Random(BOOTSTRAP_SEED)
     seeds = sorted({row["base_seed"] for row in rows})
@@ -268,19 +311,7 @@ def main() -> None:
     effect_sizes = [factorial_effect_sizes(rows, strategy) for strategy in STRATEGIES]
     write_csv(tables / "blocked_factorial_effect_sizes.csv", effect_sizes)
 
-    time_series, target_series, gain_series = [], [], []
-    for strategy in STRATEGIES:
-        short = "baseline" if strategy == STRATEGIES[0] else "adaptive"
-        for n in COUNTS:
-            selected = [row for row in cells if row["strategy"] == strategy and row["emitter_count"] == n]
-            time_series.append({"label": f"{short}, N={n}", "points": [(row["directional_probability"], row["mean_time_s"]) for row in selected]})
-            target_series.append({"label": f"{short}, N={n}", "points": [(row["directional_probability"], 100 * row["within_6000_rate"]) for row in selected]})
-    for n in COUNTS:
-        selected = [row for row in strategy_effects if row["emitter_count"] == n]
-        gain_series.append({"label": f"N={n}", "points": [(row["directional_probability"], -row["mean_time_difference_s"]) for row in selected]})
-    svg_plot(figures / "mean_time_response.svg", time_series, "Mean virtual time (s)", horizontal=6000)
-    svg_plot(figures / "within_6000_response.svg", target_series, "Fully cleared within 6000 s (%)")
-    svg_plot(figures / "adaptive_time_saving.svg", gain_series, "Adaptive time saving vs baseline (s)", horizontal=0)
+    render_response_figures(figures, cells, strategy_effects)
 
     metadata = {
         "analysis": "controlled blocked full-factorial sensitivity analysis",

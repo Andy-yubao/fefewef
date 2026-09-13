@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="560" viewBox="0 0 900 560">
+<rect width="100%" height="100%" fill="white"/>
+<line x1="90" y1="485" x2="870" y2="485" stroke="#222"/>
+<line x1="90" y1="35" x2="90" y2="485" stroke="#222"/>
+<text x="90.0" y="507" text-anchor="middle" font-size="12">0.00</text>
+<text x="285.0" y="507" text-anchor="middle" font-size="12">0.25</text>
+<text x="480.0" y="507" text-anchor="middle" font-size="12">0.50</text>
+<text x="675.0" y="507" text-anchor="middle" font-size="12">0.75</text>
+<text x="870.0" y="507" text-anchor="middle" font-size="12">1.00</text>
+<text x="80" y="489.0" text-anchor="end" font-size="12">4174</text>
+<text x="80" y="399.0" text-anchor="end" font-size="12">4925</text>
+<text x="80" y="309.0" text-anchor="end" font-size="12">5675</text>
+<text x="80" y="219.0" text-anchor="end" font-size="12">6426</text>
+<text x="80" y="129.0" text-anchor="end" font-size="12">7176</text>
+<text x="80" y="39.0" text-anchor="end" font-size="12">7927</text>
+<line x1="90" y1="266.1" x2="870" y2="266.1" stroke="#222" stroke-dasharray="5 5"/>
+<polyline points="90.0,267.4 285.0,222.3 480.0,184.6 675.0,144.3 870.0,105.4" fill="none" stroke="#4c78a8" stroke-width="2"/>
+<circle cx="90.0" cy="267.4" r="4" fill="#4c78a8"/>
+<circle cx="285.0" cy="222.3" r="4" fill="#4c78a8"/>
+<circle cx="480.0" cy="184.6" r="4" fill="#4c78a8"/>
+<circle cx="675.0" cy="144.3" r="4" fill="#4c78a8"/>
+<circle cx="870.0" cy="105.4" r="4" fill="#4c78a8"/>
+<line x1="630" y1="385" x2="660" y2="385" stroke="#4c78a8" stroke-width="2"/>
+<text x="670" y="389" font-size="12">baseline, N=10</text>
+<polyline points="90.0,286.6 285.0,228.2 480.0,178.7 675.0,133.7 870.0,83.2" fill="none" stroke="#72b7b2" stroke-width="2"/>
+<circle cx="90.0" cy="286.6" r="4" fill="#72b7b2"/>
+<circle cx="285.0" cy="228.2" r="4" fill="#72b7b2"/>
+<circle cx="480.0" cy="178.7" r="4" fill="#72b7b2"/>
+<circle cx="675.0" cy="133.7" r="4" fill="#72b7b2"/>
+<circle cx="870.0" cy="83.2" r="4" fill="#72b7b2"/>
+<line x1="630" y1="403" x2="660" y2="403" stroke="#72b7b2" stroke-width="2"/>
+<text x="670" y="407" font-size="12">baseline, N=13</text>
+<polyline points="90.0,416.7 285.0,291.5 480.0,205.3 675.0,132.5 870.0,66.0" fill="none" stroke="#e45756" stroke-width="2"/>
+<circle cx="90.0" cy="416.7" r="4" fill="#e45756"/>
+<circle cx="285.0" cy="291.5" r="4" fill="#e45756"/>
+<circle cx="480.0" cy="205.3" r="4" fill="#e45756"/>
+<circle cx="675.0" cy="132.5" r="4" fill="#e45756"/>
+<circle cx="870.0" cy="66.0" r="4" fill="#e45756"/>
+<line x1="630" y1="421" x2="660" y2="421" stroke="#e45756" stroke-width="2"/>
+<text x="670" y="425" font-size="12">baseline, N=16</text>
+<polyline points="90.0,270.4 285.0,231.9 480.0,200.9 675.0,167.6 870.0,138.8" fill="none" stroke="#f58518" stroke-width="2"/>
+<circle cx="90.0" cy="270.4" r="4" fill="#f58518"/>
+<circle cx="285.0" cy="231.9" r="4" fill="#f58518"/>
+<circle cx="480.0" cy="200.9" r="4" fill="#f58518"/>
+<circle cx="675.0" cy="167.6" r="4" fill="#f58518"/>
+<circle cx="870.0" cy="138.8" r="4" fill="#f58518"/>
+<line x1="630" y1="439" x2="660" y2="439" stroke="#f58518" stroke-width="2"/>
+<text x="670" y="443" font-size="12">adaptive, N=10</text>
+<polyline points="90.0,293.4 285.0,244.5 480.0,204.4 675.0,166.4 870.0,132.4" fill="none" stroke="#54a24b" stroke-width="2"/>
+<circle cx="90.0" cy="293.4" r="4" fill="#54a24b"/>
+<circle cx="285.0" cy="244.5" r="4" fill="#54a24b"/>
+<circle cx="480.0" cy="204.4" r="4" fill="#54a24b"/>
+<circle cx="675.0" cy="166.4" r="4" fill="#54a24b"/>
+<circle cx="870.0" cy="132.4" r="4" fill="#54a24b"/>
+<line x1="630" y1="457" x2="660" y2="457" stroke="#54a24b" stroke-width="2"/>
+<text x="670" y="461" font-size="12">adaptive, N=13</text>
+<polyline points="90.0,454.0 285.0,353.0 480.0,276.7 675.0,222.3 870.0,162.1" fill="none" stroke="#b279a2" stroke-width="2"/>
+<circle cx="90.0" cy="454.0" r="4" fill="#b279a2"/>
+<circle cx="285.0" cy="353.0" r="4" fill="#b279a2"/>
+<circle cx="480.0" cy="276.7" r="4" fill="#b279a2"/>
+<circle cx="675.0" cy="222.3" r="4" fill="#b279a2"/>
+<circle cx="870.0" cy="162.1" r="4" fill="#b279a2"/>
+<line x1="630" y1="475" x2="660" y2="475" stroke="#b279a2" stroke-width="2"/>
+<text x="670" y="479" font-size="12">adaptive, N=16</text>
+<text x="480.0" y="540" text-anchor="middle" font-size="14">Directional probability p</text>
+<text x="20" y="260.0" text-anchor="middle" font-size="14" transform="rotate(-90 20 260.0)">Mean virtual time (s)</text>
+</svg>
