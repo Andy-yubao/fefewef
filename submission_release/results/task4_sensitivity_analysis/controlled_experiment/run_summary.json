@@ -1,0 +1,8 @@
+{
+  "rows": 3000,
+  "paired_cases": 1500,
+  "failure_count": 0,
+  "failure_keys": [],
+  "mean_wall_time_s_per_run": 0.8249996953513037,
+  "total_recorded_worker_wall_time_s": 2474.999086053911
+}

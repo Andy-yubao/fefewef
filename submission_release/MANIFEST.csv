@@ -5,11 +5,15 @@ code,task3/src/,Q3 guarantee-layer implementation,final paper model
 code,task4/,Q4 guarantee-layer implementation,final paper model
 code,verify.py,independent package verification,submission package
 data,task2/results/raw/evaluations.csv,Q2 current raw evaluation data,repository frozen result
-data,task2/results/tables/strategy_summary.csv,Q2 paper snapshot,repository frozen result
+data,task2/results/tables/strategy_summary.csv,Q2 strategy summary,repository frozen result
 data,task3/results/raw/optimization/,Q3 paired validation logs,repository frozen result
 data,results/candidate057_concurrency100_seed20261310.jsonl.gz,Q3 100-case scale test,repository frozen result
 data,experiments/t4_analysis/outputs/toward6000_v2/,Q4 five validation sets,repository frozen result
 data,results/task4_sensitivity_analysis/controlled_experiment/raw_cases.csv,Q4 controlled 3000-run experiment,repository frozen result
-docs,docs/data_discrepancies.md,known code-paper discrepancy,maintained release note
+data,results/task3_sensitivity_analysis/,Q3 sensitivity analysis reports and archived runs,repository frozen result
+code,results/task3_sensitivity_analysis/scripts/,Q3 sensitivity analysis scripts,submission package
+data,results/task4_sensitivity_analysis/,Q4 sensitivity analysis reports and archived runs,repository frozen result
+code,results/task4_sensitivity_analysis/scripts/,Q4 sensitivity analysis scripts,submission package
+data,results/task4_mixed100_vs_directional100/,Q4 sensitivity source data,repository frozen result
 code,paper_appendix_sources.txt,source list for the printed appendix,submission package
 code,make_paper_appendix.py,generate printed appendix from canonical source,submission package

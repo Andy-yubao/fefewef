@@ -39,7 +39,7 @@ def read_csv(path: Path) -> list[dict[str, str]]:
         return list(csv.DictReader(stream))
 
 
-def check_q2() -> tuple[float, float]:
+def check_q2() -> float:
     rows = read_csv(ROOT / "task2/results/raw/evaluations.csv")
     sample = [float(row["diameter_m"]) for row in rows if row["strategy"] == "gdop_mean"]
     assert len(sample) == 10_000
@@ -48,7 +48,8 @@ def check_q2() -> tuple[float, float]:
         row["diameter_mean"] for row in read_csv(ROOT / "task2/results/tables/strategy_summary.csv")
         if row["strategy"] == "gdop_mean"
     ))
-    return current, published
+    assert abs(current - published) < 1e-9
+    return current
 
 
 def check_q3() -> None:
@@ -101,13 +102,11 @@ def main() -> int:
     parser.add_argument("--tests", action="store_true")
     args = parser.parse_args()
     check_q1()
-    current, published = check_q2()
+    current = check_q2()
     check_q3()
     check_q4()
     print("PASS: Q1/Q2/Q3/Q4 formal-code and frozen-result checks")
-    print(f"Q2 GDOP Mean: code={current:.6f} m, paper snapshot={published:.6f} m")
-    if abs(current - published) > 1e-9:
-        print("WARNING: Q2 code data and paper snapshot are inconsistent; code is the current basis.")
+    print(f"Q2 GDOP Mean: {current:.6f} m")
     return run_tests() if args.tests else 0
 
 

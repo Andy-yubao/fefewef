@@ -1,0 +1,149 @@
+{
+  "created_utc": "2026-09-13T02:07:12.791753+00:00",
+  "command": "results/task3_sensitivity_analysis/scripts/run_screening_experiments.py --output-dir results/task3_sensitivity_analysis/screening_p3_complete --phase P3 --replicates 12 --workers 30",
+  "design": "time-bounded sensitivity screening; common-seed blocks",
+  "phase": "P3",
+  "replicates": 12,
+  "workers": 30,
+  "runs": 90,
+  "P1_configurations": {
+    "default": {},
+    "grid_2p5": {
+      "grid_step_m": 2.5
+    },
+    "grid_10": {
+      "grid_step_m": 10.0
+    },
+    "probe_budget_0": {
+      "opportunistic_probe_budget": 0
+    },
+    "probe_budget_48": {
+      "opportunistic_probe_budget": 48
+    },
+    "probe_limit_0": {
+      "optical_probe_limit": 0
+    },
+    "probe_limit_3": {
+      "optical_probe_limit": 3
+    },
+    "completion_samples_15": {
+      "completion_sample_count": 15
+    },
+    "posterior_off": {
+      "posterior_completion": false
+    },
+    "free_order_off": {
+      "free_coverage_order": false
+    },
+    "shared_stops_off": {
+      "shared_stop_measurements": false
+    }
+  },
+  "P2_L9": [
+    [
+      10,
+      0.5,
+      [
+        975.0,
+        1475.0
+      ]
+    ],
+    [
+      10,
+      1.0,
+      [
+        1000.0,
+        1500.0
+      ]
+    ],
+    [
+      10,
+      1.5,
+      [
+        1100.0,
+        1600.0
+      ]
+    ],
+    [
+      13,
+      0.5,
+      [
+        1000.0,
+        1500.0
+      ]
+    ],
+    [
+      13,
+      1.0,
+      [
+        1100.0,
+        1600.0
+      ]
+    ],
+    [
+      13,
+      1.5,
+      [
+        975.0,
+        1475.0
+      ]
+    ],
+    [
+      16,
+      0.5,
+      [
+        1100.0,
+        1600.0
+      ]
+    ],
+    [
+      16,
+      1.0,
+      [
+        975.0,
+        1475.0
+      ]
+    ],
+    [
+      16,
+      1.5,
+      [
+        1000.0,
+        1500.0
+      ]
+    ]
+  ],
+  "P3_patterns": [
+    "area_uniform",
+    "boundary_heavy",
+    "clustered",
+    "near_pairs",
+    "large_angular_gap"
+  ],
+  "base_policy": "candidate_057_posterior_free",
+  "source_sha256": {
+    "task3/src/__init__.py": "4628aae2b4c7179b74493f101f396b4366106a211d53fb8df7d5cbe307c972c7",
+    "task3/src/channel_state.py": "40db884d0c5db375c9353261b4840cafe458fd208f2247aa00ad959c5e141cdc",
+    "task3/src/client.py": "276aca1cfdfbc8210b7591e2311587491569f392df233c97ff8d63f20b74845c",
+    "task3/src/completion_planner.py": "25ba1e6050d7f901379252a3b1805ce1cf39b70df742ff99eacd7f17a2ddd80e",
+    "task3/src/config.py": "136bc8195fa52ca3327db3135994685b5698b5675133b5388ccd0e1ea164f6bd",
+    "task3/src/controller.py": "62e21b873d9d7a2e4f8f7a010121deea568bbc8628712ec655569435713687eb",
+    "task3/src/coverage.py": "a5f8a40a6fe6d01f233c352f66743e85c7f31172b97fcf8f6eb083540439e918",
+    "task3/src/dynamic_open_route.py": "617fcc82918662bf0af2b9c07a7d89bbafda446ffe802504575d7911d6dbafd1",
+    "task3/src/dynamic_open_route_controller.py": "6c4acce9b696fe6f3fd75c3f42fcb3c441f0e86380c6a8fb70e82aa80f9f1d36",
+    "task3/src/geometry.py": "612cc479cddff7e0aad9868ac690988e73b223edb191631ea867a192c045f5a2",
+    "task3/src/local_planner.py": "5b47e16e49743ae0e994dbd027ed6928ac8c870d0554e604e62d4dfced2d24cb",
+    "task3/src/main.py": "8f1730b50be372c8bf40012d12e46be778aecf732f51dfe0c340c828e5138230",
+    "task3/src/mock_simulator.py": "4cfa216bc83e5f791ab9bffbcad87a248c570c70a6a43e1408a32fb40ba1a4b0",
+    "task3/src/opportunistic_observer.py": "cbc845ef72324539ec31ba22df1d072eaa9441457e63393babda944f64849e87",
+    "task3/src/opportunity_planner.py": "52087315804f07d53ae4ca2161147a984fd577b5ee5a31116310bcae3d41b663",
+    "task3/src/optimized_controller.py": "0c6e279e346cd8479868284e2f0117919014ddd441d0b7cfcbcd390071355314",
+    "task3/src/policies.py": "e44156ab3b2012ef05d21c48e3dc0a29890f651f248610e2e094d097dbc4d218",
+    "task3/src/route_planner.py": "d7613b7ef0072cb96cc5bb500ed3a35f0e4843d0749eb691c20a611439015c14",
+    "task3/src/scheduler.py": "54bfef38ec8e897edc59e5258edfe94f5673e505ab054b03f7a1f101bac4da6a",
+    "task3/src/short_horizon_sequencer.py": "3136c32e9ea74896f1921bbd4d8620cb2948834d77e5ead9ed973db6895bae2c",
+    "task3/src/task_driven_controller.py": "e3ad4a20c93312d76bc35a887d4495bcfffd82b0c8635ed9e4f2e946c1034066",
+    "task3/src/task_queue.py": "d379dd3f8c7b688a89a337c9d5900faf914875778492b74213ccd41d658ef702",
+    "task3/src/task_sweep_planner.py": "73bf302c8c736416749d1105a17a12454b2a10bd3b3ee8684f1ed6fefb183ff3"
+  }
+}

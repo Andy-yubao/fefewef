@@ -420,11 +420,13 @@ d_{\max}=
 
 成本分解中，移动、测量和其他成本约占总时间的 \(76.15\%\)、\(18.33\%\) 与 \(5.52\%\)。因此，问题三的首要优化对象是减少移动与重复服务，而不是继续压缩占比较低的光学或激光操作时间。这与 057 相对 041 的配对结果一致：平均 \(353.01\rm\,s\) 节省中，移动时间减少约 \(311.81\rm\,s\)。
 
-> **[图占位：Q3 源数与单位源时间响应]**
-> 展示源数增加时场总时间总体上升、单位源时间下降，并特别标注 \(N=16\) 触发已知上限终止机制。当前仓库未找到提示词所列的 Q3 敏感性成图文件。
+![Q3 源数与单位源时间响应](../results/task3_sensitivity_analysis/data_only/figures/source_count_response.svg)
 
-> **[图占位：Q3 冻结轨迹成本敏感性]**
-> 展示移动、测量、切频、光学和清除成本对总时间的影响，突出移动成本占主导。当前仓库未找到提示词所列的 Q3 敏感性成图文件。
+该图展示源数增加时场总时间总体上升、单位源时间下降，并特别体现 \(N=16\) 触发已知上限终止机制。
+
+![Q3 冻结轨迹成本敏感性](../results/task3_sensitivity_analysis/data_only/figures/frozen_trajectory_cost_sensitivity.svg)
+
+该图展示移动、测量、切频、光学和激光成本对总时间的影响，突出移动成本占主导。
 
 ## 7.2 Q4：源数与定向比例的交互
 
@@ -438,7 +440,7 @@ p\in\{0,0.25,0.5,0.75,1\}
 
 的 \(3\times5\) 受控全因子实验。每个格点含 100 个基础实例，基线与 Adaptive 严格配对，共 1500 个配对案例、3000 次策略运行，全部最终清除全部干扰源。
 
-![Q4 不同源数和定向比例下的平均完成时间](../result/task4_sensitivity_analysis/controlled_experiment/figures/mean_time_response.svg)
+![Q4 不同源数和定向比例下的平均完成时间](../results/task4_sensitivity_analysis/controlled_experiment/figures/mean_time_response.svg)
 
 固定 \(N\) 时，平均完成时间随 \(p\) 单调增加。Adaptive 从全向到全定向的平均增时在 \(N=10,13,16\) 时分别为 \(1098.02\rm\,s\)、\(1342.21\rm\,s\) 和 \(2434.10\rm\,s\)，说明定向比例是主要困难因素。源数效应则非单调：低定向比例下，16 源因较早达到已知上限而可能比 10 源更快；高定向比例下，新增源的定位负担逐渐抵消这一收益。
 
@@ -450,7 +452,7 @@ I=[T(16,1)-T(16,0)]-[T(10,1)-T(10,0)]
 
 衡量交互，基线与 Adaptive 分别得到 \(1573.04\rm\,s\) 和 \(1336.07\rm\,s\)，相应配对 bootstrap 95% 区间均不跨 0。Adaptive 在 15 个因子格点上的平均时间均低于基线，但平均占优不等于逐局占优。
 
-![Q4 不同条件下 6000 秒内完成率](../result/task4_sensitivity_analysis/controlled_experiment/figures/within_6000_response.svg)
+![Q4 不同条件下 6000 秒内完成率](../results/task4_sensitivity_analysis/controlled_experiment/figures/within_6000_response.svg)
 
 3000 次运行全部最终全清，而 6000 秒内完成率随 \(N\) 和 \(p\) 显著变化。例如 Adaptive 在 \(N=16\) 时，该比例随 \(p\) 从 0 增至 1 依次为 \(100\%,80\%,53\%,30\%,12\%\)。因此必须分别讨论“最终可靠全清”和“给定时间内完成”，不能用前者替代时间目标。
 
@@ -506,4 +508,3 @@ I=[T(16,1)-T(16,0)]-[T(10,1)-T(10,0)]
 [8] Dehghan S M M, Shahidian S A A, Moradi H. Optimal path planning for DRSSI based localization of an RF source by multiple UAVs[C]//2014 Second RSI/ISM International Conference on Robotics and Mechatronics. 2014: 558-563. DOI: 10.1109/ICRoM.2014.6990961.
 
 > **参考文献待排版说明：** 正式提交前按竞赛模板统一中英文著录格式，并在取得官方题目文件的规范引用信息后补入题目来源。以上条目均来自仓库中已完成并核验的文献记录。
-

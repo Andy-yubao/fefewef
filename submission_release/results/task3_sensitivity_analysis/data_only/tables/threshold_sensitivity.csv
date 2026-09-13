@@ -1,0 +1,16 @@
+metric,threshold_s,cases_meeting,rate
+time_per_source_s,200,2,0.02
+time_per_source_s,220,12,0.12
+time_per_source_s,240,24,0.24
+time_per_source_s,250,39,0.39
+time_per_source_s,260,47,0.47
+time_per_source_s,275,67,0.67
+time_per_source_s,300,94,0.94
+time_per_source_s,325,99,0.99
+time_per_source_s,350,100,1.0
+case_virtual_time_s,2750,2,0.02
+case_virtual_time_s,3000,16,0.16
+case_virtual_time_s,3250,43,0.43
+case_virtual_time_s,3500,74,0.74
+case_virtual_time_s,3750,97,0.97
+case_virtual_time_s,4000,100,1.0

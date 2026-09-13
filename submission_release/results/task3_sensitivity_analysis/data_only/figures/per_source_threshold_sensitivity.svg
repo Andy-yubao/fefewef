@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="560" viewBox="0 0 900 560">
+<rect width="100%" height="100%" fill="white"/>
+<line x1="90" y1="485" x2="870" y2="485" stroke="#222"/>
+<line x1="90" y1="35" x2="90" y2="485" stroke="#222"/>
+<text x="90.0" y="507" text-anchor="middle" font-size="12">200</text>
+<text x="80" y="489.0" text-anchor="end" font-size="12">0</text>
+<text x="246.0" y="507" text-anchor="middle" font-size="12">230</text>
+<text x="80" y="399.0" text-anchor="end" font-size="12">0.2</text>
+<text x="402.0" y="507" text-anchor="middle" font-size="12">260</text>
+<text x="80" y="309.0" text-anchor="end" font-size="12">0.4</text>
+<text x="558.0" y="507" text-anchor="middle" font-size="12">290</text>
+<text x="80" y="219.0" text-anchor="end" font-size="12">0.6</text>
+<text x="714.0" y="507" text-anchor="middle" font-size="12">320</text>
+<text x="80" y="129.0" text-anchor="end" font-size="12">0.8</text>
+<text x="870.0" y="507" text-anchor="middle" font-size="12">350</text>
+<text x="80" y="39.0" text-anchor="end" font-size="12">1</text>
+<line x1="90" y1="260.0" x2="870" y2="260.0" stroke="#222" stroke-dasharray="5 5"/>
+<polyline points="90.0,476.0 194.0,431.0 298.0,377.0 350.0,309.5 402.0,273.5 480.0,183.5 610.0,62.0 740.0,39.5 870.0,35.0" fill="none" stroke="#4c78a8" stroke-width="2"/>
+<circle cx="90.0" cy="476.0" r="3" fill="#4c78a8"/>
+<circle cx="194.0" cy="431.0" r="3" fill="#4c78a8"/>
+<circle cx="298.0" cy="377.0" r="3" fill="#4c78a8"/>
+<circle cx="350.0" cy="309.5" r="3" fill="#4c78a8"/>
+<circle cx="402.0" cy="273.5" r="3" fill="#4c78a8"/>
+<circle cx="480.0" cy="183.5" r="3" fill="#4c78a8"/>
+<circle cx="610.0" cy="62.0" r="3" fill="#4c78a8"/>
+<circle cx="740.0" cy="39.5" r="3" fill="#4c78a8"/>
+<circle cx="870.0" cy="35.0" r="3" fill="#4c78a8"/>
+<line x1="600" y1="35" x2="630" y2="35" stroke="#4c78a8" stroke-width="2"/>
+<text x="640" y="39" font-size="12">empirical attainment</text>
+<text x="480.0" y="540" text-anchor="middle" font-size="14">Time threshold (s/source)</text>
+<text x="20" y="260.0" text-anchor="middle" font-size="14" transform="rotate(-90 20 260.0)">Fraction of cases meeting threshold</text>
+</svg>
