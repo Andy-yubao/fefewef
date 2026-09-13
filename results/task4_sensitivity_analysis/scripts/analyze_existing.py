@@ -376,7 +376,7 @@ def main() -> None:
              "Directional fraction", "Paired time delta (s)", x_domain=(0.15, 0.85), horizontal=0)
 
     metadata = {"analysis_type": "observational and paired post-hoc analysis; no new simulations",
-                "source": "result/task4_mixed100_vs_directional100", "runtime_dependencies": "Python standard library only",
+                "source": "results/task4_mixed100_vs_directional100", "runtime_dependencies": "Python standard library only",
                 "bootstrap_seed": BOOTSTRAP_SEED, "bootstrap_repetitions": BOOTSTRAP_REPS,
                 "directional_fraction_bins": {"<40%": [0, 0.4], "40-<50%": [0.4, 0.5], "50-<60%": [0.5, 0.6], ">=60%": [0.6, 1]},
                 "important_limitation": "Mixed and all-directional samples are seed-aligned but not strict type-only counterfactual pairs."}

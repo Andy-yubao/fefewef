@@ -1,6 +1,6 @@
 {
   "analysis_type": "observational and paired post-hoc analysis; no new simulations",
-  "source": "result/task4_mixed100_vs_directional100",
+  "source": "results/task4_mixed100_vs_directional100",
   "runtime_dependencies": "Python standard library only",
   "bootstrap_seed": 20260913,
   "bootstrap_repetitions": 10000,

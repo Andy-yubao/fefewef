@@ -1,6 +1,6 @@
 {
   "generated_at_utc": "2026-09-13T00:53:48.293339+00:00",
-  "command": "result/task4_sensitivity_analysis/scripts/run_controlled_experiment.py --output-dir result/task4_sensitivity_analysis/controlled_experiment --seed-start 60000 --replicates 100 --workers 4",
+  "command": "results/task4_sensitivity_analysis/scripts/run_controlled_experiment.py --output-dir results/task4_sensitivity_analysis/controlled_experiment --seed-start 60000 --replicates 100 --workers 4",
   "design": "blocked full factorial with nested emitter prefixes and monotone type-score thresholds",
   "base_seeds": [
     60000,

@@ -34,7 +34,7 @@
 
 ### 1.2 数据来源
 
-第一阶段使用已经复制到 `result/task4_mixed100_vs_directional100/` 的两组数据：
+第一阶段使用已经复制到 `results/task4_mixed100_vs_directional100/` 的两组数据：
 
 - 随机混合100：seed 0–99，生成器定向概率0.5，共1274个源，其中定向663个、全向611个；
 - 全定向100：seed 0–99，共1274个源，全部为定向源。
@@ -310,14 +310,14 @@ adaptive 在15个格点上的平均时间均低于基线，而且每格的配对
 在仓库根目录执行：
 
 ```bash
-python3 -B result/task4_sensitivity_analysis/scripts/analyze_existing.py
+python3 -B results/task4_sensitivity_analysis/scripts/analyze_existing.py
 
-python3 -B result/task4_sensitivity_analysis/scripts/run_controlled_experiment.py \
-  --output-dir result/task4_sensitivity_analysis/controlled_experiment_reproduction \
+python3 -B results/task4_sensitivity_analysis/scripts/run_controlled_experiment.py \
+  --output-dir results/task4_sensitivity_analysis/controlled_experiment_reproduction \
   --seed-start 60000 --replicates 100 --workers 4
 
-python3 -B result/task4_sensitivity_analysis/scripts/analyze_controlled.py \
-  --experiment-dir result/task4_sensitivity_analysis/controlled_experiment_reproduction
+python3 -B results/task4_sensitivity_analysis/scripts/analyze_controlled.py \
+  --experiment-dir results/task4_sensitivity_analysis/controlled_experiment_reproduction
 ```
 
 若省略 `--experiment-dir`，第三条命令默认重新分析已归档的正式数据。全部脚本只使用Python标准库。
