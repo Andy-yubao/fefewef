@@ -1,0 +1,8 @@
+{
+  "runs": 90,
+  "successful": 90,
+  "errors": 0,
+  "elapsed_wall_s": 108.63657133899687,
+  "worker_wall_s": 3028.9129849729215,
+  "mean_worker_wall_s": 33.65458872192135
+}

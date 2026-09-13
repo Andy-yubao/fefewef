@@ -1,0 +1,26 @@
+{
+  "analysis_type": "observational and paired post-hoc analysis; no new simulations",
+  "source": "results/task4_mixed100_vs_directional100",
+  "runtime_dependencies": "Python standard library only",
+  "bootstrap_seed": 20260913,
+  "bootstrap_repetitions": 10000,
+  "directional_fraction_bins": {
+    "<40%": [
+      0,
+      0.4
+    ],
+    "40-<50%": [
+      0.4,
+      0.5
+    ],
+    "50-<60%": [
+      0.5,
+      0.6
+    ],
+    ">=60%": [
+      0.6,
+      1
+    ]
+  },
+  "important_limitation": "Mixed and all-directional samples are seed-aligned but not strict type-only counterfactual pairs."
+}

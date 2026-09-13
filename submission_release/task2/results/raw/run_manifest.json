@@ -1,0 +1,60 @@
+{
+  "git_commit": "46f80bccfbd944a7babc42e5d8f23bf022fb3b26",
+  "generated_at_utc": "2026-09-13T05:31:30.763806+00:00",
+  "python_version": "3.12.3",
+  "dependencies": {
+    "numpy": "2.1.3",
+    "scipy": "1.14.1",
+    "shapely": "2.0.6",
+    "pandas": "2.2.3",
+    "matplotlib": "3.9.2",
+    "seaborn": "0.13.2",
+    "pytest": "8.3.3"
+  },
+  "seed": 20260911,
+  "base_scenarios": 400,
+  "replicates": 25,
+  "effective_scenarios": 10000,
+  "strategy_evaluations": 40000,
+  "strategies": [
+    "gdop_mean",
+    "geometry",
+    "fim_e",
+    "random"
+  ],
+  "elapsed_s": 359.5070371509937,
+  "physical_config": {
+    "target_radius": 1800.0,
+    "bearing_error_deg": 1.0,
+    "reception_min": 1000.0,
+    "reception_max": 1500.0,
+    "near_radius": 5.0,
+    "clear_radius": 20.0,
+    "speed": 5.0
+  },
+  "search_config": {
+    "grid_step": 250.0,
+    "refine_steps": [
+      100.0,
+      50.0
+    ],
+    "refine_top_k": 3,
+    "refine_radius_factor": 1.25,
+    "polygon_resolution": 64,
+    "posterior_grid_step": 80.0,
+    "posterior_samples": 80,
+    "posterior_sampling": "random",
+    "radius_prior": "conditional_uniform",
+    "candidate_domain": "target_disk",
+    "pruning_mode": "reachable_only",
+    "min_detection_probability": 0.0,
+    "min_median_abs_sin_angle": 0.0,
+    "shortlist_size": 10,
+    "objective_target_samples": 80,
+    "objective_error_samples": 5,
+    "objective_error_model": "uniform",
+    "coarse_to_fine": true,
+    "observable_update": true,
+    "eig_bearing_bin_deg": 2.0
+  }
+}

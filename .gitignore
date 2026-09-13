@@ -28,3 +28,8 @@ desktop.ini
 
 # User-provided prompts are temporary inputs and must never be tracked.
 prompt/
+
+# Custom
+
+submit.tar.gz
+submit.zip

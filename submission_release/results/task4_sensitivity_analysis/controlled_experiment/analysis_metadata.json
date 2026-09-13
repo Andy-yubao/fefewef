@@ -1,0 +1,15 @@
+{
+  "analysis": "controlled blocked full-factorial sensitivity analysis",
+  "source": "controlled_experiment/raw_cases.csv",
+  "runtime_dependencies": "Python standard library only",
+  "bootstrap_seed": 20260914,
+  "bootstrap_repetitions": 10000,
+  "bootstrap_unit": "base_seed; all reported contrasts are within-seed before resampling",
+  "integrity": {
+    "expected_rows": 3000,
+    "observed_rows": 3000,
+    "unique_factor_keys": 3000,
+    "all_clear_runs": 3000,
+    "maximum_absolute_cost_residual_s": 8.185452315956354e-12
+  }
+}

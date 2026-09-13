@@ -1,0 +1,2 @@
+policy,cases,sources,all_clear_cases,aggregate_time_per_source_s,bootstrap_ci95_low_s,bootstrap_ci95_high_s,leave_one_out_min_s,leave_one_out_max_s,mean_case_time_s,median_case_time_s,p95_case_time_s,maximum_case_time_s,zero_failure_rule_of_three_upper95
+candidate_057_posterior_free,100,1291,100,256.00506740464243,250.04952640564397,262.0303090580705,255.40746870491472,256.8767851136297,3305.025420193934,3317.1146562578215,3703.9489783118765,3999.5997942514937,0.03

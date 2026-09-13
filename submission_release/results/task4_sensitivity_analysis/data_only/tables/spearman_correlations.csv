@@ -1,0 +1,7 @@
+strategy,predictor,spearman_rho,p_value_normal_approx
+baseline,emitter_count,0.04230177378284435,0.6751128122475156
+baseline,directional_count,0.37366038896212767,6.665761992547263e-05
+baseline,directional_fraction,0.4160489040262532,5.918243706156196e-06
+candidate,emitter_count,-0.16187664860581782,0.10439397727005936
+candidate,directional_count,0.25771798457414247,0.008279049532934651
+candidate,directional_fraction,0.39712748144178006,1.838664108100212e-05
