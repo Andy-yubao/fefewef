@@ -94,6 +94,106 @@ data package did not change the Task 4 CLI default strategy.
 
 ---
 
+# Task 4 Sensitivity Analysis
+
+## Status
+
+The sensitivity analysis requested on 2026-09-13 is complete. It is archived
+under `task4_sensitivity_analysis/` and has two explicitly separated evidence
+stages:
+
+1. `data_only/` analyzes the previously copied mixed-100 and
+   all-directional-100 results without running new simulations.
+2. `controlled_experiment/` contains a new blocked `3 x 5` full-factorial
+   local experiment and its analysis.
+
+The modeling report is `task4_sensitivity_analysis/REPORT.md`.
+
+## Controlled experiment design
+
+- Emitter counts: `N = 10, 13, 16`.
+- Directional probabilities: `p = 0, 0.25, 0.5, 0.75, 1`.
+- Replicates: 100 base seeds (`60000` through `60099`) per factor cell.
+- Strategies: the double-ring baseline and the adaptive candidate.
+- Scale: 1,500 paired cases and 3,000 strategy runs.
+- Result: all 3,000 runs fully cleared all emitters.
+- Regression suite: all 53 Task 4 tests passed when rerun with localhost socket
+  access; the first sandboxed run passed 49 tests and denied socket creation for
+  the four HTTP integration tests.
+
+For each base seed, a single ordered 16-emitter template was generated. The
+smaller emitter-count levels use prefixes of this template. Channel, position,
+receive radius, and a pre-generated direction are held fixed; changing `p`
+changes only whether each emitter is directional. This removes the conditional
+random-number-consumption confounding present in the original mixed versus
+all-directional files.
+
+The experiment is still a local-model experiment, not an official run. Its
+controlled generator improves internal validity but does not establish the
+official instance distribution.
+
+## Main findings
+
+- In the original data, the adaptive candidate saves 299.19 seconds on average
+  in the mixed sample and 382.45 seconds in the all-directional sample. Paired
+  bootstrap 95% intervals exclude zero.
+- In the controlled experiment, changing from all-omnidirectional to
+  all-directional increases adaptive mean time by 1,098.02, 1,342.21, and
+  2,434.10 seconds for `N = 10, 13, 16`, respectively.
+- Emitter-count sensitivity is non-monotone because observing all 16 possible
+  channels permits the strategy to stop searching for nonexistent channels.
+- There is a strong emitter-count by directional-probability interaction. The
+  all-directional penalty is much larger at `N=16` than at `N=10`.
+- The adaptive candidate has a lower mean time in all 15 controlled factor
+  cells; every cell's paired bootstrap 95% interval for candidate minus
+  baseline is below zero.
+- Final clearance is robust in this sample, but the probability of finishing
+  within 6,000 seconds is highly sensitive to both factors.
+
+## Files
+
+- `task4_sensitivity_analysis/REPORT.md`: final Chinese mathematical-modeling
+  report, including assumptions, methods, results, validation, limitations,
+  and conclusions.
+- `task4_sensitivity_analysis/scripts/analyze_existing.py`: standard-library
+  analysis of the existing 100+100 data.
+- `task4_sensitivity_analysis/scripts/run_controlled_experiment.py`: controlled
+  generator and paired experiment runner.
+- `task4_sensitivity_analysis/scripts/analyze_controlled.py`: standard-library
+  factorial and paired sensitivity analysis.
+- `task4_sensitivity_analysis/data_only/tables/`: derived tables from the
+  existing data.
+- `task4_sensitivity_analysis/data_only/figures/`: SVG figures from the
+  existing data.
+- `task4_sensitivity_analysis/controlled_experiment/raw_cases.csv`: all 3,000
+  controlled run records.
+- `task4_sensitivity_analysis/controlled_experiment/design.json`: exact design,
+  commands, seeds, settings, and source hashes.
+- `task4_sensitivity_analysis/controlled_experiment/tables/` and `figures/`:
+  derived controlled-experiment artifacts.
+
+## Reproduction
+
+Run from the repository root:
+
+```bash
+python3 -B result/task4_sensitivity_analysis/scripts/analyze_existing.py
+
+python3 -B result/task4_sensitivity_analysis/scripts/run_controlled_experiment.py \
+  --output-dir result/task4_sensitivity_analysis/controlled_experiment_reproduction \
+  --seed-start 60000 --replicates 100 --workers 4
+
+python3 -B result/task4_sensitivity_analysis/scripts/analyze_controlled.py \
+  --experiment-dir result/task4_sensitivity_analysis/controlled_experiment_reproduction
+```
+
+The archived analysis scripts require only the Python standard library. The
+third command analyzes the reproduction directory explicitly. If
+`--experiment-dir` is omitted, it reanalyzes the archived formal data in place.
+No Task 4 strategy or CLI default was changed during this work.
+
+---
+
 # Task 3: Candidate 057 Concurrent-100 Experiment Data
 
 ## Purpose

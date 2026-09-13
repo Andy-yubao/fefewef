@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="560" viewBox="0 0 900 560">
+<rect width="100%" height="100%" fill="white"/>
+<line x1="90" y1="485" x2="870" y2="485" stroke="#222"/>
+<line x1="90" y1="35" x2="90" y2="485" stroke="#222"/>
+<text x="90.0" y="507" text-anchor="middle" font-size="12">0.00</text>
+<text x="285.0" y="507" text-anchor="middle" font-size="12">0.25</text>
+<text x="480.0" y="507" text-anchor="middle" font-size="12">0.50</text>
+<text x="675.0" y="507" text-anchor="middle" font-size="12">0.75</text>
+<text x="870.0" y="507" text-anchor="middle" font-size="12">1.00</text>
+<text x="80" y="489.0" text-anchor="end" font-size="12">-37</text>
+<text x="80" y="399.0" text-anchor="end" font-size="12">143</text>
+<text x="80" y="309.0" text-anchor="end" font-size="12">323</text>
+<text x="80" y="219.0" text-anchor="end" font-size="12">503</text>
+<text x="80" y="129.0" text-anchor="end" font-size="12">683</text>
+<text x="80" y="39.0" text-anchor="end" font-size="12">863</text>
+<line x1="90" y1="466.4" x2="870" y2="466.4" stroke="#222" stroke-dasharray="5 5"/>
+<polyline points="90.0,454.0 285.0,426.7 480.0,398.7 675.0,369.3 870.0,327.5" fill="none" stroke="#4c78a8" stroke-width="2"/>
+<circle cx="90.0" cy="454.0" r="4" fill="#4c78a8"/>
+<circle cx="285.0" cy="426.7" r="4" fill="#4c78a8"/>
+<circle cx="480.0" cy="398.7" r="4" fill="#4c78a8"/>
+<circle cx="675.0" cy="369.3" r="4" fill="#4c78a8"/>
+<circle cx="870.0" cy="327.5" r="4" fill="#4c78a8"/>
+<line x1="630" y1="35" x2="660" y2="35" stroke="#4c78a8" stroke-width="2"/>
+<text x="670" y="39" font-size="12">N=10</text>
+<polyline points="90.0,438.1 285.0,398.5 480.0,359.5 675.0,330.2 870.0,261.2" fill="none" stroke="#72b7b2" stroke-width="2"/>
+<circle cx="90.0" cy="438.1" r="4" fill="#72b7b2"/>
+<circle cx="285.0" cy="398.5" r="4" fill="#72b7b2"/>
+<circle cx="480.0" cy="359.5" r="4" fill="#72b7b2"/>
+<circle cx="675.0" cy="330.2" r="4" fill="#72b7b2"/>
+<circle cx="870.0" cy="261.2" r="4" fill="#72b7b2"/>
+<line x1="630" y1="53" x2="660" y2="53" stroke="#72b7b2" stroke-width="2"/>
+<text x="670" y="57" font-size="12">N=13</text>
+<polyline points="90.0,311.0 285.0,209.7 480.0,168.6 675.0,92.0 870.0,66.0" fill="none" stroke="#e45756" stroke-width="2"/>
+<circle cx="90.0" cy="311.0" r="4" fill="#e45756"/>
+<circle cx="285.0" cy="209.7" r="4" fill="#e45756"/>
+<circle cx="480.0" cy="168.6" r="4" fill="#e45756"/>
+<circle cx="675.0" cy="92.0" r="4" fill="#e45756"/>
+<circle cx="870.0" cy="66.0" r="4" fill="#e45756"/>
+<line x1="630" y1="71" x2="660" y2="71" stroke="#e45756" stroke-width="2"/>
+<text x="670" y="75" font-size="12">N=16</text>
+<text x="480.0" y="540" text-anchor="middle" font-size="14">Directional probability p</text>
+<text x="20" y="260.0" text-anchor="middle" font-size="14" transform="rotate(-90 20 260.0)">Adaptive time saving vs baseline (s)</text>
+</svg>
