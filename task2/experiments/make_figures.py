@@ -8,6 +8,7 @@ import pandas as pd
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from matplotlib.ticker import PercentFormatter
 import seaborn as sns
 from shapely import wkt
 
@@ -127,8 +128,7 @@ def region_figures(scenarios, selections):
     ax.scatter(sc.target_y, sc.target_x, marker="X", s=80, color="#6a4c93",
                label="模拟真实位置")
     ax.scatter(*displayed_point(s1), marker="^", s=75, color="black", label=r"$S_1$")
-    ax.set(aspect="equal", xlabel="x (m)", ylabel="y (m)",
-           title="GDOP均值选点与候选区域")
+    ax.set(aspect="equal", xlabel="x (m)", ylabel="y (m)")
     ax.legend(fontsize=8, ncol=2, loc="upper right")
     save_paper_figure(fig, "q2_geometry_candidate_regions", "fig1_candidate_regions")
 
@@ -150,8 +150,7 @@ def objective_and_selection_figures(sc):
     ax.scatter(*res.point, marker="*", s=170, c="#d62828", edgecolor="white",
                label=r"$S_2^*$")
     ax.scatter(*s1, marker="^", s=65, c="black", label=r"$S_1$")
-    ax.set(title="GDOP均值选点目标面",
-           aspect="equal", xlabel="x (m)", ylabel="y (m)")
+    ax.set(aspect="equal", xlabel="x (m)", ylabel="y (m)")
     fig.colorbar(m, ax=ax, label="期望直径 (m)")
     ax.legend()
     save(fig, "expected_diameter_objective_surface.png")
@@ -166,8 +165,7 @@ def objective_and_selection_figures(sc):
                     linewidth=0.8, edgecolor="white" if name == "gdop_mean" else "none",
                     label=DISPLAY_LABELS[name], zorder=6 if name == "gdop_mean" else 5)
     ax.scatter(*displayed_point_upper_left(s1), marker="^", s=90, c="black", label=r"$S_1$")
-    ax.set(aspect="equal", xlabel="x (m)", ylabel="y (m)",
-           title="四种策略选取的第二检测点")
+    ax.set(aspect="equal", xlabel="x (m)", ylabel="y (m)")
     ax.legend(fontsize=8, ncol=2, loc="upper right")
     save_paper_figure(fig, "selected_points_comparison", "fig2_selected_points")
 
@@ -182,7 +180,7 @@ def result_figures(df, summary):
     sns.boxenplot(data=sample, x="strategy", y="diameter_m", order=order,
                   hue="strategy", palette=PALETTE, legend=False, ax=ax)
     ax.tick_params(axis="x", rotation=35)
-    ax.set(xlabel="", ylabel="Localization diameter (m)")
+    ax.set(xlabel="", ylabel="定位区域直径 (m)")
     save(fig, "diameter_distribution.png")
 
     fig, ax = plt.subplots(figsize=(8, 5))
@@ -191,7 +189,13 @@ def result_figures(df, summary):
         x = np.sort(g.diameter_m.to_numpy())
         ax.plot(x, np.arange(1, len(x)+1)/len(x), label=DISPLAY_LABELS[name],
                 linewidth=2.3 if name == "gdop_mean" else 1.2)
-    ax.set(xlabel="定位区域直径 (m)", ylabel="经验累积分布", xlim=(0, None))
+    no_signal_cap = df.loc[df.outcome.eq("no_signal"), "diameter_m"].mode().iloc[0]
+    ax.axvline(no_signal_cap, color="#7A7A7A", linewidth=0.85, linestyle=(0, (3, 2)), zorder=0)
+    ax.annotate("无有效二次测向时\n保留第一阶段区域直径", xy=(no_signal_cap, 0.72),
+                xytext=(no_signal_cap - 470.0, 0.57), fontsize=7.5, color="#59646D",
+                arrowprops={"arrowstyle": "->", "color": "#59646D", "lw": 0.75})
+    ax.set(xlabel="定位区域直径 (m)", ylabel="累计样本占比（%）", xlim=(0, None), ylim=(0, 1.02))
+    ax.yaxis.set_major_formatter(PercentFormatter(xmax=1.0, decimals=0))
     ax.grid(alpha=.25); ax.legend(fontsize=8, ncol=2)
     save_paper_figure(fig, "diameter_cdf", "fig3_diameter_cdf")
 
@@ -209,8 +213,7 @@ def result_figures(df, summary):
     for r in summary.itertuples():
         ax.annotate(r.strategy, (r.move_distance_mean, r.diameter_mean), fontsize=7,
                     xytext=(3,3), textcoords="offset points")
-    ax.set(xlabel="Mean movement distance (m)", ylabel="Mean diameter (m)",
-           title="Movement–localization Pareto plane")
+    ax.set(xlabel="平均移动距离 (m)", ylabel="平均直径 (m)")
     ax.grid(alpha=.25); save(fig, "pareto_movement_localization.png")
 
     fig, ax = plt.subplots(figsize=(10, 4.5))
@@ -293,8 +296,7 @@ def representative_case_figures():
         ax.scatter(case.s1_x, case.s1_y, marker="^", c="black", s=42)
         ax.scatter(case.s2_x, case.s2_y, marker="*", c="#d62828", s=90)
         ax.scatter(case.target_x, case.target_y, marker="X", c="#6a4c93", s=48)
-        ax.set(title=f"{case.case_reason} (#{int(case.scenario_id)})",
-               aspect="equal", xticks=[], yticks=[])
+        ax.set(aspect="equal", xticks=[], yticks=[])
     save(fig, "representative_case_studies.png")
 
 

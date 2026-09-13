@@ -216,7 +216,6 @@ def main() -> None:
         handlelength=2.6,
         columnspacing=1.2,
     )
-    ax.set_title("直径圆与最小覆盖圆检验", pad=10)
     ax.set(xlim=(73.0, 127.0), ylim=(282.0, 340.0))
     ax.set_aspect("equal")
     ax.set_xlabel(r"$x$（m）")

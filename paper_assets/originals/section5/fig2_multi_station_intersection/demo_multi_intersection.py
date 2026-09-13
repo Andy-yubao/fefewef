@@ -62,7 +62,7 @@ def global_panel(ax: plt.Axes, observations_: list[BearingObservation], polygon:
                          linewidth=1.7, alpha=0.88, zorder=5))
     ax.add_patch(Circle((center.x, center.y), radius, fill=False, color="#5E6872",
                         linestyle=(0, (3, 2)), linewidth=1.15, zorder=7))
-    ax.set(xlim=(-1100.0, 900.0), ylim=(-750.0, 1300.0), title="全局示意")
+    ax.set(xlim=(-1100.0, 900.0), ylim=(-750.0, 1300.0))
     style_axes(ax)
 
 
@@ -76,8 +76,7 @@ def local_panel(ax: plt.Axes, polygon: list[Point], diameter, center: Point, rad
     ax.add_patch(Circle((center.x, center.y), radius, fill=False, color="#5E6872",
                         linestyle=(0, (3, 2)), linewidth=1.15, zorder=6))
     margin = radius * 1.35
-    ax.set(xlim=(center.x - margin, center.x + margin), ylim=(center.y - margin, center.y + margin),
-           title="局部放大")
+    ax.set(xlim=(center.x - margin, center.x + margin), ylim=(center.y - margin, center.y + margin))
     ax.text(center.x - margin * 0.82, center.y + margin * 0.86,
             rf"$D={diameter.distance:.2f}\,\mathrm{{m}}$", color=DIAMETER_COLOR, fontsize=9)
     style_axes(ax)
@@ -133,7 +132,6 @@ def main() -> None:
     fig.legend(handles=legend_handles(), loc="lower center", ncol=4, frameon=True,
                bbox_to_anchor=(0.5, 0.015), fontsize=8)
     fig.subplots_adjust(wspace=0.16, bottom=0.14, left=0.055, right=0.985, top=0.91)
-    fig.suptitle("多检测点示向交会定位区域", y=0.97, fontsize=13)
     for sign in (-1.0, 1.0):
         offset = zoom_radius * 0.72
         fig.add_artist(ConnectionPatch(

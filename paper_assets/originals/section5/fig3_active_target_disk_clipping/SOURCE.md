@@ -1,8 +1,8 @@
 # Source - section 5 figure 3
 
 - Paper slot: （5）图3，目标圆域与可行区域裁剪关系。
-- Original files: `task1/figures/fig3_active_target_disk_clipping.png`, `.pdf`, `.svg` (old version), plus `fig3_parameterized_source.*` (new version).
+- Original files: `fig3_parameterized_source.*` and `fig3_active_target_disk_clipping.*` are the current programmatic redraw.
 - Source script: `task1/demo/demo_circle_clipping.py` (copied here for archive).
-- Data source: parameterized input and exact clipped boundary data are in `geometry.json`.
+- Data source: a constructed outer-wide/inner-narrow trapezoid and its exact disk-clipped boundary are recorded in `geometry.json`.
 - Current use: the new programmatic redraw is copied to `paper_assets/paper_figures/section5/`.
-- Follow-up: only light visual polish is optional; the geometry now comes from the parameterized error wedge.
+- Geometry note: without the disk, the longest diagonal is $A$--$C$; with the disk, it is the active circular-arc endpoint $P$--$C$.
