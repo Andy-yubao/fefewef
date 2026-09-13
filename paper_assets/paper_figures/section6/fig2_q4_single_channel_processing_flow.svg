@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2400" height="700" viewBox="0 0 2400 700">
+<defs><marker id="flow-arrow" markerWidth="18" markerHeight="18" refX="15" refY="8" orient="auto"><path d="M0,0 L16,8 L0,16 Z" fill="#617782"/></marker></defs>
+<rect width="2400" height="700" fill="white"/><g transform="translate(60,230) scale(1.8)"><defs>
+  <clipPath id="stage1-clip"><circle cx="120" cy="120" r="100"/></clipPath>
+  <marker id="stage1-arrow" markerWidth="8" markerHeight="8" refX="6.5" refY="3.5" orient="auto">
+    <path d="M0,0 L7,3.5 L0,7 Z" fill="#617782"/>
+  </marker>
+</defs>
+<circle cx="120" cy="120" r="104" fill="#f7fbfc" stroke="#6f8797" stroke-width="2"/>
+<g clip-path="url(#stage1-clip)"><line x1="32" y1="48" x2="208" y2="48" stroke="#d9e4e8" stroke-width="0.8"/>
+<line x1="48" y1="32" x2="48" y2="208" stroke="#d9e4e8" stroke-width="0.8"/>
+<line x1="32" y1="120" x2="208" y2="120" stroke="#d9e4e8" stroke-width="0.8"/>
+<line x1="120" y1="32" x2="120" y2="208" stroke="#d9e4e8" stroke-width="0.8"/>
+<line x1="32" y1="192" x2="208" y2="192" stroke="#d9e4e8" stroke-width="0.8"/>
+<line x1="192" y1="32" x2="192" y2="208" stroke="#d9e4e8" stroke-width="0.8"/>
+
+<circle cx="120.0" cy="120.0" r="32" fill="none" stroke="#d5aa26" stroke-width="1.8"/>
+<polygon points="52.0000,171.0000 134.8146,117.4865 134.3445,116.7659 133.8681,116.0493 133.3854,115.3370 132.8966,114.6289 132.4016,113.9251 131.9005,113.2257 131.3933,112.5306 130.8800,111.8400 130.3607,111.1539 129.8355,110.4724 129.3043,109.7954 128.7673,109.1232 128.2244,108.4556 127.6757,107.7928 127.1212,107.1348 126.5611,106.4817" fill="#b8d8e8" opacity="0.42" stroke="#1769aa" stroke-width="1.2" stroke-dasharray="4 3"/>
+<line x1="52.000" y1="171.000" x2="134.815" y2="117.487" stroke="#1769aa" stroke-width="1.2" stroke-dasharray="4 3"/>
+<line x1="52.000" y1="171.000" x2="130.880" y2="111.840" stroke="#1769aa" stroke-width="2.4"/>
+<line x1="52.000" y1="171.000" x2="126.561" y2="106.482" stroke="#1769aa" stroke-width="1.2" stroke-dasharray="4 3"/>
+<line x1="52.000" y1="171.000" x2="131.900" y2="113.226" stroke="#1769aa" stroke-width="0.75" opacity="0.75"/>
+<line x1="52.000" y1="171.000" x2="129.836" y2="110.472" stroke="#1769aa" stroke-width="0.75" opacity="0.75"/>
+<polygon points="52.0000,161.0000 45.0000,176.0000 59.0000,176.0000" fill="#263238" stroke="white" stroke-width="0.7"/>
+<polygon points="120.0000,112.0000 121.9750,117.2817 127.6085,117.5279 123.1955,121.0383 124.7023,126.4721 120.0000,123.3600 115.2977,126.4721 116.8045,121.0383 112.3915,117.5279 118.0250,117.2817" fill="#d1495b" stroke="white" stroke-width="1"/>
+</g>
+</g><path d="M483.2 446.0 L668.8 446.0" fill="none" stroke="#617782" stroke-width="6" marker-end="url(#flow-arrow)"/><g transform="translate(660,230) scale(1.8)"><defs>
+  <clipPath id="stage2-clip"><circle cx="120" cy="120" r="100"/></clipPath>
+  <marker id="stage2-arrow" markerWidth="8" markerHeight="8" refX="6.5" refY="3.5" orient="auto">
+    <path d="M0,0 L7,3.5 L0,7 Z" fill="#617782"/>
+  </marker>
+</defs>
+<circle cx="120" cy="120" r="104" fill="#f7fbfc" stroke="#6f8797" stroke-width="2"/>
+<g clip-path="url(#stage2-clip)"><line x1="32" y1="48" x2="208" y2="48" stroke="#d9e4e8" stroke-width="0.8"/>
+<line x1="48" y1="32" x2="48" y2="208" stroke="#d9e4e8" stroke-width="0.8"/>
+<line x1="32" y1="120" x2="208" y2="120" stroke="#d9e4e8" stroke-width="0.8"/>
+<line x1="120" y1="32" x2="120" y2="208" stroke="#d9e4e8" stroke-width="0.8"/>
+<line x1="32" y1="192" x2="208" y2="192" stroke="#d9e4e8" stroke-width="0.8"/>
+<line x1="192" y1="32" x2="192" y2="208" stroke="#d9e4e8" stroke-width="0.8"/>
+<polygon points="52.1440,159.6901 125.3055,187.4836 174.8810,151.6366 187.8560,80.3099 116.2965,50.2270 67.8014,87.9385" fill="#b8d8e8" opacity="0.68" stroke="#1769aa" stroke-width="1.6"/>
+<line x1="46.898" y1="244.178" x2="260.830" y2="89.488" stroke="#1769aa" stroke-width="1.5" stroke-dasharray="4 3"/>
+<line x1="14.532" y1="199.377" x2="225.732" y2="40.977" stroke="#1769aa" stroke-width="1.0"/>
+<line x1="-19.409" y1="155.756" x2="188.995" y2="-6.306" stroke="#1769aa" stroke-width="1.5" stroke-dasharray="4 3"/>
+<polygon points="-22.4276,219.0965 -28.4276,232.0965 -16.4276,232.0965" fill="#263238" stroke="white" stroke-width="0.7"/>
+<line x1="266.055" y1="113.184" x2="22.686" y2="10.874" stroke="#8056a5" stroke-width="1.5" stroke-dasharray="4 3"/>
+<line x1="242.872" y1="168.241" x2="-2.246" y2="70.194" stroke="#8056a5" stroke-width="1.0"/>
+<line x1="221.662" y1="224.089" x2="-25.130" y2="130.334" stroke="#8056a5" stroke-width="1.5" stroke-dasharray="4 3"/>
+<polygon points="285.7674,177.3997 279.7674,190.3997 291.7674,190.3997" fill="#263238" stroke="white" stroke-width="0.7"/>
+<line x1="91.638" y1="-21.295" x2="35.353" y2="236.635" stroke="#d5aa26" stroke-width="1.5" stroke-dasharray="4 3"/>
+<line x1="146.781" y1="-9.258" x2="95.007" y2="249.615" stroke="#d5aa26" stroke-width="1.0"/>
+<line x1="202.318" y1="0.808" x2="155.069" y2="260.546" stroke="#d5aa26" stroke-width="1.5" stroke-dasharray="4 3"/>
+<polygon points="155.8418,-62.5607 149.8418,-49.5607 161.8418,-49.5607" fill="#263238" stroke="white" stroke-width="0.7"/>
+<polygon points="121.0288,112.0042 122.8804,116.9558 128.1618,117.1866 124.0247,120.4776 125.4372,125.5718 121.0288,122.6542 116.6204,125.5718 118.0330,120.4776 113.8959,117.1866 119.1773,116.9558" fill="#d1495b" stroke="white" stroke-width="1"/></g>
+</g><path d="M1083.2 446.0 L1268.8 446.0" fill="none" stroke="#617782" stroke-width="6" marker-end="url(#flow-arrow)"/><g transform="translate(1260,230) scale(1.8)"><defs>
+  <clipPath id="stage3-clip"><circle cx="120" cy="120" r="100"/></clipPath>
+  <marker id="stage3-arrow" markerWidth="8" markerHeight="8" refX="6.5" refY="3.5" orient="auto">
+    <path d="M0,0 L7,3.5 L0,7 Z" fill="#617782"/>
+  </marker>
+</defs>
+<circle cx="120" cy="120" r="104" fill="#f7fbfc" stroke="#6f8797" stroke-width="2"/>
+<g clip-path="url(#stage3-clip)"><line x1="32" y1="48" x2="208" y2="48" stroke="#d9e4e8" stroke-width="0.8"/>
+<line x1="48" y1="32" x2="48" y2="208" stroke="#d9e4e8" stroke-width="0.8"/>
+<line x1="32" y1="120" x2="208" y2="120" stroke="#d9e4e8" stroke-width="0.8"/>
+<line x1="120" y1="32" x2="120" y2="208" stroke="#d9e4e8" stroke-width="0.8"/>
+<line x1="32" y1="192" x2="208" y2="192" stroke="#d9e4e8" stroke-width="0.8"/>
+<line x1="192" y1="32" x2="192" y2="208" stroke="#d9e4e8" stroke-width="0.8"/>
+
+<polygon points="52.1440,159.6901 125.3055,187.4836 174.8810,151.6366 187.8560,80.3099 116.2965,50.2270 67.8014,87.9385" fill="#b8d8e8" opacity="0.44" stroke="#1769aa" stroke-width="1.5"/>
+<circle cx="120.000" cy="120.000" r="78.611" fill="#dcefe2" opacity="0.72" stroke="#3f9a5b" stroke-width="2"/>
+<line x1="112.000" y1="120.000" x2="128.000" y2="120.000" stroke="#3f9a5b" stroke-width="1.5"/>
+<line x1="120.000" y1="112.000" x2="120.000" y2="128.000" stroke="#3f9a5b" stroke-width="1.5"/>
+<polygon points="121.0288,112.0042 122.8804,116.9558 128.1618,117.1866 124.0247,120.4776 125.4372,125.5718 121.0288,122.6542 116.6204,125.5718 118.0330,120.4776 113.8959,117.1866 119.1773,116.9558" fill="#d1495b" stroke="white" stroke-width="1"/>
+</g>
+</g><path d="M1683.2 446.0 L1868.8 446.0" fill="none" stroke="#617782" stroke-width="6" marker-end="url(#flow-arrow)"/><g transform="translate(1860,230) scale(1.8)"><defs>
+  <clipPath id="stage4-clip"><circle cx="120" cy="120" r="100"/></clipPath>
+  <marker id="stage4-arrow" markerWidth="8" markerHeight="8" refX="6.5" refY="3.5" orient="auto">
+    <path d="M0,0 L7,3.5 L0,7 Z" fill="#617782"/>
+  </marker>
+</defs>
+<circle cx="120" cy="120" r="104" fill="#f7fbfc" stroke="#6f8797" stroke-width="2"/>
+<g clip-path="url(#stage4-clip)"><line x1="32" y1="48" x2="208" y2="48" stroke="#d9e4e8" stroke-width="0.8"/>
+<line x1="48" y1="32" x2="48" y2="208" stroke="#d9e4e8" stroke-width="0.8"/>
+<line x1="32" y1="120" x2="208" y2="120" stroke="#d9e4e8" stroke-width="0.8"/>
+<line x1="120" y1="32" x2="120" y2="208" stroke="#d9e4e8" stroke-width="0.8"/>
+<line x1="32" y1="192" x2="208" y2="192" stroke="#d9e4e8" stroke-width="0.8"/>
+<line x1="192" y1="32" x2="192" y2="208" stroke="#d9e4e8" stroke-width="0.8"/>
+
+<circle cx="120" cy="120" r="72.000" fill="#dcefe2" opacity="0.50" stroke="#3f9a5b" stroke-width="2"/>
+<circle cx="171.840" cy="120.000" r="28.800" fill="#b8d8e8" opacity="0.54" stroke="#78a9bf" stroke-width="1.0"/><circle cx="171.840" cy="120.000" r="3.1" fill="none" stroke="#8056a5" stroke-width="1.2"/><circle cx="161.939" cy="89.529" r="28.800" fill="#b8d8e8" opacity="0.54" stroke="#78a9bf" stroke-width="1.0"/><circle cx="161.939" cy="89.529" r="3.1" fill="none" stroke="#8056a5" stroke-width="1.2"/><circle cx="136.019" cy="70.697" r="28.800" fill="#b8d8e8" opacity="0.54" stroke="#78a9bf" stroke-width="1.0"/><circle cx="136.019" cy="70.697" r="3.1" fill="none" stroke="#8056a5" stroke-width="1.2"/><circle cx="103.981" cy="70.697" r="28.800" fill="#b8d8e8" opacity="0.54" stroke="#78a9bf" stroke-width="1.0"/><circle cx="103.981" cy="70.697" r="3.1" fill="none" stroke="#8056a5" stroke-width="1.2"/><circle cx="78.061" cy="89.529" r="28.800" fill="#b8d8e8" opacity="0.54" stroke="#78a9bf" stroke-width="1.0"/><circle cx="78.061" cy="89.529" r="3.1" fill="none" stroke="#8056a5" stroke-width="1.2"/><circle cx="68.160" cy="120.000" r="28.800" fill="#b8d8e8" opacity="0.54" stroke="#78a9bf" stroke-width="1.0"/><circle cx="68.160" cy="120.000" r="3.1" fill="none" stroke="#8056a5" stroke-width="1.2"/><circle cx="78.061" cy="150.471" r="28.800" fill="#b8d8e8" opacity="0.54" stroke="#78a9bf" stroke-width="1.0"/><circle cx="78.061" cy="150.471" r="3.1" fill="none" stroke="#8056a5" stroke-width="1.2"/><circle cx="103.981" cy="169.303" r="28.800" fill="#b8d8e8" opacity="0.54" stroke="#78a9bf" stroke-width="1.0"/><circle cx="103.981" cy="169.303" r="3.1" fill="none" stroke="#8056a5" stroke-width="1.2"/><circle cx="136.019" cy="169.303" r="28.800" fill="#b8d8e8" opacity="0.54" stroke="#78a9bf" stroke-width="1.0"/><circle cx="136.019" cy="169.303" r="3.1" fill="none" stroke="#8056a5" stroke-width="1.2"/><circle cx="161.939" cy="150.471" r="28.800" fill="#b8d8e8" opacity="0.54" stroke="#78a9bf" stroke-width="1.0"/><circle cx="161.939" cy="150.471" r="3.1" fill="none" stroke="#8056a5" stroke-width="1.2"/>
+<circle cx="120" cy="120" r="8" fill="#3f9a5b"/>
+<polygon points="120.0000,112.5000 121.8515,117.4516 127.1329,117.6824 122.9958,120.9734 124.4084,126.0676 120.0000,123.1500 115.5916,126.0676 117.0042,120.9734 112.8671,117.6824 118.1485,117.4516" fill="#d1495b" stroke="white" stroke-width="1"/>
+</g>
+</g>
+<text x="1200" y="62" text-anchor="middle" font-family="SimHei, Microsoft YaHei, sans-serif" font-size="34" fill="#263238">Q4 单频道连续处理流程：从正示向到确定性光学收尾</text><text x="276.0" y="174" text-anchor="middle" font-family="SimHei, Microsoft YaHei, sans-serif" font-size="30" fill="#8056a5">①</text><rect x="181.0" y="312" width="190" height="38" rx="6" fill="white" fill-opacity="0.82"/><rect x="181.0" y="551" width="190" height="38" rx="6" fill="white" fill-opacity="0.82"/><text x="276.0" y="342" text-anchor="middle" font-family="SimHei, Microsoft YaHei, sans-serif" font-size="20" fill="#1769aa">正示向</text><text x="276.0" y="580" text-anchor="middle" font-family="SimHei, Microsoft YaHei, sans-serif" font-size="20" fill="#617782">初始化 H_c</text><text x="276.0" y="680" text-anchor="middle" font-family="SimHei, Microsoft YaHei, sans-serif" font-size="26" fill="#263238">获得正示向</text><text x="876.0" y="174" text-anchor="middle" font-family="SimHei, Microsoft YaHei, sans-serif" font-size="30" fill="#8056a5">②</text><rect x="781.0" y="312" width="190" height="38" rx="6" fill="white" fill-opacity="0.82"/><rect x="781.0" y="551" width="190" height="38" rx="6" fill="white" fill-opacity="0.82"/><text x="876.0" y="342" text-anchor="middle" font-family="SimHei, Microsoft YaHei, sans-serif" font-size="20" fill="#1769aa">收缩 H_c</text><text x="876.0" y="580" text-anchor="middle" font-family="SimHei, Microsoft YaHei, sans-serif" font-size="20" fill="#617782">楔形求交</text><text x="876.0" y="680" text-anchor="middle" font-family="SimHei, Microsoft YaHei, sans-serif" font-size="26" fill="#263238">硬可行域更新</text><text x="1476.0" y="174" text-anchor="middle" font-family="SimHei, Microsoft YaHei, sans-serif" font-size="30" fill="#8056a5">③</text><rect x="1381.0" y="312" width="190" height="38" rx="6" fill="white" fill-opacity="0.82"/><rect x="1381.0" y="551" width="190" height="38" rx="6" fill="white" fill-opacity="0.82"/><text x="1476.0" y="342" text-anchor="middle" font-family="SimHei, Microsoft YaHei, sans-serif" font-size="20" fill="#3f9a5b">r_c ≤ 50 m</text><text x="1476.0" y="580" text-anchor="middle" font-family="SimHei, Microsoft YaHei, sans-serif" font-size="20" fill="#3f9a5b">MEC 认证</text><text x="1476.0" y="680" text-anchor="middle" font-family="SimHei, Microsoft YaHei, sans-serif" font-size="26" fill="#263238">清除证书形成</text><text x="2076.0" y="174" text-anchor="middle" font-family="SimHei, Microsoft YaHei, sans-serif" font-size="30" fill="#8056a5">④</text><rect x="1981.0" y="312" width="190" height="38" rx="6" fill="white" fill-opacity="0.82"/><rect x="1981.0" y="551" width="190" height="38" rx="6" fill="white" fill-opacity="0.82"/><text x="2076.0" y="342" text-anchor="middle" font-family="SimHei, Microsoft YaHei, sans-serif" font-size="20" fill="#3f9a5b">清除完成</text><text x="2076.0" y="580" text-anchor="middle" font-family="SimHei, Microsoft YaHei, sans-serif" font-size="20" fill="#3f9a5b">圆心 + 十点环</text><text x="2076.0" y="680" text-anchor="middle" font-family="SimHei, Microsoft YaHei, sans-serif" font-size="26" fill="#263238">光学收尾</text><path d="M2150 333 l10 10 l20 -24" fill="none" stroke="#3f9a5b" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
