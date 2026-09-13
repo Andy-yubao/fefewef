@@ -1,0 +1,15 @@
+{
+  "analysis": "post-hoc sensitivity analysis using existing simulations only",
+  "primary_input": "results/candidate057_concurrency100_seed20261310.jsonl.gz",
+  "primary_sha256": "fc2e81dfa8fa7c399ac18d14dbf8ec687906da47a78e9a34364523acacc2d464",
+  "analysis_script_sha256": "df13b39e36c15814a0d8984a03db9ff50aa6823086b19de8637c0cd06eabe0a7",
+  "bootstrap_seed": 20260913,
+  "bootstrap_repetitions": 10000,
+  "new_simulations_run": false,
+  "limitations": [
+    "scenario associations are observational",
+    "cost counterfactuals freeze actions and routes",
+    "five-case mechanism effects are development diagnostics",
+    "all results use the local simulator"
+  ]
+}

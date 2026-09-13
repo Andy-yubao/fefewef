@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="560" viewBox="0 0 900 560">
+<rect width="100%" height="100%" fill="white"/>
+<line x1="90" y1="485" x2="870" y2="485" stroke="#222"/>
+<line x1="90" y1="35" x2="90" y2="485" stroke="#222"/>
+<text x="90.0" y="507" text-anchor="middle" font-size="12">10</text>
+<text x="80" y="489.0" text-anchor="end" font-size="12">2.98e+03</text>
+<text x="246.0" y="507" text-anchor="middle" font-size="12">11.2</text>
+<text x="80" y="399.0" text-anchor="end" font-size="12">3.1e+03</text>
+<text x="402.0" y="507" text-anchor="middle" font-size="12">12.4</text>
+<text x="80" y="309.0" text-anchor="end" font-size="12">3.21e+03</text>
+<text x="558.0" y="507" text-anchor="middle" font-size="12">13.6</text>
+<text x="80" y="219.0" text-anchor="end" font-size="12">3.33e+03</text>
+<text x="714.0" y="507" text-anchor="middle" font-size="12">14.8</text>
+<text x="80" y="129.0" text-anchor="end" font-size="12">3.45e+03</text>
+<text x="870.0" y="507" text-anchor="middle" font-size="12">16</text>
+<text x="80" y="39.0" text-anchor="end" font-size="12">3.56e+03</text>
+<polyline points="90.0,485.0 220.0,429.3 350.0,240.3 480.0,206.3 610.0,35.0 740.0,77.3 870.0,147.2" fill="none" stroke="#4c78a8" stroke-width="2"/>
+<circle cx="90.0" cy="485.0" r="3" fill="#4c78a8"/>
+<circle cx="220.0" cy="429.3" r="3" fill="#4c78a8"/>
+<circle cx="350.0" cy="240.3" r="3" fill="#4c78a8"/>
+<circle cx="480.0" cy="206.3" r="3" fill="#4c78a8"/>
+<circle cx="610.0" cy="35.0" r="3" fill="#4c78a8"/>
+<circle cx="740.0" cy="77.3" r="3" fill="#4c78a8"/>
+<circle cx="870.0" cy="147.2" r="3" fill="#4c78a8"/>
+<line x1="600" y1="35" x2="630" y2="35" stroke="#4c78a8" stroke-width="2"/>
+<text x="640" y="39" font-size="12">mean case time</text>
+<text x="480.0" y="540" text-anchor="middle" font-size="14">Source count</text>
+<text x="20" y="260.0" text-anchor="middle" font-size="14" transform="rotate(-90 20 260.0)">Mean virtual time per case (s)</text>
+</svg>

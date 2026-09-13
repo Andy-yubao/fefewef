@@ -1,0 +1,11 @@
+configuration,paired_cases,mean_delta_s_per_source,bootstrap_ci95_low_s_per_source,bootstrap_ci95_high_s_per_source,mean_case_delta_s,faster_than_default_cases,worst_regression_s
+completion_samples_15,12,0.0,0.0,0.0,0.0,0,0.0
+free_order_off,12,0.0,0.0,0.0,0.0,0,0.0
+posterior_off,12,0.0,0.0,0.0,0.0,0,0.0
+probe_budget_0,12,0.0,0.0,0.0,0.0,0,0.0
+probe_budget_48,12,0.0,0.0,0.0,0.0,0,0.0
+probe_limit_0,12,0.0,0.0,0.0,0.0,0,0.0
+probe_limit_3,12,0.0,0.0,0.0,0.0,0,0.0
+shared_stops_off,12,0.0,0.0,0.0,0.0,0,0.0
+grid_10,12,2.2332609811639332,-1.9533103064392907,6.165812710894159,26.363117108397166,5,162.38443760614655
+grid_2p5,12,57.57562808276975,39.07647917421808,75.59572911802698,797.5485930949111,1,1688.4710552553793

@@ -1,0 +1,17 @@
+{
+  "analysis": "time-bounded controlled sensitivity screening",
+  "bootstrap_repetitions": 10000,
+  "bootstrap_seed": 20260915,
+  "formal_runs": 330,
+  "P1_runs": 132,
+  "P2_runs": 108,
+  "P3_runs": 90,
+  "strict_successful_runs": 330,
+  "maximum_time_accounting_residual_s": 2.7284841053187847e-12,
+  "P3_repeat_runs_not_counted": 90,
+  "P3_repeat_deterministic_match": true,
+  "raw_sha256": "80cdf3b0aeffd27fcca558b63f658b860bc7bcc26a214ba98539d940f069584f",
+  "runner_sha256": "2dc4097797001d6b8a411da7b020ea9a2d91d554a9bccbe248a6c62cc2cee2f6",
+  "analysis_script_sha256": "768da7f64aa094d7e2f36cdd630848d664c6e077254dcf48bd1d51728aa2236f",
+  "note": "Screening sample sizes are 12 blocks for P1/P2 and 6 for P3; intervals are diagnostic, not confirmatory."
+}

@@ -1,0 +1,6 @@
+comparison,cases,sources,candidate_minus_baseline_s_per_source,bootstrap_ci95_low_s_per_source,bootstrap_ci95_high_s_per_source,mean_case_delta_s,candidate_faster_cases,maximum_candidate_regression_s
+"057 minus 041 (full mechanism bundle, validation)",30,396,-26.74330033312166,-32.43715162993262,-21.203543685295912,-353.0115643972059,30,0.0
+"probe budget 24 minus 0, fixed-order background",5,79,-0.45077491585743124,-0.7248929330455925,-0.08268041890464702,-7.122243670547414,4,4.386216151363897
+"probe budget 24 minus 0, free-order background",5,79,0.0365969938527628,-0.2806177983339353,0.4520601681431949,0.5782325028736522,4,13.060482961878279
+"posterior on minus off, fixed-order background",5,79,-0.05020336866415118,-0.532077301056438,0.37082125480748634,-0.7932132248935886,2,9.752408225689578
+"posterior on minus off, free-order background",5,79,-2.425374865735464,-5.408412653471055,-0.5002284960691831,-38.32092287862033,5,0.0

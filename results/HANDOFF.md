@@ -177,14 +177,14 @@ official instance distribution.
 Run from the repository root:
 
 ```bash
-python3 -B result/task4_sensitivity_analysis/scripts/analyze_existing.py
+python3 -B results/task4_sensitivity_analysis/scripts/analyze_existing.py
 
-python3 -B result/task4_sensitivity_analysis/scripts/run_controlled_experiment.py \
-  --output-dir result/task4_sensitivity_analysis/controlled_experiment_reproduction \
+python3 -B results/task4_sensitivity_analysis/scripts/run_controlled_experiment.py \
+  --output-dir results/task4_sensitivity_analysis/controlled_experiment_reproduction \
   --seed-start 60000 --replicates 100 --workers 4
 
-python3 -B result/task4_sensitivity_analysis/scripts/analyze_controlled.py \
-  --experiment-dir result/task4_sensitivity_analysis/controlled_experiment_reproduction
+python3 -B results/task4_sensitivity_analysis/scripts/analyze_controlled.py \
+  --experiment-dir results/task4_sensitivity_analysis/controlled_experiment_reproduction
 ```
 
 The archived analysis scripts require only the Python standard library. The
@@ -279,3 +279,27 @@ time-accounting checks but does not contain the per-action trace needed for an
 independent action-by-action replay audit. A 100/100 local result also does not
 prove zero failure probability outside the sampled scenarios or under the
 official simulator.
+
+## Task 3 sensitivity-analysis update
+
+The sensitivity-analysis package is under `task3_sensitivity_analysis/`. It
+contains the original 100-case post-hoc analysis plus a time-bounded controlled
+screening experiment completed on 2026-09-13.
+
+- Formal screening runs: 330 (P1: 132, P2: 108, P3: 90).
+- Strictly fully cleared: 330/330; runtime errors: 0.
+- Formal wall-clock time: 432.74 seconds with 30 workers.
+- An extra 90-run P3 repeat matched the formal P3 rows exactly and is not
+  counted twice.
+- P1: the 2.5 m grid regressed by 57.58 s/source versus the 5 m default; the
+  10 m grid difference was inconclusive in 12 paired cases.
+- P2: increasing the configured bearing-error bound from 0.5 to 1.5 degrees
+  added 12.89 s/source in the L9 main-effect screen.
+- P3: boundary-heavy sources were the principal difficult spatial pattern;
+  clustered sources were substantially faster because travel was shorter.
+
+The screen was deliberately reduced to meet a user-specified 30-minute limit.
+Its 12 P1/P2 blocks and six P3 blocks identify large effects and inactive code
+paths but are not confirmatory sample sizes. See
+`task3_sensitivity_analysis/REPORT.md` for the evidence boundary and complete
+tables.
