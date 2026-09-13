@@ -66,12 +66,19 @@ def save_paper_figure(fig, stem, original_dir):
     plt.close(fig)
 
 
-def xy_fill(ax, geom, **kwargs):
+def xy_fill(ax, geom, *, swap_xy=False, **kwargs):
     geoms = [geom] if geom.geom_type == "Polygon" else list(geom.geoms)
     for g in geoms:
         if g.is_empty: continue
         x, y = g.exterior.xy
+        if swap_xy:
+            x, y = y, x
         ax.fill(x, y, **kwargs)
+
+
+def displayed_point(point):
+    """Use (y, x) for paper figures that need a quarter-turn display."""
+    return point[1], point[0]
 
 
 def reconstruct_first(sc, seed=20260911):
@@ -98,21 +105,21 @@ def region_figures(scenarios, selections):
                         (selections.strategy == "gdop_mean")].iloc[0]
     fig, ax = plt.subplots(figsize=(10.8, 5.8), constrained_layout=True)
     theta = np.linspace(0, 2 * np.pi, 400)
-    ax.plot(cfg.target_radius*np.cos(theta), cfg.target_radius*np.sin(theta),
+    ax.plot(cfg.target_radius*np.sin(theta), cfg.target_radius*np.cos(theta),
             color="black", lw=1.2, label=r"目标域 $\Omega$")
-    xy_fill(ax, cf, color="#8ecae6", alpha=.16, label=r"理论候选域 $C_f$")
+    xy_fill(ax, cf, swap_xy=True, color="#8ecae6", alpha=.16, label=r"理论候选域 $C_f$")
     if not cg.is_empty:
-        xy_fill(ax, cg, color="#90be6d", alpha=.35,
+        xy_fill(ax, cg, swap_xy=True, color="#90be6d", alpha=.35,
                 label=r"保证接收域 $C_g$")
-    xy_fill(ax, reg, color="#f4a261", alpha=.55, label=r"第一可行域 $F_1$")
+    xy_fill(ax, reg, swap_xy=True, color="#f4a261", alpha=.55, label=r"第一可行域 $F_1$")
     p = cand["points"]
-    ax.scatter(p[cand["recommended"], 0], p[cand["recommended"], 1], s=9,
-               color="#277da1", alpha=.65, label="practical candidates")
-    ax.scatter(chosen.s2_x, chosen.s2_y, marker="*", s=220, color="#d62828",
+    ax.scatter(p[cand["recommended"], 1], p[cand["recommended"], 0], s=9,
+               color="#277da1", alpha=.65, label="实际候选点")
+    ax.scatter(chosen.s2_y, chosen.s2_x, marker="*", s=220, color="#d62828",
                edgecolor="white", label=r"GDOP均值点 $S_2^*$", zorder=6)
-    ax.scatter(sc.target_x, sc.target_y, marker="X", s=80, color="#6a4c93",
+    ax.scatter(sc.target_y, sc.target_x, marker="X", s=80, color="#6a4c93",
                label="模拟真实位置")
-    ax.scatter(*s1, marker="^", s=75, color="black", label=r"$S_1$")
+    ax.scatter(*displayed_point(s1), marker="^", s=75, color="black", label=r"$S_1$")
     ax.set(aspect="equal", xlabel="x (m)", ylabel="y (m)",
            title="GDOP均值选点与候选区域")
     ax.legend(fontsize=8, ncol=2, loc="upper right")
@@ -142,21 +149,18 @@ def objective_and_selection_figures(sc):
     ax.legend()
     save(fig, "expected_diameter_objective_surface.png")
     fig, ax = plt.subplots(figsize=(10.2, 5.8))
-    xy_fill(ax, reg, color="#f4a261", alpha=.35)
-    ax.scatter(pts[:,0], pts[:,1], s=8, color="#555555", alpha=.5,
+    xy_fill(ax, reg, swap_xy=True, color="#f4a261", alpha=.35)
+    ax.scatter(pts[:,1], pts[:,0], s=8, color="#555555", alpha=.5,
                label="后验粒子")
     for j, name in enumerate(DISPLAY_STRATEGIES):
         res = results[name]
-        ax.scatter(*res.point, s=125 if name == "gdop_mean" else 72,
+        ax.scatter(*displayed_point(res.point), s=125 if name == "gdop_mean" else 72,
                     marker="*" if name == "gdop_mean" else (j % 5) + 3,
                     linewidth=0.8, edgecolor="white" if name == "gdop_mean" else "none",
                     label=DISPLAY_LABELS[name], zorder=6 if name == "gdop_mean" else 5)
-    ax.scatter(*s1, marker="^", s=90, c="black", label="S1")
+    ax.scatter(*displayed_point(s1), marker="^", s=90, c="black", label=r"$S_1$")
     ax.set(aspect="equal", xlabel="x (m)", ylabel="y (m)",
            title="四种策略选取的第二检测点")
-    # Keep geometric distances faithful while giving the paper asset a genuinely
-    # horizontal plotting frame; the data limits expand instead of distorting.
-    ax.set_box_aspect(0.58)
     ax.legend(fontsize=8, ncol=2, loc="upper right")
     save_paper_figure(fig, "selected_points_comparison", "fig2_selected_points")
 
