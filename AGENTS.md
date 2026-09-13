@@ -74,4 +74,8 @@ Keep transient scratch files and caches out of formal directories.
 
 ## 临时要求
 
-- 不使用本项目文件夹下的任何skills
+- 不使用本项目文件夹下的任何skills，**以下两个除外**：
+  - `.agents/skills/math-modeling-skill/` —— 建模求解、候选方案比较、验证与敏感性设计、论文与摘要架构。
+  - `.agents/skills/math-modeling-review/` —— 定稿前的论文自审（需求追溯、八视角审查、Top 5 修改项）。
+- 其余 `skills/`（含 `kflow/`）仍然禁止使用。
+- 使用上述两个 skill 时，其知识库内容只作为方法参考，不得引入仓库中不存在的数据、结果或文献。
