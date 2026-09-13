@@ -1,0 +1,54 @@
+# Q1：论文中的有界示向几何核心
+task1/src/q1.py
+
+# Q2：四种第二检测点策略的模型核心
+task2/src/__init__.py
+task2/src/config.py
+task2/src/geometry/__init__.py
+task2/src/geometry/angles.py
+task2/src/geometry/regions.py
+task2/src/localization/__init__.py
+task2/src/localization/metrics.py
+task2/src/localization/observation.py
+task2/src/localization/update.py
+task2/src/strategies/__init__.py
+task2/src/strategies/selectors.py
+
+# Q3：论文采用的保证层与 candidate 057 规划核心
+task3/src/__init__.py
+task3/src/config.py
+task3/src/geometry.py
+task3/src/channel_state.py
+task3/src/coverage.py
+task3/src/local_planner.py
+task3/src/scheduler.py
+task3/src/task_queue.py
+task3/src/task_sweep_planner.py
+task3/src/route_planner.py
+task3/src/opportunity_planner.py
+task3/src/opportunistic_observer.py
+task3/src/dynamic_open_route.py
+task3/src/dynamic_open_route_controller.py
+task3/src/completion_planner.py
+task3/src/controller.py
+task3/src/optimized_controller.py
+task3/src/policies.py
+
+# Q4：论文采用的 Adaptive 双环策略及其直接算法依赖
+task4/__init__.py
+task4/geometry.py
+task4/search_patterns.py
+task4/strategies/__init__.py
+task4/strategies/base.py
+task4/strategies/active.py
+task4/strategies/reacquire.py
+task4/strategies/deferred.py
+task4/strategies/lattice.py
+task4/strategies/clear_probe.py
+task4/strategies/integrated_route.py
+task4/strategies/replacement_aware_clear_probe.py
+task4/strategies/geometry_aware_clear_probe.py
+task4/strategies/geometry_early_optical_clear_probe.py
+task4/strategies/early_optical_clear_probe.py
+task4/strategies/double_ring_optical_clear_probe.py
+task4/strategies/adaptive_double_ring_clear_probe.py
