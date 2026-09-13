@@ -11,13 +11,6 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from shapely import wkt
 
-plt.rcParams.update({
-    "font.family": "sans-serif",
-    "font.sans-serif": ["Microsoft YaHei", "SimHei", "Noto Sans SC", "DejaVu Sans"],
-    "axes.unicode_minus": False,
-    "pdf.fonttype": 42,
-})
-
 from src.config import PhysicalConfig, SearchConfig
 from src.geometry.regions import (candidate_regions, first_feasible_region,
                                   guaranteed_reception_region,
@@ -31,61 +24,20 @@ RAW = TASK_ROOT / "results" / "raw"
 TABLES = TASK_ROOT / "results" / "tables"
 FIGURES = TASK_ROOT / "results" / "figures"
 PALETTE = "tab10"
-DISPLAY_STRATEGIES = ["gdop_mean", "geometry", "fim_e", "random"]
-DISPLAY_LABELS = {
-    "gdop_mean": "GDOP均值",
-    "geometry": "几何法",
-    "fim_e": "FIM E最优",
-    "random": "随机法",
-}
-PAPER_ASSETS = TASK_ROOT.parent / "paper_assets"
 
 
 def save(fig, name):
-    stem = Path(name).stem
-    fig.savefig(FIGURES / f"{stem}.png", dpi=240, bbox_inches="tight")
-    fig.savefig(FIGURES / f"{stem}.pdf", bbox_inches="tight")
+    fig.savefig(FIGURES / name, dpi=240, bbox_inches="tight")
+    fig.savefig(FIGURES / f"{Path(name).stem}.pdf", bbox_inches="tight")
     plt.close(fig)
 
 
-def save_paper_figure(fig, stem, original_dir):
-    """Save the normal task2 output and a named paper-use copy plus source copy."""
-    original_dir = PAPER_ASSETS / "originals" / "section6" / original_dir
-    paper_dir = PAPER_ASSETS / "paper_figures" / "section6"
-    original_dir.mkdir(parents=True, exist_ok=True)
-    paper_dir.mkdir(parents=True, exist_ok=True)
-    for directory, filename in [
-        (FIGURES, stem),
-        (original_dir, f"source_{stem}"),
-        (paper_dir, stem.replace("q2_geometry_candidate_regions", "section6_fig1_candidate_regions")
-                 .replace("selected_points_comparison", "section6_fig2_selected_points")
-                 .replace("diameter_cdf", "section6_fig3_diameter_cdf")),
-    ]:
-        fig.savefig(directory / f"{filename}.png", dpi=240)
-        fig.savefig(directory / f"{filename}.pdf")
-    plt.close(fig)
-
-
-def xy_fill(ax, geom, *, swap_xy=False, negate=False, **kwargs):
+def xy_fill(ax, geom, **kwargs):
     geoms = [geom] if geom.geom_type == "Polygon" else list(geom.geoms)
     for g in geoms:
         if g.is_empty: continue
         x, y = g.exterior.xy
-        if swap_xy:
-            x, y = y, x
-        if negate:
-            x, y = -np.asarray(x), -np.asarray(y)
         ax.fill(x, y, **kwargs)
-
-
-def displayed_point(point):
-    """Use (y, x) for paper figures that need a quarter-turn display."""
-    return point[1], point[0]
-
-
-def displayed_point_upper_left(point):
-    """Use (-y, -x) so the first detection point appears in the upper left."""
-    return -point[1], -point[0]
 
 
 def reconstruct_first(sc, seed=20260911):
@@ -109,73 +61,67 @@ def region_figures(scenarios, selections):
     cf = theoretical_candidate_region(reg, cfg, search.polygon_resolution)
     cg = guaranteed_reception_region(reg, cfg, search.polygon_resolution)
     chosen = selections[(selections.scenario_id == sc.scenario_id) &
-                        (selections.strategy == "gdop_mean")].iloc[0]
-    fig, ax = plt.subplots(figsize=(10.8, 5.8), constrained_layout=True)
+                        (selections.strategy == "expected_diameter")].iloc[0]
+    fig, ax = plt.subplots(figsize=(8, 7), constrained_layout=True)
     theta = np.linspace(0, 2 * np.pi, 400)
-    ax.plot(cfg.target_radius*np.sin(theta), cfg.target_radius*np.cos(theta),
-            color="black", lw=1.2, label=r"目标域 $\Omega$")
-    xy_fill(ax, cf, swap_xy=True, color="#8ecae6", alpha=.16, label=r"理论候选域 $C_f$")
+    ax.plot(cfg.target_radius*np.cos(theta), cfg.target_radius*np.sin(theta),
+            color="black", lw=1.2, label=r"target domain $\Omega$")
+    xy_fill(ax, cf, color="#8ecae6", alpha=.16, label=r"theoretical $C_f$")
     if not cg.is_empty:
-        xy_fill(ax, cg, swap_xy=True, color="#90be6d", alpha=.35,
-                label=r"保证接收域 $C_g$")
-    xy_fill(ax, reg, swap_xy=True, color="#f4a261", alpha=.55, label=r"第一可行域 $F_1$")
+        xy_fill(ax, cg, color="#90be6d", alpha=.35,
+                label=r"guaranteed reception $C_g$")
+    xy_fill(ax, reg, color="#f4a261", alpha=.55, label=r"first region $F_1$")
     p = cand["points"]
-    ax.scatter(p[cand["recommended"], 1], p[cand["recommended"], 0], s=9,
-               color="#277da1", alpha=.65, label="实际候选点")
-    ax.scatter(chosen.s2_y, chosen.s2_x, marker="*", s=220, color="#d62828",
-               edgecolor="white", label=r"GDOP均值点 $S_2^*$", zorder=6)
-    ax.scatter(sc.target_y, sc.target_x, marker="X", s=80, color="#6a4c93",
-               label="模拟真实位置")
-    ax.scatter(*displayed_point(s1), marker="^", s=75, color="black", label=r"$S_1$")
+    ax.scatter(p[cand["recommended"], 0], p[cand["recommended"], 1], s=9,
+               color="#277da1", alpha=.65, label="practical candidates")
+    ax.scatter(chosen.s2_x, chosen.s2_y, marker="*", s=180, color="#d62828",
+               edgecolor="white", label=r"ED $S_2^*$", zorder=6)
+    ax.scatter(sc.target_x, sc.target_y, marker="X", s=80, color="#6a4c93",
+               label="simulated truth")
+    ax.scatter(*s1, marker="^", s=75, color="black", label=r"$S_1$")
     ax.set(aspect="equal", xlabel="x (m)", ylabel="y (m)",
-           title="GDOP均值选点与候选区域")
-    ax.legend(fontsize=8, ncol=2, loc="upper right")
-    save_paper_figure(fig, "q2_geometry_candidate_regions", "fig1_candidate_regions")
+           title="Q2 geometry and candidate regions")
+    ax.legend(fontsize=8, ncol=2)
+    save(fig, "q2_geometry_candidate_regions.png")
 
 
 def objective_and_selection_figures(sc):
     cfg, search, s1, reg, pts, radii = reconstruct_first(sc, 617)
     ctx = StrategyContext(s1, sc.bearing1_rad, reg, pts, radii, cfg, search,
                           617 + int(sc.scenario_id))
-    names = DISPLAY_STRATEGIES
+    names = ["expected_diameter", "geometry", "gdop_mean", "fim_e", "random"]
     results = select_all(ctx, names)
-    res = results["gdop_mean"]
+    res = results["expected_diameter"]
     p = np.asarray(res.diagnostics["grid_points"])
     z = np.asarray(res.diagnostics["objective_surface"], float)
     finite = np.isfinite(z)
-    fig, ax = plt.subplots(figsize=(9.2, 5.0), constrained_layout=True)
+    fig, ax = plt.subplots(figsize=(7.5, 6.5), constrained_layout=True)
     m = ax.scatter(p[finite, 0], p[finite, 1], c=z[finite], s=42,
                    cmap="viridis_r", edgecolor="none")
     xy_fill(ax, reg, color="#f4a261", alpha=.18)
     ax.scatter(*res.point, marker="*", s=170, c="#d62828", edgecolor="white",
                label=r"$S_2^*$")
     ax.scatter(*s1, marker="^", s=65, c="black", label=r"$S_1$")
-    ax.set(title="GDOP均值选点目标面",
+    ax.set(title="Expected posterior-diameter search surface",
            aspect="equal", xlabel="x (m)", ylabel="y (m)")
-    fig.colorbar(m, ax=ax, label="期望直径 (m)")
+    fig.colorbar(m, ax=ax, label="Expected diameter (m)")
     ax.legend()
     save(fig, "expected_diameter_objective_surface.png")
-    fig, ax = plt.subplots(figsize=(10.2, 5.8))
-    xy_fill(ax, reg, swap_xy=True, negate=True, color="#f4a261", alpha=.35)
-    ax.scatter(-pts[:,1], -pts[:,0], s=8, color="#555555", alpha=.5,
-               label="后验粒子")
-    for j, name in enumerate(DISPLAY_STRATEGIES):
-        res = results[name]
-        ax.scatter(*displayed_point_upper_left(res.point), s=125 if name == "gdop_mean" else 72,
-                    marker="*" if name == "gdop_mean" else (j % 5) + 3,
-                    linewidth=0.8, edgecolor="white" if name == "gdop_mean" else "none",
-                    label=DISPLAY_LABELS[name], zorder=6 if name == "gdop_mean" else 5)
-    ax.scatter(*displayed_point_upper_left(s1), marker="^", s=90, c="black", label=r"$S_1$")
+    fig, ax = plt.subplots(figsize=(7, 6))
+    xy_fill(ax, reg, color="#f4a261", alpha=.35)
+    ax.scatter(pts[:,0], pts[:,1], s=8, color="#555555", alpha=.5,
+               label="posterior particles")
+    for j, (name, res) in enumerate(results.items()):
+        ax.scatter(*res.point, s=65, marker=(j % 5) + 3, label=name)
+    ax.scatter(*s1, marker="^", s=90, c="black", label="S1")
     ax.set(aspect="equal", xlabel="x (m)", ylabel="y (m)",
-           title="四种策略选取的第二检测点")
-    ax.legend(fontsize=8, ncol=2, loc="upper right")
-    save_paper_figure(fig, "selected_points_comparison", "fig2_selected_points")
+           title="Selected second detection points")
+    ax.legend(fontsize=7, ncol=2)
+    save(fig, "selected_points_comparison.png")
 
 
 def result_figures(df, summary):
-    df = df[df.strategy.isin(DISPLAY_STRATEGIES)].copy()
-    summary = summary[summary.strategy.isin(DISPLAY_STRATEGIES)].copy()
-    order = DISPLAY_STRATEGIES
+    order = summary.sort_values("diameter_mean")["strategy"].tolist()
     sample = df.groupby("strategy", group_keys=False).sample(
         n=min(2500, df.groupby("strategy").size().min()), random_state=13)
     fig, ax = plt.subplots(figsize=(12, 5))
@@ -186,14 +132,12 @@ def result_figures(df, summary):
     save(fig, "diameter_distribution.png")
 
     fig, ax = plt.subplots(figsize=(8, 5))
-    for name in DISPLAY_STRATEGIES:
-        g = df[df.strategy == name]
+    for name, g in df.groupby("strategy"):
         x = np.sort(g.diameter_m.to_numpy())
-        ax.plot(x, np.arange(1, len(x)+1)/len(x), label=DISPLAY_LABELS[name],
-                linewidth=2.3 if name == "gdop_mean" else 1.2)
-    ax.set(xlabel="定位区域直径 (m)", ylabel="经验累积分布", xlim=(0, None))
-    ax.grid(alpha=.25); ax.legend(fontsize=8, ncol=2)
-    save_paper_figure(fig, "diameter_cdf", "fig3_diameter_cdf")
+        ax.plot(x, np.arange(1, len(x)+1)/len(x), label=name)
+    ax.set(xlabel="Localization diameter (m)", ylabel="Empirical CDF", xlim=(0, None))
+    ax.grid(alpha=.25); ax.legend(fontsize=7, ncol=2)
+    save(fig, "diameter_cdf.png")
 
     long = summary.melt(id_vars="strategy",
                         value_vars=["diameter_mean","diameter_p95","diameter_max"],
@@ -301,12 +245,6 @@ def representative_case_figures():
 def main():
     FIGURES.mkdir(parents=True, exist_ok=True)
     sns.set_theme(style="whitegrid", context="paper")
-    plt.rcParams.update({
-        "font.family": "sans-serif",
-        "font.sans-serif": ["Microsoft YaHei", "SimHei", "Noto Sans SC", "DejaVu Sans"],
-        "axes.unicode_minus": False,
-        "pdf.fonttype": 42,
-    })
     df = pd.read_csv(RAW / "evaluations.csv")
     scenarios = pd.read_csv(RAW / "base_scenarios.csv")
     selections = pd.read_csv(RAW / "selected_points.csv")
